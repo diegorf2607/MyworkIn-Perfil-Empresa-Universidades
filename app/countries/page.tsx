@@ -29,6 +29,7 @@ import {
   PowerOff,
   Loader2,
   Calendar,
+  Globe,
 } from "lucide-react"
 import { toast } from "sonner"
 import { getCountries, addCountry, updateCountry, deleteCountry } from "@/lib/actions/countries"
@@ -54,6 +55,12 @@ export default function CountriesPage() {
   const [isPending, startTransition] = useTransition()
   const [countries, setCountries] = useState<Country[]>([])
   const [stats, setStats] = useState<Record<string, CountryStats>>({})
+  const [globalStats, setGlobalStats] = useState<CountryStats>({
+    totalAccounts: 0,
+    activeOpps: 0,
+    pendingMeetings: 0,
+    totalMrr: 0,
+  })
   const [dialogOpen, setDialogOpen] = useState(false)
   const [newCountry, setNewCountry] = useState({ code: "", name: "" })
   const [isLoading, setIsLoading] = useState(true)
@@ -70,19 +77,30 @@ export default function CountriesPage() {
       setCountries(countriesData || [])
 
       const statsMap: Record<string, CountryStats> = {}
-      for (const country of countriesData || []) {
+      const globalTotals = { totalAccounts: 0, activeOpps: 0, pendingMeetings: 0, totalMrr: 0 }
+
+      for (const country of (countriesData || []).filter((c) => c.active)) {
         const countryAccounts = (accountsData || []).filter((a) => a.country_code === country.code)
         const countryOpps = (oppsData || []).filter((o) => o.country_code === country.code)
         const countryMeetings = (meetingsData || []).filter((m) => m.country_code === country.code)
 
-        statsMap[country.code] = {
+        const countryStats = {
           totalAccounts: countryAccounts.length,
           activeOpps: countryOpps.filter((o) => !["won", "lost"].includes(o.stage || "")).length,
           pendingMeetings: countryMeetings.filter((m) => m.outcome === "pending").length,
           totalMrr: countryOpps.filter((o) => o.stage === "won").reduce((sum, o) => sum + Number(o.mrr || 0), 0),
         }
+
+        statsMap[country.code] = countryStats
+
+        // Accumulate global totals
+        globalTotals.totalAccounts += countryStats.totalAccounts
+        globalTotals.activeOpps += countryStats.activeOpps
+        globalTotals.pendingMeetings += countryStats.pendingMeetings
+        globalTotals.totalMrr += countryStats.totalMrr
       }
       setStats(statsMap)
+      setGlobalStats(globalTotals)
     } catch (error) {
       console.error("Error loading data:", error)
       toast.error("Error al cargar datos")
@@ -170,7 +188,7 @@ export default function CountriesPage() {
         <div className="mx-auto max-w-6xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl p-2 text-transparent bg-popover">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl p-2 bg-card">
                 <Image
                   src="/images/myworkin-logo.png"
                   alt="MyWorkIn"
@@ -234,6 +252,68 @@ export default function CountriesPage() {
       </header>
 
       <main className="mx-auto max-w-6xl p-6">
+        <div className="mb-8">
+          <Card
+            className="cursor-pointer border-2 border-primary/20 bg-primary/5 transition-all hover:border-primary hover:shadow-lg"
+            onClick={() => router.push("/all/overview")}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white">
+                    <Globe className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl">Todos los países</CardTitle>
+                    <CardDescription>Ver métricas consolidadas de {activeCountries.length} países</CardDescription>
+                  </div>
+                </div>
+                <Button>Ver dashboard global</Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                    <Building2 className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold">{globalStats.totalAccounts}</p>
+                    <p className="text-xs text-muted-foreground">Universidades</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+                    <TrendingUp className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold">{globalStats.activeOpps}</p>
+                    <p className="text-xs text-muted-foreground">Opps activas</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100">
+                    <Calendar className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold">{globalStats.pendingMeetings}</p>
+                    <p className="text-xs text-muted-foreground">Reuniones</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold">${globalStats.totalMrr.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">MRR Won</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-foreground">Países activos</h2>
           <p className="text-sm text-muted-foreground">{activeCountries.length} países configurados en tu cuenta</p>

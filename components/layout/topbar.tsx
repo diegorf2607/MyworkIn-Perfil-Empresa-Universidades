@@ -32,6 +32,8 @@ export function Topbar({ countryCode }: TopbarProps) {
   const [dateRange, setDateRange] = useState<"14d" | "30d">("14d")
   const [countries, setCountries] = useState<Country[]>([])
 
+  const isGlobal = countryCode === "ALL"
+
   const loadData = useCallback(async () => {
     try {
       const countriesData = await getActiveCountries()
@@ -48,7 +50,11 @@ export function Topbar({ countryCode }: TopbarProps) {
   const currentCountry = countries.find((c) => c.code === countryCode)
 
   const handleCountryChange = (code: string) => {
-    router.push(`/c/${code}/scorecards`)
+    if (code === "ALL") {
+      router.push("/all/overview")
+    } else {
+      router.push(`/c/${code}/scorecards`)
+    }
   }
 
   return (
@@ -78,17 +84,22 @@ export function Topbar({ countryCode }: TopbarProps) {
           </SelectContent>
         </Select>
 
-        {/* Country Selector */}
+        {/* Country Selector with "Todos" option */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="gap-2 bg-transparent">
               <Globe className="h-4 w-4" />
-              {currentCountry?.name || "País"}
+              {isGlobal ? "Todos" : currentCountry?.name || "País"}
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuLabel>Cambiar país</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => handleCountryChange("ALL")} className={isGlobal ? "bg-accent" : ""}>
+              <Globe className="mr-2 h-4 w-4" />
+              Todos (Global)
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             {countries.map((country) => (
               <DropdownMenuItem

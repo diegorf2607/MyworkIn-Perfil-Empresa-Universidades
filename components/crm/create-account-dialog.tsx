@@ -42,7 +42,7 @@ export function CreateAccountDialog({
     type: "privada" as "privada" | "pública",
     size: "mediana" as "pequeña" | "mediana" | "grande",
     website: "",
-    icp_fit: 50,
+    fit_comercial: "medio" as "alto" | "medio" | "bajo",
     source: "outbound" as "inbound" | "outbound" | "referral" | "evento",
     notes: "",
   })
@@ -62,7 +62,7 @@ export function CreateAccountDialog({
           type: formData.type,
           size: formData.size,
           website: formData.website || null,
-          icp_fit: formData.icp_fit,
+          fit_comercial: formData.fit_comercial,
           stage: defaultStage,
           source: formData.source,
           notes: formData.notes || null,
@@ -78,7 +78,7 @@ export function CreateAccountDialog({
           type: "privada",
           size: "mediana",
           website: "",
-          icp_fit: 50,
+          fit_comercial: "medio",
           source: "outbound",
           notes: "",
         })
@@ -178,14 +178,35 @@ export function CreateAccountDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>ICP Fit (%)</Label>
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                value={formData.icp_fit}
-                onChange={(e) => setFormData({ ...formData, icp_fit: Number.parseInt(e.target.value) || 0 })}
-              />
+              <Label>Fit Comercial</Label>
+              <Select
+                value={formData.fit_comercial}
+                onValueChange={(v) => setFormData({ ...formData, fit_comercial: v as "alto" | "medio" | "bajo" })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alto">
+                    <span className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-green-500" />
+                      Alto
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="medio">
+                    <span className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-yellow-500" />
+                      Medio
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="bajo">
+                    <span className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-red-500" />
+                      Bajo
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

@@ -36,7 +36,7 @@ interface Account {
   type: string | null
   size: string | null
   stage: string | null
-  icp_fit: number | null
+  fit_comercial: string | null
   owner_id: string | null
 }
 
@@ -134,8 +134,9 @@ export default function UniversitiesPage() {
           return a.name.localeCompare(b.name)
         case "city":
           return (a.city || "").localeCompare(b.city || "")
-        case "icpFit":
-          return (b.icp_fit || 0) - (a.icp_fit || 0)
+        case "fit":
+          const fitOrder: Record<string, number> = { alto: 3, medio: 2, bajo: 1 }
+          return (fitOrder[b.fit_comercial || "medio"] || 2) - (fitOrder[a.fit_comercial || "medio"] || 2)
         default:
           return 0
       }
@@ -185,7 +186,7 @@ export default function UniversitiesPage() {
           type: newUniversity.type,
           size: newUniversity.size,
           stage: "lead",
-          icp_fit: 50,
+          fit_comercial: "medio",
         })
         toast.success("Universidad creada")
         setCreateDialogOpen(false)
@@ -352,7 +353,7 @@ export default function UniversitiesPage() {
               type: uni.type,
               size: uni.size,
               stage: "lead",
-              icp_fit: 50,
+              fit_comercial: "medio",
             })
             created++
           }
@@ -376,6 +377,16 @@ export default function UniversitiesPage() {
     setCsvPreview(null)
     setCsvFile(null)
     setImportResults(null)
+  }
+
+  const getFitBadge = (fit: string | null) => {
+    const config: Record<string, { label: string; className: string }> = {
+      alto: { label: "Alto", className: "bg-green-100 text-green-700" },
+      medio: { label: "Medio", className: "bg-yellow-100 text-yellow-700" },
+      bajo: { label: "Bajo", className: "bg-red-100 text-red-700" },
+    }
+    const fitConfig = config[fit || "medio"] || config.medio
+    return <Badge className={fitConfig.className}>{fitConfig.label}</Badge>
   }
 
   if (isLoading) {
@@ -458,7 +469,7 @@ export default function UniversitiesPage() {
             <SelectContent>
               <SelectItem value="name">Nombre A-Z</SelectItem>
               <SelectItem value="city">Ciudad</SelectItem>
-              <SelectItem value="icpFit">ICP Fit</SelectItem>
+              <SelectItem value="fit">Fit Comercial</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>
@@ -479,7 +490,7 @@ export default function UniversitiesPage() {
                 <TableHead>Tipo</TableHead>
                 <TableHead>Tamaño</TableHead>
                 <TableHead>Etapa</TableHead>
-                <TableHead>ICP Fit</TableHead>
+                <TableHead>Fit Comercial</TableHead>
                 <TableHead>Contactos</TableHead>
                 <TableHead>Owner</TableHead>
               </TableRow>
@@ -499,14 +510,7 @@ export default function UniversitiesPage() {
                   </TableCell>
                   <TableCell>{acc.size || "mediana"}</TableCell>
                   <TableCell>{getStageBadge(acc.stage)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-12 rounded-full bg-muted">
-                        <div className="h-2 rounded-full bg-primary" style={{ width: `${acc.icp_fit || 0}%` }} />
-                      </div>
-                      <span className="text-sm">{acc.icp_fit || 0}%</span>
-                    </div>
-                  </TableCell>
+                  <TableCell>{getFitBadge(acc.fit_comercial)}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">{getContactsCount(acc.id)}</Badge>
                   </TableCell>

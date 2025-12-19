@@ -85,7 +85,10 @@ export async function createMeeting(meeting: MeetingInsert) {
 export async function updateMeeting(update: MeetingUpdate) {
   const supabase = await createClient()
   const { id, ...updates } = update
-  const { data, error } = await supabase.from("meetings").update(updates).eq("id", id).select().single()
+
+  const { accounts, team_members, ...validUpdates } = updates as Record<string, unknown>
+
+  const { data, error } = await supabase.from("meetings").update(validUpdates).eq("id", id).select().single()
 
   if (error) throw error
   revalidatePath("/")

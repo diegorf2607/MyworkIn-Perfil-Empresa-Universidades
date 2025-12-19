@@ -23,7 +23,7 @@ interface Account {
   website: string | null
   size: "pequeña" | "mediana" | "grande" | null
   owner_id: string | null
-  icp_fit: number | null
+  fit_comercial: "alto" | "medio" | "bajo" | null
   stage: "lead" | "sql" | "opp" | "won" | "lost" | null
   source: "inbound" | "outbound" | "referral" | "evento" | null
   last_touch: string | null
@@ -45,6 +45,16 @@ interface TeamMember {
   email: string
   role: "SDR" | "AE"
   country_code: string | null
+}
+
+const getFitBadge = (fit: string | null) => {
+  const config: Record<string, { label: string; className: string }> = {
+    alto: { label: "Alto", className: "bg-green-100 text-green-700" },
+    medio: { label: "Medio", className: "bg-yellow-100 text-yellow-700" },
+    bajo: { label: "Bajo", className: "bg-red-100 text-red-700" },
+  }
+  const fitConfig = config[fit || "medio"] || config.medio
+  return <Badge className={fitConfig.className}>{fitConfig.label}</Badge>
 }
 
 export default function LeadsPage() {
@@ -96,8 +106,9 @@ export default function LeadsPage() {
       switch (sortBy) {
         case "name":
           return a.name.localeCompare(b.name)
-        case "icpFit":
-          return (b.icp_fit || 0) - (a.icp_fit || 0)
+        case "fit":
+          const fitOrder = { alto: 3, medio: 2, bajo: 1 }
+          return (fitOrder[b.fit_comercial || "medio"] || 2) - (fitOrder[a.fit_comercial || "medio"] || 2)
         case "lastTouch":
           return new Date(b.last_touch || 0).getTime() - new Date(a.last_touch || 0).getTime()
         default:
@@ -184,7 +195,7 @@ export default function LeadsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="name">Nombre A-Z</SelectItem>
-              <SelectItem value="icpFit">ICP Fit (mayor)</SelectItem>
+              <SelectItem value="fit">Fit Comercial (mayor)</SelectItem>
               <SelectItem value="lastTouch">Último contacto</SelectItem>
             </SelectContent>
           </Select>
@@ -202,7 +213,7 @@ export default function LeadsPage() {
               <TableRow>
                 <TableHead>Universidad</TableHead>
                 <TableHead>Tipo</TableHead>
-                <TableHead>ICP Fit</TableHead>
+                <TableHead>Fit Comercial</TableHead>
                 <TableHead>Owner</TableHead>
                 <TableHead>Fuente</TableHead>
                 <TableHead>Último contacto</TableHead>
@@ -225,14 +236,7 @@ export default function LeadsPage() {
                   <TableCell>
                     <Badge variant="outline">{lead.type}</Badge>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-16 rounded-full bg-muted">
-                        <div className="h-2 rounded-full bg-primary" style={{ width: `${lead.icp_fit || 0}%` }} />
-                      </div>
-                      <span className="text-sm">{lead.icp_fit || 0}%</span>
-                    </div>
-                  </TableCell>
+                  <TableCell>{getFitBadge(lead.fit_comercial)}</TableCell>
                   <TableCell>{getOwnerName(lead.owner_id)}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">{lead.source}</Badge>

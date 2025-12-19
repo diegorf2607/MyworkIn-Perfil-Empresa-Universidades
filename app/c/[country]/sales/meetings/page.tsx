@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { CreateMeetingDialog } from "@/components/crm/create-meeting-dialog"
 import { Search, Filter, Calendar, Video, Clock, Plus, Loader2 } from "lucide-react"
 import { getMeetings, updateMeeting, deleteMeeting } from "@/lib/actions/meetings"
@@ -121,7 +121,7 @@ export default function MeetingsPage() {
   const handleSave = async () => {
     if (!selectedMeeting) return
     try {
-      await updateMeeting(selectedMeeting.id, selectedMeeting)
+      await updateMeeting(selectedMeeting)
       toast.success("Reunión actualizada")
       setSheetOpen(false)
       loadData()
@@ -303,95 +303,99 @@ export default function MeetingsPage() {
 
       {/* Meeting Sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              {selectedMeeting?.kind} - {getAccountName(selectedMeeting?.account_id || "")}
-            </SheetTitle>
-          </SheetHeader>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-0">
+          <div className="p-6 space-y-6">
+            <SheetHeader>
+              <SheetTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                {selectedMeeting?.kind} - {getAccountName(selectedMeeting?.account_id || "")}
+              </SheetTitle>
+            </SheetHeader>
 
-          {selectedMeeting && (
-            <div className="space-y-4 mt-6 px-1">
-              <div className="space-y-2">
-                <Label>Fecha y hora</Label>
-                <Input
-                  type="datetime-local"
-                  value={selectedMeeting.date_time.slice(0, 16)}
-                  onChange={(e) => setSelectedMeeting({ ...selectedMeeting, date_time: e.target.value })}
-                />
+            {selectedMeeting && (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label>Fecha y hora</Label>
+                  <Input
+                    type="datetime-local"
+                    value={selectedMeeting.date_time.slice(0, 16)}
+                    onChange={(e) => setSelectedMeeting({ ...selectedMeeting, date_time: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tipo de reunión</Label>
+                  <Select
+                    value={selectedMeeting.kind}
+                    onValueChange={(v) =>
+                      setSelectedMeeting({
+                        ...selectedMeeting,
+                        kind: v as Meeting["kind"],
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Discovery">Discovery</SelectItem>
+                      <SelectItem value="Demo">Demo</SelectItem>
+                      <SelectItem value="Propuesta">Propuesta</SelectItem>
+                      <SelectItem value="Kickoff">Kickoff</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Resultado</Label>
+                  <Select
+                    value={selectedMeeting.outcome}
+                    onValueChange={(v) =>
+                      setSelectedMeeting({
+                        ...selectedMeeting,
+                        outcome: v as Meeting["outcome"],
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pendiente</SelectItem>
+                      <SelectItem value="done">Completada</SelectItem>
+                      <SelectItem value="no-show">No-show</SelectItem>
+                      <SelectItem value="next-step">Next step</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Notas</Label>
+                  <Textarea
+                    value={selectedMeeting.notes || ""}
+                    onChange={(e) => setSelectedMeeting({ ...selectedMeeting, notes: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Próximo paso</Label>
+                  <Input
+                    value={selectedMeeting.next_step || ""}
+                    onChange={(e) => setSelectedMeeting({ ...selectedMeeting, next_step: e.target.value })}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Tipo de reunión</Label>
-                <Select
-                  value={selectedMeeting.kind}
-                  onValueChange={(v) =>
-                    setSelectedMeeting({
-                      ...selectedMeeting,
-                      kind: v as Meeting["kind"],
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Discovery">Discovery</SelectItem>
-                    <SelectItem value="Demo">Demo</SelectItem>
-                    <SelectItem value="Propuesta">Propuesta</SelectItem>
-                    <SelectItem value="Kickoff">Kickoff</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Resultado</Label>
-                <Select
-                  value={selectedMeeting.outcome}
-                  onValueChange={(v) =>
-                    setSelectedMeeting({
-                      ...selectedMeeting,
-                      outcome: v as Meeting["outcome"],
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pendiente</SelectItem>
-                    <SelectItem value="done">Completada</SelectItem>
-                    <SelectItem value="no-show">No-show</SelectItem>
-                    <SelectItem value="next-step">Next step</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Notas</Label>
-                <Textarea
-                  value={selectedMeeting.notes || ""}
-                  onChange={(e) => setSelectedMeeting({ ...selectedMeeting, notes: e.target.value })}
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Próximo paso</Label>
-                <Input
-                  value={selectedMeeting.next_step || ""}
-                  onChange={(e) => setSelectedMeeting({ ...selectedMeeting, next_step: e.target.value })}
-                />
-              </div>
+            )}
+
+            <div className="flex gap-2 pt-4">
+              <Button variant="destructive" onClick={handleDelete} className="flex-1">
+                Eliminar
+              </Button>
+              <Button variant="outline" onClick={() => setSheetOpen(false)} className="flex-1">
+                Cancelar
+              </Button>
+              <Button onClick={handleSave} className="flex-1">
+                Guardar
+              </Button>
             </div>
-          )}
-
-          <SheetFooter className="mt-6 flex gap-2">
-            <Button variant="destructive" onClick={handleDelete}>
-              Eliminar
-            </Button>
-            <Button variant="outline" onClick={() => setSheetOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSave}>Guardar</Button>
-          </SheetFooter>
+          </div>
         </SheetContent>
       </Sheet>
 
