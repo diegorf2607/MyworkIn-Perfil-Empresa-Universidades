@@ -254,27 +254,43 @@ export default function KDMPage() {
         return result
       }
 
-      const headers = parseCSVLine(lines[0]).map((h) => h.toLowerCase().replace(/['"]/g, ""))
+      const headers = parseCSVLine(lines[0]).map((h) => h.toLowerCase().replace(/['"]/g, "").trim())
 
-      // Map expected headers
+      // Map expected headers - more flexible mapping
       const headerMap: { [key: string]: string } = {
-        nombre: "first_name",
-        name: "first_name",
+        // Name variations
+        nombre: "full_name",
+        name: "full_name",
+        "nombre completo": "full_name",
+        full_name: "full_name",
         first_name: "first_name",
         apellido: "last_name",
         last_name: "last_name",
+        // Title/role variations
         cargo: "role_title",
         role: "role_title",
         role_title: "role_title",
+        puesto: "role_title",
+        titulo: "role_title",
+        title: "role_title",
+        // Contact variations
         email: "email",
         correo: "email",
+        "correo electronico": "email",
         telefono: "phone",
         teléfono: "phone",
         phone: "phone",
+        celular: "phone",
+        whatsapp: "phone",
+        // University variations
         universidad: "university",
         university: "university",
+        institucion: "university",
+        institución: "university",
+        // LinkedIn variations
         linkedin: "linkedin_url",
         linkedin_url: "linkedin_url",
+        "linkedin url": "linkedin_url",
       }
 
       const validRows: any[] = []
@@ -293,12 +309,33 @@ export default function KDMPage() {
           }
         })
 
+        // Handle full_name -> first_name + last_name
+        if (row.full_name && !row.first_name) {
+          const nameParts = row.full_name.trim().split(/\s+/)
+          row.first_name = nameParts[0] || ""
+          row.last_name = nameParts.slice(1).join(" ") || ""
+        }
+
         // Validate required fields
         if (!row.first_name) {
           errorRows.push({ row: i + 1, data: row, reason: "Falta el nombre" })
-        } else {
-          validRows.push(row)
+          continue
         }
+
+        // Validate university exists in this country
+        if (row.university) {
+          const universityExists = accounts.some((a) => a.name.toLowerCase() === row.university.toLowerCase())
+          if (!universityExists) {
+            errorRows.push({
+              row: i + 1,
+              data: row,
+              reason: `Universidad "${row.university}" no encontrada en ${country}`,
+            })
+            continue
+          }
+        }
+
+        validRows.push(row)
       }
 
       setImportPreview(validRows)

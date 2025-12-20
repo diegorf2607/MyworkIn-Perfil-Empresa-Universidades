@@ -48,7 +48,7 @@ interface Country {
 interface CreateMeetingDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  countryCode: string // Can be "ALL" for global view
+  countryCode: string
   onSuccess?: () => void
 }
 
@@ -65,24 +65,32 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
   const [formData, setFormData] = useState({
     account_id: "",
     owner_id: "",
-    selected_country: "", // Only used in global view
+    selected_country: "",
     kind: "Discovery" as "Discovery" | "Demo" | "Propuesta" | "Kickoff",
     date_time: "",
     notes: "",
+    contact_name: "",
+    contact_email: "",
+    next_step_type: "" as
+      | ""
+      | "waiting_response"
+      | "new_meeting"
+      | "send_proposal"
+      | "internal_review"
+      | "general_follow_up",
+    next_step_date: "",
+    next_step_responsible: "myworkin" as "myworkin" | "university",
   })
 
-  // Determine effective country code
   const effectiveCountry = isGlobalView ? formData.selected_country : countryCode
 
   useEffect(() => {
     if (open) {
-      // Load initial data
       Promise.all([getAccounts(), getCountries()]).then(([accountsData, countriesData]) => {
         const activeCountries = (countriesData || []).filter((c) => c.active)
         setCountries(activeCountries)
 
         if (isGlobalView) {
-          // For global view, show all accounts
           setAccounts(
             (accountsData || []).map((a) => ({
               id: a.id,
@@ -92,7 +100,6 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
             })),
           )
         } else {
-          // Filter accounts by country
           const filtered = (accountsData || [])
             .filter((a) => a.country_code === countryCode)
             .map((a) => ({ id: a.id, name: a.name, city: a.city, country_code: a.country_code }))
@@ -100,7 +107,6 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
         }
       })
 
-      // Set default date/time to tomorrow at 10am
       const tomorrow = new Date()
       tomorrow.setDate(tomorrow.getDate() + 1)
       tomorrow.setHours(10, 0, 0, 0)
@@ -108,12 +114,10 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
     }
   }, [open, countryCode, isGlobalView])
 
-  // Load team members when effective country changes
   useEffect(() => {
     if (open && effectiveCountry) {
       getActiveTeamMembersByCountry(effectiveCountry).then((data) => {
         setTeamMembers(data || [])
-        // Auto-select first member if available
         if (data && data.length > 0) {
           setFormData((prev) => ({ ...prev, owner_id: data[0].id }))
         } else {
@@ -121,7 +125,6 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
         }
       })
     } else if (open && isGlobalView && !effectiveCountry) {
-      // In global view without country selected, clear team members
       setTeamMembers([])
       setFormData((prev) => ({ ...prev, owner_id: "" }))
     }
@@ -129,7 +132,6 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
 
   const selectedAccount = accounts.find((a) => a.id === formData.account_id)
 
-  // Filter accounts by selected country in global view
   const filteredAccounts = isGlobalView
     ? formData.selected_country
       ? accounts.filter((a) => a.country_code === formData.selected_country)
@@ -137,7 +139,6 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
     : accounts
 
   const handleSubmit = () => {
-    // Validation
     if (isGlobalView && !formData.selected_country) {
       toast.error("Selecciona un país primero")
       return
@@ -154,6 +155,14 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
       toast.error("Selecciona un responsable")
       return
     }
+    if (!formData.contact_name) {
+      toast.error("Ingresa el nombre del contacto")
+      return
+    }
+    if (!formData.contact_email) {
+      toast.error("Ingresa el correo del contacto")
+      return
+    }
 
     startTransition(async () => {
       try {
@@ -165,6 +174,11 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
           date_time: new Date(formData.date_time).toISOString(),
           outcome: "pending",
           notes: formData.notes || null,
+          contact_name: formData.contact_name,
+          contact_email: formData.contact_email,
+          next_step_type: formData.next_step_type || undefined,
+          next_step_date: formData.next_step_date || undefined,
+          next_step_responsible: formData.next_step_responsible,
         })
 
         toast.success("Reunión agendada")
@@ -176,6 +190,11 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
           kind: "Discovery",
           date_time: "",
           notes: "",
+          contact_name: "",
+          contact_email: "",
+          next_step_type: "",
+          next_step_date: "",
+          next_step_responsible: "myworkin",
         })
         router.refresh()
         onSuccess?.()
@@ -186,9 +205,17 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
     })
   }
 
+  const nextStepTypeLabels: Record<string, string> = {
+    waiting_response: "Esperando respuesta",
+    new_meeting: "Nueva reunión",
+    send_proposal: "Envío de propuesta",
+    internal_review: "Revisión interna universidad",
+    general_follow_up: "Seguimiento general",
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Agendar Reunión</DialogTitle>
           <DialogDescription>Programa una reunión con una universidad</DialogDescription>
@@ -269,6 +296,29 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
             </Popover>
           </div>
 
+          <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+            <Label className="text-sm font-medium">Datos del contacto *</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Nombre</Label>
+                <Input
+                  value={formData.contact_name}
+                  onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
+                  placeholder="Juan Pérez"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Correo</Label>
+                <Input
+                  type="email"
+                  value={formData.contact_email}
+                  onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                  placeholder="juan@universidad.edu"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Tipo de reunión</Label>
@@ -328,6 +378,57 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
               value={formData.date_time}
               onChange={(e) => setFormData({ ...formData, date_time: e.target.value })}
             />
+          </div>
+
+          <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+            <Label className="text-sm font-medium">Próximo paso (opcional)</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Tipo</Label>
+                <Select
+                  value={formData.next_step_type}
+                  onValueChange={(v) =>
+                    setFormData({ ...formData, next_step_type: v as typeof formData.next_step_type })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(nextStepTypeLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Responsable</Label>
+                <Select
+                  value={formData.next_step_responsible}
+                  onValueChange={(v) =>
+                    setFormData({ ...formData, next_step_responsible: v as typeof formData.next_step_responsible })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="myworkin">MyWorkIn</SelectItem>
+                    <SelectItem value="university">Universidad</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Fecha estimada</Label>
+              <Input
+                type="date"
+                value={formData.next_step_date}
+                onChange={(e) => setFormData({ ...formData, next_step_date: e.target.value })}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

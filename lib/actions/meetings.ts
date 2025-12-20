@@ -13,9 +13,21 @@ export type MeetingInsert = {
   notes?: string
   next_step?: string
   next_meeting_date?: string
+  contact_name?: string
+  contact_email?: string
+  next_step_type?: "waiting_response" | "new_meeting" | "send_proposal" | "internal_review" | "general_follow_up"
+  next_step_date?: string
+  next_step_responsible?: "myworkin" | "university"
 }
 
-export type MeetingUpdate = Partial<MeetingInsert> & { id: string }
+export type MeetingUpdate = Partial<MeetingInsert> & {
+  id: string
+  outcome_changed_at?: string
+  post_meeting_sent_at?: string
+  had_progress?: boolean
+  progress_at?: string
+  follow_up_status?: "active" | "cancelled" | "alert_sent" | "resolved"
+}
 
 export async function getMeetings(countryCode?: string) {
   const supabase = await createClient()
@@ -69,7 +81,10 @@ export async function createMeeting(meeting: MeetingInsert) {
   }
 
   // Set next follow-up based on meeting
-  if (meeting.next_meeting_date) {
+  if (meeting.next_step_date) {
+    updates.next_follow_up_at = meeting.next_step_date
+    updates.next_follow_up_label = meeting.next_step || `Post-${meeting.kind}`
+  } else if (meeting.next_meeting_date) {
     updates.next_follow_up_at = meeting.next_meeting_date
     updates.next_follow_up_label = meeting.next_step || `Post-${meeting.kind}`
   }
@@ -89,6 +104,83 @@ export async function updateMeeting(update: MeetingUpdate) {
   const { accounts, team_members, ...validUpdates } = updates as Record<string, unknown>
 
   const { data, error } = await supabase.from("meetings").update(validUpdates).eq("id", id).select().single()
+
+  if (error) throw error
+  revalidatePath("/")
+  return data
+}
+
+export async function updateMeetingOutcome(
+  meetingId: string,
+  newOutcome: "pending" | "no-show" | "done" | "next-step",
+  currentOutcome: string,
+) {
+  const supabase = await createClient()
+
+  // Only track if outcome actually changed from pending
+  const updates: Record<string, unknown> = {
+    outcome: newOutcome,
+  }
+
+  if (currentOutcome === "pending" && newOutcome !== "pending") {
+    updates.outcome_changed_at = new Date().toISOString()
+  }
+
+  const { data, error } = await supabase.from("meetings").update(updates).eq("id", meetingId).select().single()
+
+  if (error) throw error
+  revalidatePath("/")
+  return data
+}
+
+export async function markPostMeetingSent(meetingId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("meetings")
+    .update({
+      post_meeting_sent_at: new Date().toISOString(),
+    })
+    .eq("id", meetingId)
+    .select()
+    .single()
+
+  if (error) throw error
+  revalidatePath("/")
+  return data
+}
+
+export async function markMeetingProgress(meetingId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("meetings")
+    .update({
+      had_progress: true,
+      progress_at: new Date().toISOString(),
+      follow_up_status: "resolved",
+    })
+    .eq("id", meetingId)
+    .select()
+    .single()
+
+  if (error) throw error
+  revalidatePath("/")
+  return data
+}
+
+export async function updateFollowUpStatus(
+  meetingId: string,
+  status: "active" | "cancelled" | "alert_sent" | "resolved",
+) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("meetings")
+    .update({ follow_up_status: status })
+    .eq("id", meetingId)
+    .select()
+    .single()
 
   if (error) throw error
   revalidatePath("/")

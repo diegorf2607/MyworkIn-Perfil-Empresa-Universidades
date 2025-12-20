@@ -12,8 +12,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { CreateMeetingDialog } from "@/components/crm/create-meeting-dialog"
-import { Search, Filter, Calendar, Video, Clock, Plus, Loader2 } from "lucide-react"
-import { getMeetings, updateMeeting, deleteMeeting } from "@/lib/actions/meetings"
+import { Search, Filter, Calendar, Video, Clock, Plus, Loader2, CheckCircle2, Mail, AlertCircle } from "lucide-react"
+import {
+  getMeetings,
+  updateMeeting,
+  deleteMeeting,
+  updateMeetingOutcome,
+  markPostMeetingSent,
+  markMeetingProgress,
+} from "@/lib/actions/meetings"
 import { getAccounts } from "@/lib/actions/accounts"
 import { getTeamMembers } from "@/lib/actions/team"
 import { toast } from "sonner"
@@ -29,6 +36,16 @@ interface Meeting {
   notes: string | null
   next_step: string | null
   next_meeting_date: string | null
+  contact_name: string | null
+  contact_email: string | null
+  outcome_changed_at: string | null
+  post_meeting_sent_at: string | null
+  had_progress: boolean
+  progress_at: string | null
+  next_step_type: string | null
+  next_step_date: string | null
+  next_step_responsible: string | null
+  follow_up_status: "active" | "cancelled" | "alert_sent" | "resolved"
 }
 
 interface Account {
@@ -39,6 +56,14 @@ interface Account {
 interface TeamMember {
   id: string
   name: string
+}
+
+const nextStepTypeLabels: Record<string, string> = {
+  waiting_response: "Esperando respuesta",
+  new_meeting: "Nueva reunión",
+  send_proposal: "Envío de propuesta",
+  internal_review: "Revisión interna universidad",
+  general_follow_up: "Seguimiento general",
 }
 
 export default function MeetingsPage() {
@@ -115,6 +140,47 @@ export default function MeetingsPage() {
         return <Badge className="bg-blue-600">Next step</Badge>
       default:
         return <Badge variant="secondary">Pendiente</Badge>
+    }
+  }
+
+  const handleOutcomeChange = async (newOutcome: Meeting["outcome"]) => {
+    if (!selectedMeeting) return
+    try {
+      await updateMeetingOutcome(selectedMeeting.id, newOutcome, selectedMeeting.outcome)
+      setSelectedMeeting({ ...selectedMeeting, outcome: newOutcome, outcome_changed_at: new Date().toISOString() })
+      toast.success("Resultado actualizado")
+      loadData()
+    } catch (error) {
+      toast.error("Error al actualizar resultado")
+    }
+  }
+
+  const handlePostMeetingSent = async () => {
+    if (!selectedMeeting) return
+    try {
+      await markPostMeetingSent(selectedMeeting.id)
+      setSelectedMeeting({ ...selectedMeeting, post_meeting_sent_at: new Date().toISOString() })
+      toast.success("Post-reunión marcado como enviado")
+      loadData()
+    } catch (error) {
+      toast.error("Error al marcar post-reunión")
+    }
+  }
+
+  const handleMarkProgress = async () => {
+    if (!selectedMeeting) return
+    try {
+      await markMeetingProgress(selectedMeeting.id)
+      setSelectedMeeting({
+        ...selectedMeeting,
+        had_progress: true,
+        progress_at: new Date().toISOString(),
+        follow_up_status: "resolved",
+      })
+      toast.success("Avance registrado - seguimiento cancelado")
+      loadData()
+    } catch (error) {
+      toast.error("Error al registrar avance")
     }
   }
 
@@ -244,10 +310,11 @@ export default function MeetingsPage() {
               <TableRow>
                 <TableHead>Fecha/Hora</TableHead>
                 <TableHead>Universidad</TableHead>
+                <TableHead>Contacto</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Responsable</TableHead>
                 <TableHead>Resultado</TableHead>
-                <TableHead>Notas</TableHead>
+                <TableHead>Indicadores</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -282,16 +349,49 @@ export default function MeetingsPage() {
                   </TableCell>
                   <TableCell>{getAccountName(meeting.account_id)}</TableCell>
                   <TableCell>
+                    {meeting.contact_name ? (
+                      <div>
+                        <p className="font-medium text-sm">{meeting.contact_name}</p>
+                        <p className="text-xs text-muted-foreground">{meeting.contact_email}</p>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Badge variant="outline">{meeting.kind}</Badge>
                   </TableCell>
                   <TableCell>{getOwnerName(meeting.owner_id)}</TableCell>
                   <TableCell>{getOutcomeBadge(meeting.outcome)}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">{meeting.notes || "-"}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      {meeting.post_meeting_sent_at && (
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                          <Mail className="h-3 w-3 mr-1" />
+                          Post enviado
+                        </Badge>
+                      )}
+                      {meeting.had_progress && (
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Avance
+                        </Badge>
+                      )}
+                      {meeting.follow_up_status === "active" &&
+                        meeting.outcome !== "pending" &&
+                        !meeting.had_progress && (
+                          <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            Seguimiento
+                          </Badge>
+                        )}
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
               {filteredMeetings.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No hay reuniones programadas
                   </TableCell>
                 </TableRow>
@@ -314,6 +414,81 @@ export default function MeetingsPage() {
 
             {selectedMeeting && (
               <div className="space-y-5">
+                <div className="flex flex-wrap gap-2">
+                  {selectedMeeting.post_meeting_sent_at && (
+                    <Badge className="bg-blue-100 text-blue-800">
+                      <Mail className="h-3 w-3 mr-1" />
+                      Post-reunión enviado
+                    </Badge>
+                  )}
+                  {selectedMeeting.had_progress && (
+                    <Badge className="bg-green-100 text-green-800">
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Hubo avance
+                    </Badge>
+                  )}
+                  {selectedMeeting.follow_up_status === "active" && (
+                    <Badge variant="outline" className="border-orange-300 text-orange-700">
+                      Seguimiento activo
+                    </Badge>
+                  )}
+                  {selectedMeeting.follow_up_status === "resolved" && (
+                    <Badge variant="outline" className="border-green-300 text-green-700">
+                      Resuelto
+                    </Badge>
+                  )}
+                </div>
+
+                {selectedMeeting.outcome !== "pending" && (
+                  <div className="flex gap-2">
+                    {!selectedMeeting.post_meeting_sent_at && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePostMeetingSent}
+                        className="flex-1 bg-transparent"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Marcar post enviado
+                      </Button>
+                    )}
+                    {!selectedMeeting.had_progress && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleMarkProgress}
+                        className="flex-1 border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Respondió
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                  <Label className="text-sm font-medium">Datos del contacto</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Nombre</Label>
+                      <Input
+                        value={selectedMeeting.contact_name || ""}
+                        onChange={(e) => setSelectedMeeting({ ...selectedMeeting, contact_name: e.target.value })}
+                        placeholder="Nombre del contacto"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Correo</Label>
+                      <Input
+                        type="email"
+                        value={selectedMeeting.contact_email || ""}
+                        onChange={(e) => setSelectedMeeting({ ...selectedMeeting, contact_email: e.target.value })}
+                        placeholder="correo@universidad.edu"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label>Fecha y hora</Label>
                   <Input
@@ -322,63 +497,102 @@ export default function MeetingsPage() {
                     onChange={(e) => setSelectedMeeting({ ...selectedMeeting, date_time: e.target.value })}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Tipo de reunión</Label>
-                  <Select
-                    value={selectedMeeting.kind}
-                    onValueChange={(v) =>
-                      setSelectedMeeting({
-                        ...selectedMeeting,
-                        kind: v as Meeting["kind"],
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Discovery">Discovery</SelectItem>
-                      <SelectItem value="Demo">Demo</SelectItem>
-                      <SelectItem value="Propuesta">Propuesta</SelectItem>
-                      <SelectItem value="Kickoff">Kickoff</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Tipo de reunión</Label>
+                    <Select
+                      value={selectedMeeting.kind}
+                      onValueChange={(v) =>
+                        setSelectedMeeting({
+                          ...selectedMeeting,
+                          kind: v as Meeting["kind"],
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Discovery">Discovery</SelectItem>
+                        <SelectItem value="Demo">Demo</SelectItem>
+                        <SelectItem value="Propuesta">Propuesta</SelectItem>
+                        <SelectItem value="Kickoff">Kickoff</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Resultado</Label>
+                    <Select
+                      value={selectedMeeting.outcome}
+                      onValueChange={(v) => handleOutcomeChange(v as Meeting["outcome"])}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pendiente</SelectItem>
+                        <SelectItem value="done">Completada</SelectItem>
+                        <SelectItem value="no-show">No-show</SelectItem>
+                        <SelectItem value="next-step">Next step</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Resultado</Label>
-                  <Select
-                    value={selectedMeeting.outcome}
-                    onValueChange={(v) =>
-                      setSelectedMeeting({
-                        ...selectedMeeting,
-                        outcome: v as Meeting["outcome"],
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pendiente</SelectItem>
-                      <SelectItem value="done">Completada</SelectItem>
-                      <SelectItem value="no-show">No-show</SelectItem>
-                      <SelectItem value="next-step">Next step</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                  <Label className="text-sm font-medium">Próximo paso</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Tipo</Label>
+                      <Select
+                        value={selectedMeeting.next_step_type || ""}
+                        onValueChange={(v) => setSelectedMeeting({ ...selectedMeeting, next_step_type: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(nextStepTypeLabels).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Responsable</Label>
+                      <Select
+                        value={selectedMeeting.next_step_responsible || "myworkin"}
+                        onValueChange={(v) => setSelectedMeeting({ ...selectedMeeting, next_step_responsible: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="myworkin">MyWorkIn</SelectItem>
+                          <SelectItem value="university">Universidad</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Fecha estimada</Label>
+                    <Input
+                      type="date"
+                      value={selectedMeeting.next_step_date || ""}
+                      onChange={(e) => setSelectedMeeting({ ...selectedMeeting, next_step_date: e.target.value })}
+                    />
+                  </div>
                 </div>
+
                 <div className="space-y-2">
                   <Label>Notas</Label>
                   <Textarea
                     value={selectedMeeting.notes || ""}
                     onChange={(e) => setSelectedMeeting({ ...selectedMeeting, notes: e.target.value })}
                     rows={3}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Próximo paso</Label>
-                  <Input
-                    value={selectedMeeting.next_step || ""}
-                    onChange={(e) => setSelectedMeeting({ ...selectedMeeting, next_step: e.target.value })}
                   />
                 </div>
               </div>
