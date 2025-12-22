@@ -109,7 +109,6 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
     { title: "SQLs", href: `${basePath}/crm/sqls`, icon: Target },
     { title: "Oportunidades", href: `${basePath}/crm/opps`, icon: TrendingUp },
     { title: "Cerradas", href: `${basePath}/crm/closed`, icon: Trophy },
-    { title: "KDM", href: `${basePath}/crm/kdm`, icon: UserCircle },
   ]
 
   const salesItems = [
@@ -126,6 +125,7 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
   ]
 
   const scorecardItem = { title: "Scorecard", href: `${basePath}/scorecards`, icon: BarChart3 }
+  const kdmItem = { title: "KDM", href: `${basePath}/kdm`, icon: UserCircle }
 
   return (
     <Sidebar>
@@ -162,6 +162,22 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Contactos Clave</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === kdmItem.href}>
+                  <Link href={kdmItem.href}>
+                    <kdmItem.icon className="h-4 w-4" />
+                    <span>{kdmItem.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

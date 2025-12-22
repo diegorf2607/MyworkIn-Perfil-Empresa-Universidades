@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect, useCallback, useTransition, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,11 +31,10 @@ import {
   Power,
   PowerOff,
   Building2,
-  Globe,
   AlertCircle,
   CheckCircle,
-  UserCircle,
   Linkedin,
+  UserCircle,
 } from "lucide-react"
 import { toast } from "sonner"
 import {
@@ -47,7 +46,6 @@ import {
   type KDMContact,
 } from "@/lib/actions/kdm"
 import { getAccounts } from "@/lib/actions/accounts"
-import { getCountries } from "@/lib/actions/countries"
 
 interface Account {
   id: string
@@ -55,27 +53,15 @@ interface Account {
   country_code: string
 }
 
-interface Country {
-  code: string
-  name: string
-  flag: string
-}
-
-export default function GlobalKDMPage() {
-  const router = useRouter()
+export default function KDMPage() {
+  const { country } = useParams<{ country: string }>()
   const [isPending, startTransition] = useTransition()
-
-  // Data
+  const [isLoading, setIsLoading] = useState(true)
   const [kdmContacts, setKdmContacts] = useState<KDMContact[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
-  const [countries, setCountries] = useState<Country[]>([])
-  const [loading, setLoading] = useState(true)
-
-  // Filters
-  const [search, setSearch] = useState("")
-  const [filterCountry, setFilterCountry] = useState<string>("all")
-  const [filterUniversity, setFilterUniversity] = useState<string>("all")
   const [showInactive, setShowInactive] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterAccount, setFilterAccount] = useState<string>("all")
 
   // Dialog states
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false)
@@ -86,7 +72,6 @@ export default function GlobalKDMPage() {
   const [importPreview, setImportPreview] = useState<any[]>([])
   const [importErrors, setImportErrors] = useState<{ row: number; data: any; reason: string }[]>([])
   const [importResult, setImportResult] = useState<{ created: number; updated: number; errors: any[] } | null>(null)
-  const [importCountry, setImportCountry] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [newKDM, setNewKDM] = useState({
@@ -98,31 +83,39 @@ export default function GlobalKDMPage() {
     linkedin_url: "",
     notes: "",
     account_id: "",
-    country_code: "",
   })
 
   const loadData = useCallback(async () => {
     try {
-      setLoading(true)
-      const [kdmData, accountsData, countriesData] = await Promise.all([
-        getKDMContacts(), // Get all KDMs globally
-        getAccounts(),
-        getCountries(),
-      ])
-      setKdmContacts(kdmData)
-      setAccounts(accountsData)
-      setCountries(countriesData.filter((c: Country) => c.code !== "ALL"))
+      setIsLoading(true)
+      const [kdmData, accountsData] = await Promise.all([getKDMContacts(country), getAccounts()])
+      setKdmContacts(kdmData || [])
+      setAccounts((accountsData || []).filter((a) => a.country_code === country))
     } catch (error) {
-      console.error("Error loading data:", error)
+      console.error("Error loading KDM data:", error)
       toast.error("Error al cargar datos")
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
-  }, [])
+  }, [country])
 
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  // Filter and search
+  const filteredKDM = kdmContacts.filter((kdm) => {
+    const matchesSearch =
+      searchQuery === "" ||
+      `${kdm.first_name} ${kdm.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      kdm.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      kdm.role_title?.toLowerCase().includes(searchQuery.toLowerCase())
+
+    const matchesAccount = filterAccount === "all" || kdm.account_id === filterAccount
+    const matchesStatus = showInactive || kdm.is_active !== false
+
+    return matchesSearch && matchesAccount && matchesStatus
+  })
 
   // Get university name by account_id
   const getUniversityName = (accountId: string | null) => {
@@ -131,42 +124,10 @@ export default function GlobalKDMPage() {
     return account?.name || "Desconocida"
   }
 
-  // Get country by account_id
-  const getCountryByAccount = (accountId: string | null) => {
-    if (!accountId) return null
-    const account = accounts.find((a) => a.id === accountId)
-    return account?.country_code || null
-  }
-
-  // Filter logic
-  const filteredKDM = kdmContacts.filter((kdm) => {
-    const matchesSearch =
-      search === "" ||
-      `${kdm.first_name} ${kdm.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-      kdm.email?.toLowerCase().includes(search.toLowerCase()) ||
-      kdm.role_title?.toLowerCase().includes(search.toLowerCase())
-
-    const kdmCountry = getCountryByAccount(kdm.account_id)
-    const matchesCountry = filterCountry === "all" || kdmCountry === filterCountry
-
-    const matchesUniversity = filterUniversity === "all" || kdm.account_id === filterUniversity
-
-    const matchesStatus = showInactive || kdm.is_active !== false
-
-    return matchesSearch && matchesCountry && matchesUniversity && matchesStatus
-  })
-
-  // Get filtered accounts based on selected country
-  const filteredAccounts = filterCountry === "all" ? accounts : accounts.filter((a) => a.country_code === filterCountry)
-
   // Create new KDM
   const handleCreateKDM = async () => {
     if (!newKDM.first_name.trim()) {
       toast.error("El nombre es obligatorio")
-      return
-    }
-    if (!newKDM.country_code) {
-      toast.error("Selecciona un país")
       return
     }
 
@@ -181,7 +142,7 @@ export default function GlobalKDMPage() {
           linkedin_url: newKDM.linkedin_url || undefined,
           notes: newKDM.notes || undefined,
           account_id: newKDM.account_id || undefined,
-          country_code: newKDM.country_code,
+          country_code: country,
         })
         toast.success("KDM creado exitosamente")
         setIsNewDialogOpen(false)
@@ -194,7 +155,6 @@ export default function GlobalKDMPage() {
           linkedin_url: "",
           notes: "",
           account_id: "",
-          country_code: "",
         })
         loadData()
       } catch (error) {
@@ -269,11 +229,6 @@ export default function GlobalKDMPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (!importCountry) {
-      toast.error("Selecciona un país antes de importar")
-      return
-    }
-
     const text = await file.text()
     const lines = text.split("\n").filter((line) => line.trim())
     if (lines.length < 2) {
@@ -297,9 +252,8 @@ export default function GlobalKDMPage() {
     const validRows: any[] = []
     const errorRows: { row: number; data: any; reason: string }[] = []
 
-    // Build account name to id map for selected country only
-    const countryAccounts = accounts.filter((a) => a.country_code === importCountry)
-    const accountMap = new Map(countryAccounts.map((a) => [a.name.toLowerCase().trim(), a.id]))
+    // Build account name to id map
+    const accountMap = new Map(accounts.map((a) => [a.name.toLowerCase().trim(), a.id]))
 
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(",").map((v) => v.trim())
@@ -321,16 +275,12 @@ export default function GlobalKDMPage() {
         continue
       }
 
-      // Validate university exists in selected country
+      // Validate university exists
       let accountId: string | undefined
       if (uniName) {
         accountId = accountMap.get(uniName.toLowerCase().trim())
         if (!accountId) {
-          errorRows.push({
-            row: i + 1,
-            data: rowData,
-            reason: `Universidad "${uniName}" no encontrada en ${importCountry}`,
-          })
+          errorRows.push({ row: i + 1, data: rowData, reason: `Universidad "${uniName}" no encontrada` })
           continue
         }
       }
@@ -343,7 +293,7 @@ export default function GlobalKDMPage() {
         phone: phone || undefined,
         account_id: accountId,
         linkedin_url: linkedin || undefined,
-        country_code: importCountry,
+        country_code: country,
       })
     }
 
@@ -376,7 +326,6 @@ export default function GlobalKDMPage() {
     setImportPreview([])
     setImportErrors([])
     setImportResult(null)
-    setImportCountry("")
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
@@ -391,10 +340,7 @@ export default function GlobalKDMPage() {
     a.click()
   }
 
-  // Get accounts filtered by new KDM country selection
-  const accountsForNewKDM = newKDM.country_code ? accounts.filter((a) => a.country_code === newKDM.country_code) : []
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -407,16 +353,15 @@ export default function GlobalKDMPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Globe className="h-6 w-6" />
-            KDM Global
-          </h1>
-          <p className="text-muted-foreground">Tomadores de decisión de todos los países</p>
+          <h1 className="text-2xl font-bold">KDM - Tomadores de Decisión</h1>
+          <p className="text-muted-foreground">Gestiona los contactos clave de universidades</p>
         </div>
-        <Badge variant="outline" className="text-base px-3 py-1">
-          <UserCircle className="h-4 w-4 mr-1" />
-          {filteredKDM.length} KDM{filteredKDM.length !== 1 ? "s" : ""}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-base px-3 py-1">
+            <UserCircle className="h-4 w-4 mr-1" />
+            {filteredKDM.length} KDM{filteredKDM.length !== 1 ? "s" : ""}
+          </Badge>
+        </div>
       </div>
 
       {/* Filters and Actions */}
@@ -427,31 +372,18 @@ export default function GlobalKDMPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nombre, email, cargo..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Select value={filterCountry} onValueChange={setFilterCountry}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="País" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {countries.map((c) => (
-                  <SelectItem key={c.code} value={c.code}>
-                    {c.flag} {c.code}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filterUniversity} onValueChange={setFilterUniversity}>
+            <Select value={filterAccount} onValueChange={setFilterAccount}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Universidad" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>
-                {filteredAccounts.map((acc) => (
+                {accounts.map((acc) => (
                   <SelectItem key={acc.id} value={acc.id}>
                     {acc.name}
                   </SelectItem>
@@ -461,7 +393,7 @@ export default function GlobalKDMPage() {
             <div className="flex items-center gap-2">
               <Switch checked={showInactive} onCheckedChange={setShowInactive} id="show-inactive" />
               <Label htmlFor="show-inactive" className="text-sm">
-                Inactivos
+                Ver inactivos
               </Label>
             </div>
             <div className="flex gap-2">
@@ -495,7 +427,6 @@ export default function GlobalKDMPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>País</TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>Universidad</TableHead>
                   <TableHead>Cargo</TableHead>
@@ -506,80 +437,67 @@ export default function GlobalKDMPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredKDM.map((kdm) => {
-                  const kdmCountry = getCountryByAccount(kdm.account_id)
-                  const country = countries.find((c) => c.code === kdmCountry)
-                  return (
-                    <TableRow key={kdm.id} className={!kdm.is_active ? "opacity-50" : ""}>
-                      <TableCell>
-                        {country ? (
-                          <span>
-                            {country.flag} {country.code}
-                          </span>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">
-                            {kdm.first_name} {kdm.last_name}
-                          </p>
-                          {kdm.linkedin_url && (
-                            <a
-                              href={kdm.linkedin_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                            >
-                              <Linkedin className="h-3 w-3" />
-                              LinkedIn
-                            </a>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Building2 className="h-3 w-3 text-muted-foreground" />
-                          {getUniversityName(kdm.account_id)}
-                        </div>
-                      </TableCell>
-                      <TableCell>{kdm.role_title || "-"}</TableCell>
-                      <TableCell>
-                        {kdm.email ? (
-                          <a href={`mailto:${kdm.email}`} className="text-primary hover:underline">
-                            {kdm.email}
+                {filteredKDM.map((kdm) => (
+                  <TableRow key={kdm.id} className={!kdm.is_active ? "opacity-50" : ""}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">
+                          {kdm.first_name} {kdm.last_name}
+                        </p>
+                        {kdm.linkedin_url && (
+                          <a
+                            href={kdm.linkedin_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            <Linkedin className="h-3 w-3" />
+                            LinkedIn
                           </a>
-                        ) : (
-                          "-"
                         )}
-                      </TableCell>
-                      <TableCell>{kdm.phone || "-"}</TableCell>
-                      <TableCell>
-                        <Badge variant={kdm.is_active ? "default" : "secondary"}>
-                          {kdm.is_active ? "Activo" : "Inactivo"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => setEditingKDM(kdm)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleToggleActive(kdm)}>
-                            {kdm.is_active ? (
-                              <PowerOff className="h-4 w-4 text-orange-500" />
-                            ) : (
-                              <Power className="h-4 w-4 text-green-500" />
-                            )}
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteKDM(kdm)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Building2 className="h-3 w-3 text-muted-foreground" />
+                        {getUniversityName(kdm.account_id)}
+                      </div>
+                    </TableCell>
+                    <TableCell>{kdm.role_title || "-"}</TableCell>
+                    <TableCell>
+                      {kdm.email ? (
+                        <a href={`mailto:${kdm.email}`} className="text-primary hover:underline">
+                          {kdm.email}
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell>{kdm.phone || "-"}</TableCell>
+                    <TableCell>
+                      <Badge variant={kdm.is_active ? "default" : "secondary"}>
+                        {kdm.is_active ? "Activo" : "Inactivo"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => setEditingKDM(kdm)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleToggleActive(kdm)}>
+                          {kdm.is_active ? (
+                            <PowerOff className="h-4 w-4 text-orange-500" />
+                          ) : (
+                            <Power className="h-4 w-4 text-green-500" />
+                          )}
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setDeleteKDM(kdm)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           )}
@@ -597,24 +515,6 @@ export default function GlobalKDMPage() {
             <DialogDescription>Agrega un nuevo tomador de decisión</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>País *</Label>
-              <Select
-                value={newKDM.country_code}
-                onValueChange={(v) => setNewKDM({ ...newKDM, country_code: v, account_id: "" })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar país..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.flag} {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Nombre *</Label>
@@ -635,18 +535,12 @@ export default function GlobalKDMPage() {
             </div>
             <div className="space-y-2">
               <Label>Universidad</Label>
-              <Select
-                value={newKDM.account_id}
-                onValueChange={(v) => setNewKDM({ ...newKDM, account_id: v })}
-                disabled={!newKDM.country_code}
-              >
+              <Select value={newKDM.account_id} onValueChange={(v) => setNewKDM({ ...newKDM, account_id: v })}>
                 <SelectTrigger>
-                  <SelectValue
-                    placeholder={newKDM.country_code ? "Seleccionar universidad..." : "Primero selecciona país"}
-                  />
+                  <SelectValue placeholder="Seleccionar universidad..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {accountsForNewKDM.map((acc) => (
+                  {accounts.map((acc) => (
                     <SelectItem key={acc.id} value={acc.id}>
                       {acc.name}
                     </SelectItem>
@@ -852,24 +746,6 @@ export default function GlobalKDMPage() {
 
           {importStep === "upload" && (
             <div className="space-y-4 py-4">
-              {/* Country selection for global import */}
-              <div className="space-y-2">
-                <Label>País para importar *</Label>
-                <Select value={importCountry} onValueChange={setImportCountry}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar país..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.flag} {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">Las universidades del CSV deben existir en este país</p>
-              </div>
-
               {/* Format info box */}
               <div className="bg-muted rounded-lg p-4">
                 <p className="text-sm font-medium mb-2">Formato requerido:</p>
@@ -885,16 +761,12 @@ export default function GlobalKDMPage() {
 
               {/* Upload area */}
               <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                  importCountry ? "cursor-pointer hover:border-primary/50" : "opacity-50 cursor-not-allowed"
-                }`}
-                onClick={() => importCountry && fileInputRef.current?.click()}
+                className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
-                <p className="text-sm text-muted-foreground">
-                  {importCountry ? "Selecciona un archivo CSV o Excel (.csv, .txt)" : "Primero selecciona un país"}
-                </p>
-                <Button variant="outline" className="mt-4 bg-transparent" disabled={!importCountry}>
+                <p className="text-sm text-muted-foreground">Selecciona un archivo CSV o Excel (.csv, .txt)</p>
+                <Button variant="outline" className="mt-4 bg-transparent">
                   Seleccionar archivo
                 </Button>
                 <input
@@ -903,7 +775,6 @@ export default function GlobalKDMPage() {
                   accept=".csv,.txt"
                   onChange={handleFileChange}
                   className="hidden"
-                  disabled={!importCountry}
                 />
               </div>
 
