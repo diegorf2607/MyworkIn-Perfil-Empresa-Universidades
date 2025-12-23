@@ -11,6 +11,7 @@ export interface KDMContact {
   phone: string | null
   role_title: string | null
   linkedin_url: string | null
+  referred_by: string | null
   is_active: boolean
   notes: string | null
   created_at: string
@@ -26,6 +27,7 @@ export interface KDMContactInsert {
   phone?: string | null
   role_title?: string | null
   linkedin_url?: string | null
+  referred_by?: string | null
   notes?: string | null
 }
 
@@ -220,6 +222,7 @@ export async function importKDMFromCSV(
     email?: string
     phone?: string
     linkedin_url?: string
+    referred_by?: string
     notes?: string
   }[],
 ) {
@@ -281,6 +284,7 @@ export async function importKDMFromCSV(
             email: row.email || existingContact.email,
             phone: row.phone || existingContact.phone,
             linkedin_url: row.linkedin_url || existingContact.linkedin_url,
+            referred_by: row.referred_by || existingContact.referred_by,
             notes: row.notes || existingContact.notes,
             updated_at: new Date().toISOString(),
           })
@@ -302,6 +306,7 @@ export async function importKDMFromCSV(
             email: row.email || null,
             phone: row.phone || null,
             linkedin_url: row.linkedin_url || null,
+            referred_by: row.referred_by || null,
             notes: row.notes || null,
             is_active: true,
           })

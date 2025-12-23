@@ -65,7 +65,18 @@ export default function KDMPage() {
 
   // Dialog states
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false)
-  const [editingKDM, setEditingKDM] = useState<KDMContact | null>(null)
+  const [editKDM, setEditKDM] = useState<{
+    id: string
+    first_name: string
+    last_name: string
+    role_title: string
+    email: string
+    phone: string
+    linkedin_url: string
+    referred_by: string
+    notes: string
+    is_active: boolean
+  } | null>(null)
   const [deleteKDM, setDeleteKDM] = useState<KDMContact | null>(null)
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
   const [importStep, setImportStep] = useState<"upload" | "preview" | "result">("upload")
@@ -77,10 +88,11 @@ export default function KDMPage() {
   const [newKDM, setNewKDM] = useState({
     first_name: "",
     last_name: "",
+    role_title: "",
     email: "",
     phone: "",
-    role_title: "",
     linkedin_url: "",
+    referred_by: "",
     notes: "",
     account_id: "",
   })
@@ -127,66 +139,71 @@ export default function KDMPage() {
   // Create new KDM
   const handleCreateKDM = async () => {
     if (!newKDM.first_name.trim()) {
-      toast.error("El nombre es obligatorio")
+      toast.error("El nombre es requerido")
       return
     }
 
     startTransition(async () => {
       try {
-        await createKDMContact({
-          first_name: newKDM.first_name,
-          last_name: newKDM.last_name || undefined,
-          email: newKDM.email || undefined,
-          phone: newKDM.phone || undefined,
-          role_title: newKDM.role_title || undefined,
-          linkedin_url: newKDM.linkedin_url || undefined,
-          notes: newKDM.notes || undefined,
-          account_id: newKDM.account_id || undefined,
-          country_code: country,
-        })
+        const contact = await createKDMContact(
+          {
+            first_name: newKDM.first_name.trim(),
+            last_name: newKDM.last_name.trim(),
+            role_title: newKDM.role_title.trim() || null,
+            email: newKDM.email.trim() || null,
+            phone: newKDM.phone.trim() || null,
+            linkedin_url: newKDM.linkedin_url.trim() || null,
+            referred_by: newKDM.referred_by.trim() || null,
+            notes: newKDM.notes.trim() || null,
+          },
+          newKDM.account_id || undefined,
+          country,
+        )
+
         toast.success("KDM creado exitosamente")
         setIsNewDialogOpen(false)
         setNewKDM({
           first_name: "",
           last_name: "",
+          role_title: "",
           email: "",
           phone: "",
-          role_title: "",
           linkedin_url: "",
+          referred_by: "",
           notes: "",
           account_id: "",
         })
         loadData()
       } catch (error) {
-        console.error("Error creating KDM:", error)
         toast.error("Error al crear KDM")
       }
     })
   }
 
   // Update KDM
-  const handleUpdateKDM = async () => {
-    if (!editingKDM) return
+  const handleSaveEdit = async () => {
+    if (!editKDM) return
 
     startTransition(async () => {
       try {
         await updateKDMContact({
-          id: editingKDM.id,
-          first_name: editingKDM.first_name,
-          last_name: editingKDM.last_name,
-          email: editingKDM.email,
-          phone: editingKDM.phone,
-          role_title: editingKDM.role_title,
-          linkedin_url: editingKDM.linkedin_url,
-          notes: editingKDM.notes,
-          account_id: editingKDM.account_id,
-          is_active: editingKDM.is_active,
+          id: editKDM.id,
+          first_name: editKDM.first_name.trim(),
+          last_name: editKDM.last_name.trim(),
+          role_title: editKDM.role_title.trim() || null,
+          email: editKDM.email.trim() || null,
+          phone: editKDM.phone.trim() || null,
+          linkedin_url: editKDM.linkedin_url.trim() || null,
+          referred_by: editKDM.referred_by.trim() || null,
+          notes: editKDM.notes.trim() || null,
+          is_active: editKDM.is_active,
         })
+
         toast.success("KDM actualizado")
-        setEditingKDM(null)
+        setIsNewDialogOpen(false)
+        setEditKDM(null)
         loadData()
       } catch (error) {
-        console.error("Error updating KDM:", error)
         toast.error("Error al actualizar KDM")
       }
     })
@@ -243,6 +260,9 @@ export default function KDMPage() {
     const phoneIdx = headers.findIndex((h) => ["telefono", "teléfono", "phone", "celular", "móvil"].includes(h))
     const uniIdx = headers.findIndex((h) => ["universidad", "university", "institucion", "institución"].includes(h))
     const linkedinIdx = headers.findIndex((h) => ["linkedin", "linkedin_url", "perfil linkedin"].includes(h))
+    const referidoIdx = headers.findIndex((h) =>
+      ["referido", "referido por", "referred_by", "referred by", "referencia"].includes(h),
+    )
 
     if (nameIdx === -1) {
       toast.error("Falta columna 'Nombre' en el CSV")
@@ -267,8 +287,9 @@ export default function KDMPage() {
       const phone = phoneIdx >= 0 ? values[phoneIdx] : ""
       const uniName = uniIdx >= 0 ? values[uniIdx] : ""
       const linkedin = linkedinIdx >= 0 ? values[linkedinIdx] : ""
+      const referido = referidoIdx >= 0 ? values[referidoIdx] : ""
 
-      const rowData = { firstName, lastName, cargo, email, phone, uniName, linkedin }
+      const rowData = { firstName, lastName, cargo, email, phone, uniName, linkedin, referido }
 
       if (!firstName) {
         errorRows.push({ row: i + 1, data: rowData, reason: "Nombre vacío" })
@@ -293,6 +314,7 @@ export default function KDMPage() {
         phone: phone || undefined,
         account_id: accountId,
         linkedin_url: linkedin || undefined,
+        referred_by: referido || undefined,
         country_code: country,
       })
     }
@@ -331,7 +353,7 @@ export default function KDMPage() {
 
   const downloadTemplate = () => {
     const csv =
-      "Nombre,Cargo,Email,Teléfono,Universidad,LinkedIn\nJuan Pérez,Rector,juan@uni.edu,+52123456789,UNAM,https://linkedin.com/in/juanperez"
+      "Nombre,Cargo,Email,Teléfono,Universidad,LinkedIn,Referido\nJuan Pérez,Rector,juan@uni.edu,+52123456789,UNAM,https://linkedin.com/in/juanperez,María García"
     const blob = new Blob([csv], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -432,6 +454,7 @@ export default function KDMPage() {
                   <TableHead>Cargo</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Teléfono</TableHead>
+                  <TableHead>Referido</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -474,6 +497,7 @@ export default function KDMPage() {
                       )}
                     </TableCell>
                     <TableCell>{kdm.phone || "-"}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{kdm.referred_by || "-"}</TableCell>
                     <TableCell>
                       <Badge variant={kdm.is_active ? "default" : "secondary"}>
                         {kdm.is_active ? "Activo" : "Inactivo"}
@@ -481,7 +505,7 @@ export default function KDMPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => setEditingKDM(kdm)}>
+                        <Button variant="ghost" size="icon" onClick={() => setEditKDM(kdm)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleToggleActive(kdm)}>
@@ -584,6 +608,14 @@ export default function KDMPage() {
               />
             </div>
             <div className="space-y-2">
+              <Label>Referido por</Label>
+              <Input
+                value={newKDM.referred_by}
+                onChange={(e) => setNewKDM({ ...newKDM, referred_by: e.target.value })}
+                placeholder="Nombre de quien te pasó el contacto"
+              />
+            </div>
+            <div className="space-y-2">
               <Label>Notas</Label>
               <Textarea
                 value={newKDM.notes}
@@ -605,34 +637,34 @@ export default function KDMPage() {
       </Dialog>
 
       {/* Edit KDM Dialog */}
-      <Dialog open={!!editingKDM} onOpenChange={(open) => !open && setEditingKDM(null)}>
+      <Dialog open={!!editKDM} onOpenChange={(open) => !open && setEditKDM(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Editar KDM</DialogTitle>
           </DialogHeader>
-          {editingKDM && (
+          {editKDM && (
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Nombre *</Label>
                   <Input
-                    value={editingKDM.first_name}
-                    onChange={(e) => setEditingKDM({ ...editingKDM, first_name: e.target.value })}
+                    value={editKDM.first_name}
+                    onChange={(e) => setEditKDM({ ...editKDM, first_name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Apellido</Label>
                   <Input
-                    value={editingKDM.last_name || ""}
-                    onChange={(e) => setEditingKDM({ ...editingKDM, last_name: e.target.value })}
+                    value={editKDM.last_name || ""}
+                    onChange={(e) => setEditKDM({ ...editKDM, last_name: e.target.value })}
                   />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>Universidad</Label>
                 <Select
-                  value={editingKDM.account_id || ""}
-                  onValueChange={(v) => setEditingKDM({ ...editingKDM, account_id: v })}
+                  value={editKDM.account_id || ""}
+                  onValueChange={(v) => setEditKDM({ ...editKDM, account_id: v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar universidad..." />
@@ -649,8 +681,8 @@ export default function KDMPage() {
               <div className="space-y-2">
                 <Label>Cargo</Label>
                 <Input
-                  value={editingKDM.role_title || ""}
-                  onChange={(e) => setEditingKDM({ ...editingKDM, role_title: e.target.value })}
+                  value={editKDM.role_title || ""}
+                  onChange={(e) => setEditKDM({ ...editKDM, role_title: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -658,46 +690,54 @@ export default function KDMPage() {
                   <Label>Email</Label>
                   <Input
                     type="email"
-                    value={editingKDM.email || ""}
-                    onChange={(e) => setEditingKDM({ ...editingKDM, email: e.target.value })}
+                    value={editKDM.email || ""}
+                    onChange={(e) => setEditKDM({ ...editKDM, email: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Teléfono</Label>
                   <Input
-                    value={editingKDM.phone || ""}
-                    onChange={(e) => setEditingKDM({ ...editingKDM, phone: e.target.value })}
+                    value={editKDM.phone || ""}
+                    onChange={(e) => setEditKDM({ ...editKDM, phone: e.target.value })}
                   />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>LinkedIn</Label>
                 <Input
-                  value={editingKDM.linkedin_url || ""}
-                  onChange={(e) => setEditingKDM({ ...editingKDM, linkedin_url: e.target.value })}
+                  value={editKDM.linkedin_url || ""}
+                  onChange={(e) => setEditKDM({ ...editKDM, linkedin_url: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Referido por</Label>
+                <Input
+                  value={editKDM.referred_by || ""}
+                  onChange={(e) => setEditKDM({ ...editKDM, referred_by: e.target.value })}
+                  placeholder="Nombre de quien te pasó el contacto"
                 />
               </div>
               <div className="space-y-2">
                 <Label>Notas</Label>
                 <Textarea
-                  value={editingKDM.notes || ""}
-                  onChange={(e) => setEditingKDM({ ...editingKDM, notes: e.target.value })}
+                  value={editKDM.notes || ""}
+                  onChange={(e) => setEditKDM({ ...editKDM, notes: e.target.value })}
                 />
               </div>
               <div className="flex items-center gap-2">
                 <Switch
-                  checked={editingKDM.is_active}
-                  onCheckedChange={(checked) => setEditingKDM({ ...editingKDM, is_active: checked })}
+                  checked={editKDM.is_active}
+                  onCheckedChange={(checked) => setEditKDM({ ...editKDM, is_active: checked })}
                 />
                 <Label>Activo</Label>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingKDM(null)}>
+            <Button variant="outline" onClick={() => setEditKDM(null)}>
               Cancelar
             </Button>
-            <Button onClick={handleUpdateKDM} disabled={isPending}>
+            <Button onClick={handleSaveEdit} disabled={isPending}>
               {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Guardar
             </Button>
@@ -750,12 +790,12 @@ export default function KDMPage() {
               <div className="bg-muted rounded-lg p-4">
                 <p className="text-sm font-medium mb-2">Formato requerido:</p>
                 <code className="text-xs bg-background p-2 rounded block">
-                  Nombre,Cargo,Email,Teléfono,Universidad,LinkedIn
+                  Nombre,Cargo,Email,Teléfono,Universidad,LinkedIn,Referido
                   <br />
-                  Juan Pérez,Rector,juan@uni.edu,+521234567890,UNAM,https://linkedin.com/in/juan
+                  Juan Pérez,Rector,juan@uni.edu,+521234567890,UNAM,https://linkedin.com/in/juan,María García
                 </code>
                 <p className="text-xs text-muted-foreground mt-2">
-                  <strong>LinkedIn</strong> es opcional
+                  <strong>LinkedIn</strong> y <strong>Referido</strong> son opcionales
                 </p>
               </div>
 
@@ -799,7 +839,7 @@ export default function KDMPage() {
                     {importPreview.slice(0, 5).map((row, i) => (
                       <p key={i} className="text-xs truncate">
                         {row.first_name} {row.last_name} - {row.role_title || "Sin cargo"} -{" "}
-                        {getUniversityName(row.account_id)}
+                        {getUniversityName(row.account_id)} - {row.referred_by || "Sin referido"}
                       </p>
                     ))}
                     {importPreview.length > 5 && (

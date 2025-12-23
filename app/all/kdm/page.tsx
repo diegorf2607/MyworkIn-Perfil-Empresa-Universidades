@@ -96,6 +96,7 @@ export default function GlobalKDMPage() {
     phone: "",
     role_title: "",
     linkedin_url: "",
+    referred_by: "", // Added referred_by field
     notes: "",
     account_id: "",
     country_code: "",
@@ -179,6 +180,7 @@ export default function GlobalKDMPage() {
           phone: newKDM.phone || undefined,
           role_title: newKDM.role_title || undefined,
           linkedin_url: newKDM.linkedin_url || undefined,
+          referred_by: newKDM.referred_by || undefined, // Added referred_by field
           notes: newKDM.notes || undefined,
           account_id: newKDM.account_id || undefined,
           country_code: newKDM.country_code,
@@ -192,6 +194,7 @@ export default function GlobalKDMPage() {
           phone: "",
           role_title: "",
           linkedin_url: "",
+          referred_by: "",
           notes: "",
           account_id: "",
           country_code: "",
@@ -218,6 +221,7 @@ export default function GlobalKDMPage() {
           phone: editingKDM.phone,
           role_title: editingKDM.role_title,
           linkedin_url: editingKDM.linkedin_url,
+          referred_by: editingKDM.referred_by, // Added referred_by field
           notes: editingKDM.notes,
           account_id: editingKDM.account_id,
           is_active: editingKDM.is_active,
@@ -288,6 +292,7 @@ export default function GlobalKDMPage() {
     const phoneIdx = headers.findIndex((h) => ["telefono", "teléfono", "phone", "celular", "móvil"].includes(h))
     const uniIdx = headers.findIndex((h) => ["universidad", "university", "institucion", "institución"].includes(h))
     const linkedinIdx = headers.findIndex((h) => ["linkedin", "linkedin_url", "perfil linkedin"].includes(h))
+    const referredByIdx = headers.findIndex((h) => ["referred_by", "referido por"].includes(h))
 
     if (nameIdx === -1) {
       toast.error("Falta columna 'Nombre' en el CSV")
@@ -313,8 +318,9 @@ export default function GlobalKDMPage() {
       const phone = phoneIdx >= 0 ? values[phoneIdx] : ""
       const uniName = uniIdx >= 0 ? values[uniIdx] : ""
       const linkedin = linkedinIdx >= 0 ? values[linkedinIdx] : ""
+      const referredBy = referredByIdx >= 0 ? values[referredByIdx] : ""
 
-      const rowData = { firstName, lastName, cargo, email, phone, uniName, linkedin }
+      const rowData = { firstName, lastName, cargo, email, phone, uniName, linkedin, referredBy }
 
       if (!firstName) {
         errorRows.push({ row: i + 1, data: rowData, reason: "Nombre vacío" })
@@ -343,6 +349,7 @@ export default function GlobalKDMPage() {
         phone: phone || undefined,
         account_id: accountId,
         linkedin_url: linkedin || undefined,
+        referred_by: referredBy || undefined, // Added referred_by field
         country_code: importCountry,
       })
     }
@@ -382,7 +389,7 @@ export default function GlobalKDMPage() {
 
   const downloadTemplate = () => {
     const csv =
-      "Nombre,Cargo,Email,Teléfono,Universidad,LinkedIn\nJuan Pérez,Rector,juan@uni.edu,+52123456789,UNAM,https://linkedin.com/in/juanperez"
+      "Nombre,Cargo,Email,Teléfono,Universidad,LinkedIn,Referido por\nJuan Pérez,Rector,juan@uni.edu,+52123456789,UNAM,https://linkedin.com/in/juanperez,Pedro"
     const blob = new Blob([csv], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -690,6 +697,14 @@ export default function GlobalKDMPage() {
               />
             </div>
             <div className="space-y-2">
+              <Label>Referido por</Label>
+              <Input
+                value={newKDM.referred_by}
+                onChange={(e) => setNewKDM({ ...newKDM, referred_by: e.target.value })}
+                placeholder="Nombre de quien te pasó el contacto"
+              />
+            </div>
+            <div className="space-y-2">
               <Label>Notas</Label>
               <Textarea
                 value={newKDM.notes}
@@ -784,6 +799,13 @@ export default function GlobalKDMPage() {
                 />
               </div>
               <div className="space-y-2">
+                <Label>Referido por</Label>
+                <Input
+                  value={editingKDM.referred_by || ""}
+                  onChange={(e) => setEditingKDM({ ...editingKDM, referred_by: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
                 <Label>Notas</Label>
                 <Textarea
                   value={editingKDM.notes || ""}
@@ -841,7 +863,7 @@ export default function GlobalKDMPage() {
           if (!open) resetImport()
         }}
       >
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
@@ -870,31 +892,31 @@ export default function GlobalKDMPage() {
                 <p className="text-xs text-muted-foreground">Las universidades del CSV deben existir en este país</p>
               </div>
 
-              {/* Format info box */}
               <div className="bg-muted rounded-lg p-4">
                 <p className="text-sm font-medium mb-2">Formato requerido:</p>
-                <code className="text-xs bg-background p-2 rounded block">
-                  Nombre,Cargo,Email,Teléfono,Universidad,LinkedIn
-                  <br />
-                  Juan Pérez,Rector,juan@uni.edu,+521234567890,UNAM,https://linkedin.com/in/juan
-                </code>
-                <p className="text-xs text-muted-foreground mt-2">
-                  <strong>LinkedIn</strong> es opcional
+                <div className="bg-background p-3 rounded text-xs font-mono space-y-1">
+                  <p className="text-foreground">Nombre,Cargo,Email,Teléfono,Universidad,LinkedIn,Referido</p>
+                  <p className="text-muted-foreground">
+                    Juan Pérez,Rector,juan@uni.edu,+5212345678,UNAM,linkedin.com/in/juan,Pedro
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  <span className="font-medium">LinkedIn</span> y <span className="font-medium">Referido</span> son
+                  opcionales
                 </p>
               </div>
 
-              {/* Upload area */}
               <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                   importCountry ? "cursor-pointer hover:border-primary/50" : "opacity-50 cursor-not-allowed"
                 }`}
                 onClick={() => importCountry && fileInputRef.current?.click()}
               >
-                <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
-                <p className="text-sm text-muted-foreground">
+                <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
+                <p className="text-sm text-muted-foreground mb-3">
                   {importCountry ? "Selecciona un archivo CSV o Excel (.csv, .txt)" : "Primero selecciona un país"}
                 </p>
-                <Button variant="outline" className="mt-4 bg-transparent" disabled={!importCountry}>
+                <Button variant="outline" size="sm" disabled={!importCountry}>
                   Seleccionar archivo
                 </Button>
                 <input
@@ -928,7 +950,7 @@ export default function GlobalKDMPage() {
                     {importPreview.slice(0, 5).map((row, i) => (
                       <p key={i} className="text-xs truncate">
                         {row.first_name} {row.last_name} - {row.role_title || "Sin cargo"} -{" "}
-                        {getUniversityName(row.account_id)}
+                        {getUniversityName(row.account_id)} - {row.referred_by || "Sin referido"}
                       </p>
                     ))}
                     {importPreview.length > 5 && (
