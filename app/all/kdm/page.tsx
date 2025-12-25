@@ -173,18 +173,20 @@ export default function GlobalKDMPage() {
 
     startTransition(async () => {
       try {
-        await createKDMContact({
-          first_name: newKDM.first_name,
-          last_name: newKDM.last_name || undefined,
-          email: newKDM.email || undefined,
-          phone: newKDM.phone || undefined,
-          role_title: newKDM.role_title || undefined,
-          linkedin_url: newKDM.linkedin_url || undefined,
-          referred_by: newKDM.referred_by || undefined, // Added referred_by field
-          notes: newKDM.notes || undefined,
-          account_id: newKDM.account_id || undefined,
-          country_code: newKDM.country_code,
-        })
+        await createKDMContact(
+          {
+            first_name: newKDM.first_name,
+            last_name: newKDM.last_name || undefined,
+            email: newKDM.email || undefined,
+            phone: newKDM.phone || undefined,
+            role_title: newKDM.role_title || undefined,
+            linkedin_url: newKDM.linkedin_url || undefined,
+            referred_by: newKDM.referred_by || undefined,
+            notes: newKDM.notes || undefined,
+          },
+          newKDM.account_id || undefined,
+          newKDM.country_code,
+        )
         toast.success("KDM creado exitosamente")
         setIsNewDialogOpen(false)
         setNewKDM({
