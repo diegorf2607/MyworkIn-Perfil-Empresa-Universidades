@@ -24,9 +24,10 @@ interface Country {
 
 interface TopbarProps {
   countryCode: string
+  hideFilters?: boolean
 }
 
-export function Topbar({ countryCode }: TopbarProps) {
+export function Topbar({ countryCode, hideFilters = false }: TopbarProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [dateRange, setDateRange] = useState<"14d" | "30d">("14d")
@@ -73,16 +74,17 @@ export function Topbar({ countryCode }: TopbarProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-3">
-        {/* Date Range Selector */}
-        <Select value={dateRange} onValueChange={(v) => setDateRange(v as "14d" | "30d")}>
-          <SelectTrigger className="w-24">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="14d">14 días</SelectItem>
-            <SelectItem value="30d">30 días</SelectItem>
-          </SelectContent>
-        </Select>
+        {!hideFilters && (
+          <Select value={dateRange} onValueChange={(v) => setDateRange(v as "14d" | "30d")}>
+            <SelectTrigger className="w-24">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="14d">14 días</SelectItem>
+              <SelectItem value="30d">30 días</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
 
         {/* Country Selector with "Todos" option */}
         <DropdownMenu>

@@ -29,6 +29,7 @@ import {
   Settings,
   Globe,
   UserCircle,
+  Activity,
 } from "lucide-react"
 
 interface AppSidebarProps {
@@ -41,10 +42,15 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
   const basePath = isGlobal ? "/all" : `/c/${countryCode}`
 
   if (isGlobal) {
-    const globalItems = [
+    const generalItems = [
       { title: "Overview", href: `${basePath}/overview`, icon: LayoutDashboard },
       { title: "Equipo", href: `${basePath}/team`, icon: Users },
       { title: "KDM", href: `${basePath}/kdm`, icon: UserCircle },
+    ]
+
+    const performanceItems = [
+      { title: "Performance", href: `${basePath}/ventas`, icon: BarChart3 },
+      { title: "Actividad", href: `${basePath}/actividad`, icon: Activity },
     ]
 
     return (
@@ -75,7 +81,26 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
             <SidebarGroupLabel>General</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {globalItems.map((item) => (
+                {generalItems.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton asChild isActive={pathname === item.href}>
+                      <Link href={item.href}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {/* Nueva sección de Performance */}
+          <SidebarGroup>
+            <SidebarGroupLabel>Control Comercial</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {performanceItems.map((item) => (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={pathname === item.href}>
                       <Link href={item.href}>
@@ -103,6 +128,7 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
     )
   }
 
+  // ... existing code para sidebar de país ...
   const crmItems = [
     { title: "Overview", href: `${basePath}/overview`, icon: LayoutDashboard },
     { title: "Leads (ICP)", href: `${basePath}/crm/leads`, icon: Users },
