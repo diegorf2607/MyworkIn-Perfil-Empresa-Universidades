@@ -424,14 +424,8 @@ export default function GlobalKDMPage() {
             <p className="text-muted-foreground">Tomadores de decisión de todos los países</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
-              <Upload className="mr-2 h-4 w-4" />
-              Subir CSV
-            </Button>
-            <Button onClick={() => setIsNewDialogOpen(true)} className="bg-primary hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo KDM
-            </Button>
+            
+            
           </div>
         </div>
 
