@@ -1,41 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { startOfDay, endOfDay, subDays, startOfWeek, endOfWeek } from "date-fns"
-
-export type PeriodoPreset = "hoy" | "esta_semana" | "ultimos_7" | "ultimos_30" | "rango_personalizado"
-
-export interface DateRange {
-  from: Date
-  to: Date
-}
-
-export function getDateRangeFromPreset(preset: PeriodoPreset, customRange?: DateRange): DateRange {
-  const now = new Date()
-
-  switch (preset) {
-    case "hoy":
-      return { from: startOfDay(now), to: endOfDay(now) }
-    case "esta_semana":
-      return { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) }
-    case "ultimos_7":
-      return { from: startOfDay(subDays(now, 6)), to: endOfDay(now) }
-    case "ultimos_30":
-      return { from: startOfDay(subDays(now, 29)), to: endOfDay(now) }
-    case "rango_personalizado":
-      return customRange || { from: startOfDay(subDays(now, 6)), to: endOfDay(now) }
-    default:
-      return { from: startOfDay(subDays(now, 6)), to: endOfDay(now) }
-  }
-}
-
-export function getPreviousPeriodRange(range: DateRange): DateRange {
-  const durationMs = range.to.getTime() - range.from.getTime()
-  return {
-    from: new Date(range.from.getTime() - durationMs - 86400000), // -1 day to not overlap
-    to: new Date(range.from.getTime() - 86400000),
-  }
-}
+import type { DateRange } from "@/lib/utils/date-range"
 
 // Get team members with their assigned countries
 export async function getTeamMembersWithCountries() {
@@ -206,7 +172,7 @@ export async function getWeeklySummary(dateRange: DateRange, countryCode?: strin
 
   let activitiesQuery = supabase
     .from("activities")
-    .select("id, type", { count: "exact" })
+    .select("id, type")
     .gte("date_time", dateRange.from.toISOString())
     .lte("date_time", dateRange.to.toISOString())
 

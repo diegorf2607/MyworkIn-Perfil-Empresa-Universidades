@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { Activity } from "lucide-react"
 import { GlobalFilters, type FilterState } from "@/components/performance/global-filters"
 import { TablaActividadComercial, type ActivityLogItem } from "@/components/performance/tabla-actividad"
-import { getDateRangeFromPreset, getActivityLog, getTeamMembersWithCountries } from "@/lib/actions/performance"
+import { getDateRangeFromPreset } from "@/lib/utils/date-range"
+import { getActivityLog, getTeamMembersWithCountries } from "@/lib/actions/performance"
 import { getActiveCountries } from "@/lib/actions/countries"
 
 export default function ActividadPage() {

@@ -9,9 +9,8 @@ import { ResumenSemanalBlock } from "@/components/performance/resumen-semanal"
 import { PerformanceTilesGrid, type PersonPerformance } from "@/components/performance/performance-tiles"
 import { FunnelOutbound } from "@/components/performance/funnel-outbound"
 import { Leaderboard } from "@/components/performance/leaderboard"
+import { getDateRangeFromPreset, getPreviousPeriodRange, type PeriodoPreset } from "@/lib/utils/date-range"
 import {
-  getDateRangeFromPreset,
-  getPreviousPeriodRange,
   getTeamMembersWithCountries,
   getWeeklySummary,
   getActivityMetrics,
@@ -65,10 +64,7 @@ export default function VentasPage() {
     async function loadPerformanceData() {
       setLoading(true)
       try {
-        const dateRange = getDateRangeFromPreset(
-          filters.periodo as any,
-          filters.dateRange ? { from: filters.dateRange.from!, to: filters.dateRange.to! } : undefined,
-        )
+        const dateRange = getDateRangeFromPreset(filters.periodo as PeriodoPreset, filters.dateRange)
         const previousRange = getPreviousPeriodRange(dateRange)
 
         // Load summary
