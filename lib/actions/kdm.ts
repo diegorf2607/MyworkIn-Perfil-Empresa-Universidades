@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { createActivity } from "./activities"
 
 export interface KDMContact {
   id: string
@@ -140,6 +141,23 @@ export async function createKDMContact(contact: KDMContactInsert, accountId?: st
       country_code: countryCode,
       is_primary: false,
     })
+
+    try {
+      await createActivity({
+        account_id: accountId,
+        country_code: countryCode,
+        type: "kdm_created",
+        summary: `KDM "${contact.first_name} ${contact.last_name}" agregado${contact.role_title ? ` (${contact.role_title})` : ""}`,
+        date_time: new Date().toISOString(),
+        details: {
+          kdm_name: `${contact.first_name} ${contact.last_name}`,
+          role_title: contact.role_title,
+          email: contact.email,
+        },
+      })
+    } catch (e) {
+      console.error("Error creating activity for KDM:", e)
+    }
   }
 
   revalidatePath("/")
@@ -185,6 +203,12 @@ export async function linkKDMToAccount(
     await supabase.from("account_kdm_contacts").update({ is_primary: false }).eq("account_id", accountId)
   }
 
+  const { data: kdm } = await supabase
+    .from("kdm_contacts")
+    .select("first_name, last_name, role_title")
+    .eq("id", kdmContactId)
+    .single()
+
   const { error } = await supabase.from("account_kdm_contacts").upsert(
     {
       kdm_contact_id: kdmContactId,
@@ -196,6 +220,26 @@ export async function linkKDMToAccount(
   )
 
   if (error) throw error
+
+  if (kdm) {
+    try {
+      await createActivity({
+        account_id: accountId,
+        country_code: countryCode,
+        type: "kdm_linked",
+        summary: `KDM "${kdm.first_name} ${kdm.last_name}" vinculado${isPrimary ? " como principal" : ""}`,
+        date_time: new Date().toISOString(),
+        details: {
+          kdm_name: `${kdm.first_name} ${kdm.last_name}`,
+          role_title: kdm.role_title,
+          is_primary: isPrimary,
+        },
+      })
+    } catch (e) {
+      console.error("Error creating activity for KDM link:", e)
+    }
+  }
+
   revalidatePath("/")
 }
 

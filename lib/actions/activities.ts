@@ -6,12 +6,24 @@ import { revalidatePath } from "next/cache"
 export type ActivityInsert = {
   country_code: string
   account_id: string
-  type: "email" | "llamada" | "reunión" | "nota" | "linkedin" | "whatsapp"
+  type:
+    | "email"
+    | "llamada"
+    | "reunión"
+    | "nota"
+    | "linkedin"
+    | "whatsapp"
+    | "meeting"
+    | "note"
+    | "account_created"
+    | "stage_changed"
+    | "kdm_created"
   date_time?: string
   owner_id?: string
   summary?: string
   subject?: string
   requires_follow_up?: boolean
+  details?: Record<string, unknown>
 }
 
 export type ActivityUpdate = Partial<ActivityInsert> & { id: string }

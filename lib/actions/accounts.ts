@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { createActivity } from "./activities"
 
 export type AccountInsert = {
   country_code: string
@@ -95,6 +96,25 @@ export async function createAccount(account: AccountInsert) {
     .single()
 
   if (error) throw error
+
+  try {
+    await createActivity({
+      account_id: data.id,
+      country_code: account.country_code,
+      type: "account_created",
+      owner_id: account.owner_id,
+      summary: `Universidad "${account.name}" creada como ${account.stage?.toUpperCase() || "Lead"}`,
+      date_time: new Date().toISOString(),
+      details: {
+        stage: account.stage,
+        city: account.city,
+        source: account.source,
+      },
+    })
+  } catch (e) {
+    console.error("Error creating activity for account:", e)
+  }
+
   revalidatePath(`/c/${account.country_code}`)
   return data
 }
@@ -138,6 +158,13 @@ export async function deleteAccount(id: string) {
 
 export async function updateAccountStage(id: string, stage: string) {
   const supabase = await createClient()
+
+  const { data: account } = await supabase
+    .from("accounts")
+    .select("name, country_code, owner_id, stage")
+    .eq("id", id)
+    .single()
+
   const { data, error } = await supabase
     .from("accounts")
     .update({ stage, updated_at: new Date().toISOString() })
@@ -146,6 +173,26 @@ export async function updateAccountStage(id: string, stage: string) {
     .single()
 
   if (error) throw error
+
+  if (account && account.stage !== stage) {
+    try {
+      await createActivity({
+        account_id: id,
+        country_code: account.country_code,
+        type: "stage_changed",
+        owner_id: account.owner_id,
+        summary: `"${account.name}" cambió de ${account.stage?.toUpperCase() || "N/A"} a ${stage.toUpperCase()}`,
+        date_time: new Date().toISOString(),
+        details: {
+          from_stage: account.stage,
+          to_stage: stage,
+        },
+      })
+    } catch (e) {
+      console.error("Error creating activity for stage change:", e)
+    }
+  }
+
   revalidatePath("/")
   return data
 }

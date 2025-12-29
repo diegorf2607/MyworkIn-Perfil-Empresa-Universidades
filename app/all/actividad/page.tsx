@@ -55,15 +55,19 @@ export default function ActividadPage() {
           filters.dateRange ? { from: filters.dateRange.from!, to: filters.dateRange.to! } : undefined,
         )
 
+        console.log("[v0] Loading activity data with filters:", filters, "dateRange:", dateRange)
+
         const data = await getActivityLog(dateRange, {
           usuario: filters.usuario,
           rol: filters.rol,
           countryCode: filters.pais,
         })
 
+        console.log("[v0] Activity data loaded:", data.length, "items")
+
         setActivityData(data)
       } catch (error) {
-        console.error("Error loading activity data:", error)
+        console.error("[v0] Error loading activity data:", error)
       } finally {
         setLoading(false)
       }

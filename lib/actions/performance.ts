@@ -232,7 +232,12 @@ export async function getActivityLog(
 ) {
   const supabase = await createClient()
 
-  // Get activities
+  console.log("[v0] getActivityLog called with:", {
+    dateRange: { from: dateRange.from.toISOString(), to: dateRange.to.toISOString() },
+    filters,
+  })
+
+  // Get activities - start with base query without owner_id filter
   let query = supabase
     .from("activities")
     .select(`
@@ -244,6 +249,7 @@ export async function getActivityLog(
       owner_id,
       account_id,
       country_code,
+      created_at,
       accounts(name, stage)
     `)
     .gte("date_time", dateRange.from.toISOString())
@@ -261,6 +267,8 @@ export async function getActivityLog(
 
   const { data: activities, error } = await query
 
+  console.log("[v0] Activities fetched:", { count: activities?.length, error, firstFew: activities?.slice(0, 3) })
+
   if (error) throw error
 
   // Get team members for mapping
@@ -271,12 +279,12 @@ export async function getActivityLog(
   // Map to activity log format
   return (
     activities?.map((a) => {
-      const member = memberMap.get(a.owner_id)
+      const member = a.owner_id ? memberMap.get(a.owner_id) : null
       return {
         id: a.id,
-        usuario: member?.name || "Desconocido",
-        usuarioId: a.owner_id,
-        rol: member?.role || "SDR",
+        usuario: member?.name || "Sistema", // Changed from "Desconocido" to "Sistema" for activities without owner
+        usuarioId: a.owner_id || null,
+        rol: member?.role || "Sistema",
         tipoAccion: mapActivityType(a.type),
         entidad: (a.accounts as { name: string } | null)?.name || "Sin entidad",
         entidadTipo: mapStageToEntityType((a.accounts as { stage: string } | null)?.stage),
@@ -290,30 +298,6 @@ export async function getActivityLog(
       }
     }) || []
   )
-}
-
-function mapActivityType(type: string): string {
-  const mapping: Record<string, string> = {
-    email: "correo_enviado",
-    call: "llamada",
-    note: "nota",
-    follow_up: "follow_up",
-    meeting: "reunion_agendada",
-  }
-  return mapping[type] || type
-}
-
-function mapStageToEntityType(stage: string | undefined): string {
-  if (!stage) return "otro"
-  const mapping: Record<string, string> = {
-    university: "universidad",
-    lead: "lead",
-    sql: "sql",
-    opp: "oportunidad",
-    won: "deal",
-    lost: "deal",
-  }
-  return mapping[stage] || "otro"
 }
 
 // Get funnel data
@@ -390,4 +374,28 @@ export async function getFunnelData(dateRange: DateRange, countryCode?: string) 
     weakestPoint,
     weakestConversion: lowestConversion,
   }
+}
+
+function mapActivityType(type: string): string {
+  const mapping: Record<string, string> = {
+    email: "correo_enviado",
+    call: "llamada",
+    note: "nota",
+    follow_up: "follow_up",
+    meeting: "reunion_agendada",
+  }
+  return mapping[type] || type
+}
+
+function mapStageToEntityType(stage: string | undefined): string {
+  if (!stage) return "otro"
+  const mapping: Record<string, string> = {
+    university: "universidad",
+    lead: "lead",
+    sql: "sql",
+    opp: "oportunidad",
+    won: "deal",
+    lost: "deal",
+  }
+  return mapping[stage] || "otro"
 }

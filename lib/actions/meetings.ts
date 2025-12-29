@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { createActivity } from "./activities"
 
 export type MeetingInsert = {
   country_code: string
@@ -60,6 +61,24 @@ export async function createMeeting(meeting: MeetingInsert) {
   const { data, error } = await supabase.from("meetings").insert(meeting).select().single()
 
   if (error) throw error
+
+  try {
+    await createActivity({
+      account_id: meeting.account_id,
+      country_code: meeting.country_code,
+      type: "meeting",
+      owner_id: meeting.owner_id,
+      summary: `Reunión ${meeting.kind} agendada${meeting.contact_name ? ` con ${meeting.contact_name}` : ""}`,
+      date_time: meeting.date_time,
+      details: {
+        kind: meeting.kind,
+        contact_name: meeting.contact_name,
+        contact_email: meeting.contact_email,
+      },
+    })
+  } catch (e) {
+    console.error("Error creating activity for meeting:", e)
+  }
 
   // Get current account data
   const { data: account } = await supabase
