@@ -56,13 +56,26 @@ export async function createActivity(activity: ActivityInsert) {
   const supabase = await createClient()
   const activityDateTime = activity.date_time || new Date().toISOString()
 
+  console.log("[v0] Creating activity:", {
+    type: activity.type,
+    account_id: activity.account_id,
+    country_code: activity.country_code,
+    owner_id: activity.owner_id,
+    date_time: activityDateTime,
+  })
+
   const { data, error } = await supabase
     .from("activities")
     .insert({ ...activity, date_time: activityDateTime })
     .select()
     .single()
 
-  if (error) throw error
+  if (error) {
+    console.error("[v0] Error inserting activity:", error)
+    throw error
+  }
+
+  console.log("[v0] Activity created successfully:", data.id)
 
   const { data: account } = await supabase
     .from("accounts")

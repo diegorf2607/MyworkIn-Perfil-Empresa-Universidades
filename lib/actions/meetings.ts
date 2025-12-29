@@ -68,16 +68,18 @@ export async function createMeeting(meeting: MeetingInsert) {
       country_code: meeting.country_code,
       type: "meeting",
       owner_id: meeting.owner_id,
-      summary: `Reunión ${meeting.kind} agendada${meeting.contact_name ? ` con ${meeting.contact_name}` : ""}`,
-      date_time: meeting.date_time,
+      summary: `Reunión ${meeting.kind} agendada${meeting.contact_name ? ` con ${meeting.contact_name}` : ""} para ${new Date(meeting.date_time).toLocaleDateString("es-ES")}`,
+      date_time: new Date().toISOString(), // Use current time, not meeting date
       details: {
         kind: meeting.kind,
         contact_name: meeting.contact_name,
         contact_email: meeting.contact_email,
+        meeting_date: meeting.date_time, // Store actual meeting date in details
       },
     })
+    console.log("[v0] Activity created for meeting:", data.id)
   } catch (e) {
-    console.error("Error creating activity for meeting:", e)
+    console.error("[v0] Error creating activity for meeting:", e)
   }
 
   // Get current account data
