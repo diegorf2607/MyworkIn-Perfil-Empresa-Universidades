@@ -18,6 +18,8 @@ export type ActivityInsert = {
     | "account_created"
     | "stage_changed"
     | "kdm_created"
+    | "kdm_linked"
+    | "fit_changed"
   date_time?: string
   owner_id?: string
   summary?: string
@@ -56,14 +58,6 @@ export async function createActivity(activity: ActivityInsert) {
   const supabase = await createClient()
   const activityDateTime = activity.date_time || new Date().toISOString()
 
-  console.log("[v0] Creating activity:", {
-    type: activity.type,
-    account_id: activity.account_id,
-    country_code: activity.country_code,
-    owner_id: activity.owner_id,
-    date_time: activityDateTime,
-  })
-
   const { data, error } = await supabase
     .from("activities")
     .insert({ ...activity, date_time: activityDateTime })
@@ -71,11 +65,8 @@ export async function createActivity(activity: ActivityInsert) {
     .single()
 
   if (error) {
-    console.error("[v0] Error inserting activity:", error)
     throw error
   }
-
-  console.log("[v0] Activity created successfully:", data.id)
 
   const { data: account } = await supabase
     .from("accounts")
@@ -87,12 +78,10 @@ export async function createActivity(activity: ActivityInsert) {
     last_touch: activityDateTime,
   }
 
-  // Set first_contact_at if not set
   if (!account?.first_contact_at) {
     updates.first_contact_at = activityDateTime
   }
 
-  // Update last_contact_at if this is more recent
   if (!account?.last_contact_at || new Date(activityDateTime) > new Date(account.last_contact_at)) {
     updates.last_contact_at = activityDateTime
   }
