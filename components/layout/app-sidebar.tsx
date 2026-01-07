@@ -53,6 +53,11 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
       { title: "Actividad", href: `${basePath}/actividad`, icon: Activity },
     ]
 
+    const knowledgeItems = [
+      { title: "Recursos", href: `${basePath}/recursos`, icon: FileText },
+      { title: "Glosario", href: `${basePath}/glosario`, icon: BookOpen },
+    ]
+
     return (
       <Sidebar>
         <SidebarHeader className="border-b border-border px-4 py-3">
@@ -95,12 +100,29 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {/* Nueva sección de Performance */}
           <SidebarGroup>
             <SidebarGroupLabel>Control Comercial</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {performanceItems.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton asChild isActive={pathname === item.href}>
+                      <Link href={item.href}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Base de Conocimiento</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {knowledgeItems.map((item) => (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={pathname === item.href}>
                       <Link href={item.href}>
@@ -139,14 +161,12 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
 
   const salesItems = [
     { title: "Reuniones", href: `${basePath}/sales/meetings`, icon: Calendar },
-    { title: "Recursos", href: `${basePath}/sales/resources`, icon: FileText },
     { title: "Secuencias", href: `${basePath}/sales/sequences`, icon: BarChart3 },
   ]
 
   const adminItems = [
     { title: "Universidades", href: `${basePath}/admin/universities`, icon: Building2 },
     { title: "Equipo", href: `${basePath}/admin/team`, icon: Users },
-    { title: "Glosario", href: `${basePath}/admin/glossary`, icon: BookOpen },
     { title: "Configuración", href: `${basePath}/admin/settings`, icon: Settings },
   ]
 

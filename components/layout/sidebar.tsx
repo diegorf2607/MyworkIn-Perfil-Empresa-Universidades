@@ -128,19 +128,7 @@ export function Sidebar({ countryCode }: SidebarProps) {
                       <Tooltip key={item.href}>
                         <TooltipTrigger asChild>
                           <Link href={item.href}>
-                            <Button
-                              variant={isActive ? "secondary" : "ghost"}
-                              className={cn(
-                                "w-full justify-start gap-3",
-                                isActive
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                                collapsed && "justify-center px-2",
-                              )}
-                            >
-                              <item.icon className="h-4 w-4 shrink-0" />
-                              {!collapsed && <span>{item.label}</span>}
-                            </Button>
+                            
                           </Link>
                         </TooltipTrigger>
                         {collapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
