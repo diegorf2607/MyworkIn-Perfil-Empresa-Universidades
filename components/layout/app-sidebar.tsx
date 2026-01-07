@@ -26,10 +26,10 @@ import {
   FileText,
   BookOpen,
   BarChart3,
-  Settings,
   Globe,
   UserCircle,
   Activity,
+  Mail,
 } from "lucide-react"
 
 interface AppSidebarProps {
@@ -42,6 +42,7 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
   const basePath = isGlobal ? "/all" : `/c/${countryCode}`
 
   if (isGlobal) {
+    // ... existing code for global sidebar ...
     const generalItems = [
       { title: "Overview", href: `${basePath}/overview`, icon: LayoutDashboard },
       { title: "Equipo", href: `${basePath}/team`, icon: Users },
@@ -150,9 +151,15 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
     )
   }
 
-  // ... existing code para sidebar de país ...
-  const crmItems = [
+  // Sections: MYWORKIN, CRM, GESTIÓN COMERCIAL, ADMINISTRACIÓN
+  // Removed only: "Recursos de Venta" and "Glosario Comercial" (now in Global)
+
+  const myworkinItems = [
     { title: "Overview", href: `${basePath}/overview`, icon: LayoutDashboard },
+    { title: "Scorecards", href: `${basePath}/scorecards`, icon: BarChart3 },
+  ]
+
+  const crmItems = [
     { title: "Leads (ICP)", href: `${basePath}/crm/leads`, icon: Users },
     { title: "SQLs", href: `${basePath}/crm/sqls`, icon: Target },
     { title: "Oportunidades", href: `${basePath}/crm/opps`, icon: TrendingUp },
@@ -161,23 +168,22 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
 
   const salesItems = [
     { title: "Reuniones", href: `${basePath}/sales/meetings`, icon: Calendar },
-    { title: "Secuencias", href: `${basePath}/sales/sequences`, icon: BarChart3 },
+    { title: "Secuencias Outbound", href: `${basePath}/sales/sequences`, icon: Mail },
+    // "Recursos de Venta" removido - ahora está en Global
   ]
 
   const adminItems = [
-    { title: "Universidades", href: `${basePath}/admin/universities`, icon: Building2 },
-    { title: "Equipo", href: `${basePath}/admin/team`, icon: Users },
-    { title: "Configuración", href: `${basePath}/admin/settings`, icon: Settings },
+    { title: "Base de Universidades", href: `${basePath}/admin/universities`, icon: Building2 },
+    { title: "Equipo Comercial", href: `${basePath}/admin/team`, icon: Users },
+    { title: "KDM", href: `${basePath}/kdm`, icon: UserCircle },
+    // "Glosario Comercial" removido - ahora está en Global
   ]
-
-  const scorecardItem = { title: "Scorecard", href: `${basePath}/scorecards`, icon: BarChart3 }
-  const kdmItem = { title: "KDM", href: `${basePath}/kdm`, icon: UserCircle }
 
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-border px-4 py-3">
         <Link href="/countries" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary p-1.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1.5">
             <Image
               src="/images/myworkin-logo.png"
               alt="MyWorkIn"
@@ -187,20 +193,55 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
             />
           </div>
           <div>
-            <h2 className="font-semibold text-foreground">MyWorkIn CRM</h2>
-            <p className="text-xs text-muted-foreground">{countryCode}</p>
+            <h2 className="font-semibold text-foreground">MyWorkIn</h2>
           </div>
         </Link>
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Link to Global View */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/all/overview">
+                    <Globe className="h-4 w-4" />
+                    <span>Todos los países</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* MYWORKIN Section */}
+        <SidebarGroup>
+          <SidebarGroupLabel>MYWORKIN</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {myworkinItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton asChild isActive={pathname === item.href}>
+                    <Link href={item.href}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* CRM Section */}
         <SidebarGroup>
           <SidebarGroupLabel>CRM</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {crmItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={pathname === item.href}>
+                  <SidebarMenuButton asChild isActive={pathname === item.href || pathname.startsWith(item.href)}>
                     <Link href={item.href}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -212,29 +253,14 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* GESTIÓN COMERCIAL Section */}
         <SidebarGroup>
-          <SidebarGroupLabel>Contactos Clave</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === kdmItem.href}>
-                  <Link href={kdmItem.href}>
-                    <kdmItem.icon className="h-4 w-4" />
-                    <span>{kdmItem.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Ventas</SidebarGroupLabel>
+          <SidebarGroupLabel>GESTIÓN COMERCIAL</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {salesItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={pathname === item.href}>
+                  <SidebarMenuButton asChild isActive={pathname === item.href || pathname.startsWith(item.href)}>
                     <Link href={item.href}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -246,13 +272,14 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* ADMINISTRACIÓN Section */}
         <SidebarGroup>
-          <SidebarGroupLabel>Admin</SidebarGroupLabel>
+          <SidebarGroupLabel>ADMINISTRACIÓN</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {adminItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={pathname === item.href}>
+                  <SidebarMenuButton asChild isActive={pathname === item.href || pathname.startsWith(item.href)}>
                     <Link href={item.href}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -260,21 +287,6 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === scorecardItem.href}>
-                  <Link href={scorecardItem.href}>
-                    <scorecardItem.icon className="h-4 w-4" />
-                    <span>{scorecardItem.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -286,7 +298,7 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <Globe className="h-4 w-4" />
-          Cambiar país
+          Seleccionar país
         </Link>
       </SidebarFooter>
     </Sidebar>

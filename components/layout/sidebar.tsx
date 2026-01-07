@@ -13,10 +13,8 @@ import {
   CheckCircle2,
   Calendar,
   Mail,
-  FileText,
   Building2,
   UserCog,
-  BookOpen,
   ChevronLeft,
   ChevronRight,
   Globe,
@@ -56,7 +54,6 @@ export function Sidebar({ countryCode }: SidebarProps) {
       items: [
         { label: "Reuniones", icon: Calendar, href: `/c/${countryCode}/sales/meetings` },
         { label: "Secuencias Outbound", icon: Mail, href: `/c/${countryCode}/sales/sequences` },
-        { label: "Recursos de Venta", icon: FileText, href: `/c/${countryCode}/sales/resources` },
       ],
     },
     {
@@ -64,7 +61,6 @@ export function Sidebar({ countryCode }: SidebarProps) {
       items: [
         { label: "Base de Universidades", icon: Building2, href: `/c/${countryCode}/admin/universities` },
         { label: "Equipo Comercial", icon: UserCog, href: `/c/${countryCode}/admin/team` },
-        { label: "Glosario Comercial", icon: BookOpen, href: `/c/${countryCode}/admin/glossary` },
       ],
     },
   ]
@@ -95,7 +91,7 @@ export function Sidebar({ countryCode }: SidebarProps) {
         <div className="border-b border-border p-3">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link href="/countries">
+              <Link href="/all/overview">
                 <Button
                   variant="ghost"
                   className={cn(
@@ -123,12 +119,24 @@ export function Sidebar({ countryCode }: SidebarProps) {
                 )}
                 <div className="flex flex-col gap-1">
                   {section.items.map((item) => {
-                    const isActive = pathname === item.href
+                    const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
                     return (
                       <Tooltip key={item.href}>
                         <TooltipTrigger asChild>
                           <Link href={item.href}>
-                            
+                            <Button
+                              variant={isActive ? "secondary" : "ghost"}
+                              className={cn(
+                                "w-full justify-start gap-3",
+                                collapsed && "justify-center px-2",
+                                isActive
+                                  ? "bg-primary/10 text-primary hover:bg-primary/20"
+                                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                              )}
+                            >
+                              <item.icon className="h-4 w-4 shrink-0" />
+                              {!collapsed && <span>{item.label}</span>}
+                            </Button>
                           </Link>
                         </TooltipTrigger>
                         {collapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
