@@ -12,7 +12,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { CreateMeetingDialog } from "@/components/crm/create-meeting-dialog"
-import { Search, Filter, Calendar, Video, Clock, Plus, Loader2, CheckCircle2, Mail, AlertCircle } from "lucide-react"
+import {
+  Search,
+  Filter,
+  Calendar,
+  Video,
+  Clock,
+  Plus,
+  Loader2,
+  CheckCircle2,
+  Mail,
+  AlertCircle,
+  Link2,
+  FileText,
+} from "lucide-react"
 import {
   getMeetings,
   updateMeeting,
@@ -46,6 +59,9 @@ interface Meeting {
   next_step_date: string | null
   next_step_responsible: string | null
   follow_up_status: "active" | "cancelled" | "alert_sent" | "resolved"
+  meeting_url: string | null
+  meeting_doc_url: string | null
+  meeting_summary: string | null
 }
 
 interface Account {
@@ -186,6 +202,16 @@ export default function MeetingsPage() {
 
   const handleSave = async () => {
     if (!selectedMeeting) return
+
+    if (selectedMeeting.meeting_url && !isValidUrl(selectedMeeting.meeting_url)) {
+      toast.error("URL de grabación inválida")
+      return
+    }
+    if (selectedMeeting.meeting_doc_url && !isValidUrl(selectedMeeting.meeting_doc_url)) {
+      toast.error("URL de documento inválida")
+      return
+    }
+
     try {
       await updateMeeting(selectedMeeting)
       toast.success("Reunión actualizada")
@@ -216,6 +242,23 @@ export default function MeetingsPage() {
     const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
     return meetingDate >= today && meetingDate <= weekFromNow
   }).length
+
+  const isValidUrl = (url: string): boolean => {
+    if (!url) return true
+    try {
+      new URL(url)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  const isPastMeeting = (meeting: Meeting): boolean => {
+    const meetingDate = new Date(meeting.date_time)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return meetingDate < today || meeting.outcome !== "pending"
+  }
 
   if (isLoading) {
     return (
@@ -258,7 +301,6 @@ export default function MeetingsPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardContent className="flex flex-wrap items-center gap-4 p-4">
           <div className="relative flex-1 min-w-[200px]">
@@ -298,7 +340,6 @@ export default function MeetingsPage() {
         </CardContent>
       </Card>
 
-      {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Reuniones</CardTitle>
@@ -401,7 +442,6 @@ export default function MeetingsPage() {
         </CardContent>
       </Card>
 
-      {/* Meeting Sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-0">
           <div className="p-6 space-y-6">
@@ -586,6 +626,66 @@ export default function MeetingsPage() {
                     />
                   </div>
                 </div>
+
+                {isPastMeeting(selectedMeeting) && (
+                  <div className="border rounded-lg p-4 space-y-3 bg-blue-50/50 border-blue-200">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Video className="h-4 w-4 text-blue-600" />
+                      Post-reunión
+                    </Label>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Link2 className="h-3 w-3" />
+                          Link de grabación
+                        </Label>
+                        <Input
+                          type="url"
+                          value={selectedMeeting.meeting_url || ""}
+                          onChange={(e) => setSelectedMeeting({ ...selectedMeeting, meeting_url: e.target.value })}
+                          placeholder="https://zoom.us/rec/..."
+                          className={
+                            selectedMeeting.meeting_url && !isValidUrl(selectedMeeting.meeting_url)
+                              ? "border-red-500"
+                              : ""
+                          }
+                        />
+                        {selectedMeeting.meeting_url && !isValidUrl(selectedMeeting.meeting_url) && (
+                          <p className="text-xs text-red-500">URL inválida</p>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                          <FileText className="h-3 w-3" />
+                          Link de documento (transcript / notas)
+                        </Label>
+                        <Input
+                          type="url"
+                          value={selectedMeeting.meeting_doc_url || ""}
+                          onChange={(e) => setSelectedMeeting({ ...selectedMeeting, meeting_doc_url: e.target.value })}
+                          placeholder="https://docs.google.com/..."
+                          className={
+                            selectedMeeting.meeting_doc_url && !isValidUrl(selectedMeeting.meeting_doc_url)
+                              ? "border-red-500"
+                              : ""
+                          }
+                        />
+                        {selectedMeeting.meeting_doc_url && !isValidUrl(selectedMeeting.meeting_doc_url) && (
+                          <p className="text-xs text-red-500">URL inválida</p>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Resumen de reunión (AI)</Label>
+                        <Textarea
+                          value={selectedMeeting.meeting_summary || ""}
+                          onChange={(e) => setSelectedMeeting({ ...selectedMeeting, meeting_summary: e.target.value })}
+                          placeholder="Resumen generado por IA o notas manuales..."
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>Notas</Label>
