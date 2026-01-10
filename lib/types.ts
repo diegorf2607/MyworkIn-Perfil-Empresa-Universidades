@@ -123,10 +123,13 @@ export interface Task {
 
 export interface TeamMember {
   id: string
+  user_id?: string // References auth.users
   name: string
   email: string
-  role: "SDR" | "AE"
-  countryCode?: string
+  role: "admin" | "user" // Changed from SDR/AE to admin/user
+  country_codes?: string[] // Array of assigned countries
+  is_active?: boolean
+  created_at?: string
 }
 
 export interface GlossaryTerm {

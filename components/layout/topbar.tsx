@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Globe, ChevronDown } from "lucide-react"
+import { Search, Globe, ChevronDown, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getActiveCountries } from "@/lib/actions/countries"
+import { logout } from "@/lib/actions/auth"
 
 interface Country {
   code: string
@@ -57,6 +58,10 @@ export function Topbar({ countryCode, hideFilters = false, hideSearch = false }:
     } else {
       router.push(`/c/${code}/scorecards`)
     }
+  }
+
+  const handleLogout = async () => {
+    await logout()
   }
 
   return (
@@ -118,6 +123,12 @@ export function Topbar({ countryCode, hideFilters = false, hideSearch = false }:
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Logout Button */}
+        <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2">
+          <LogOut className="h-4 w-4" />
+          Salir
+        </Button>
       </div>
     </header>
   )

@@ -1,14 +1,13 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAppStore } from "@/lib/store"
 
 export default function LoginPage() {
@@ -16,6 +15,7 @@ export default function LoginPage() {
   const { appInitialized } = useAppStore()
   const [email, setEmail] = useState("admin@myworkin.com")
   const [password, setPassword] = useState("admin123")
+  const [remember, setRemember] = useState(false)
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,40 +28,58 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-primary">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4">
-            <Image
-              src="/images/myworkin-logo.png"
-              alt="MyWorkIn"
-              width={80}
-              height={80}
-              className="h-20 w-20 object-contain"
-            />
-          </div>
-          <CardTitle className="text-2xl">MyWorkIn CRM</CardTitle>
-          <CardDescription>Ingresa al CRM interno del equipo comercial</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            </div>
-            <Button type="submit" className="w-full">
-              Iniciar sesión
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Rol: <span className="font-medium">Admin</span> (mock)
-          </p>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-[#06477B] px-6 py-4">
+        <h1 className="text-xl font-semibold text-white">MyWorkIn CRM</h1>
+      </header>
+
+      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Contraseña</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="remember"
+                  checked={remember}
+                  onCheckedChange={(checked) => setRemember(checked as boolean)}
+                />
+                <Label htmlFor="remember" className="font-normal cursor-pointer">
+                  Recordarme
+                </Label>
+              </div>
+
+              <Button type="submit" className="w-full bg-[#06477B] hover:bg-[#053d64]">
+                Ingresar
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

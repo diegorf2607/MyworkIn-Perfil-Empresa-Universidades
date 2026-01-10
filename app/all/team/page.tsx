@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Plus, Search, Pencil, Trash2, Users } from "lucide-react"
 import { toast } from "sonner"
-import { getTeamMembers, createTeamMember, updateTeamMember, deleteTeamMember } from "@/lib/actions/team"
+import { getTeamMembers, updateTeamMember, deleteTeamMember } from "@/lib/actions/team"
 import { getCountries } from "@/lib/actions/countries"
 import type { TeamMember, Country } from "@/lib/types"
 
@@ -47,9 +47,10 @@ export default function GlobalTeamPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "sales",
+    role: "admin",
     country_codes: [] as string[],
     is_active: true,
+    password: "",
   })
 
   useEffect(() => {
@@ -84,9 +85,10 @@ export default function GlobalTeamPage() {
     setFormData({
       name: "",
       email: "",
-      role: "sales",
+      role: "admin",
       country_codes: [],
       is_active: true,
+      password: "",
     })
     setIsDialogOpen(true)
   }
@@ -99,6 +101,7 @@ export default function GlobalTeamPage() {
       role: member.role,
       country_codes: member.country_codes || [],
       is_active: member.is_active !== false,
+      password: "",
     })
     setIsDialogOpen(true)
   }
@@ -108,8 +111,14 @@ export default function GlobalTeamPage() {
       toast.error("Nombre y email son requeridos")
       return
     }
-    if (formData.country_codes.length === 0) {
-      toast.error("Debe asignar al menos un país")
+
+    if (!editingMember && !formData.password) {
+      toast.error("La contraseña es requerida para nuevos miembros")
+      return
+    }
+
+    if (formData.role === "user" && formData.country_codes.length === 0) {
+      toast.error("Usuarios deben tener al menos un país asignado")
       return
     }
 
@@ -125,19 +134,31 @@ export default function GlobalTeamPage() {
         })
         toast.success("Miembro actualizado")
       } else {
-        await createTeamMember({
-          name: formData.name,
-          email: formData.email,
-          role: formData.role,
-          country_codes: formData.country_codes,
-          is_active: formData.is_active,
+        const response = await fetch("/api/team/members", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            role: formData.role,
+            country_codes: formData.role === "user" ? formData.country_codes : [],
+            is_active: formData.is_active,
+          }),
         })
-        toast.success("Miembro creado")
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || "Error al crear miembro")
+        }
+
+        toast.success("Miembro creado exitosamente")
       }
       setIsDialogOpen(false)
       loadData()
     } catch (error) {
-      toast.error("Error al guardar")
+      toast.error(error instanceof Error ? error.message : "Error al guardar")
     }
   }
 
@@ -207,42 +228,60 @@ export default function GlobalTeamPage() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="juan@myworkin.com"
+                    disabled={!!editingMember}
                   />
                 </div>
+                {!editingMember && (
+                  <div className="space-y-2">
+                    <Label>Contraseña *</Label>
+                    <Input
+                      type="password"
+                      value={formData.password || ""}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      placeholder="Mínimo 6 caracteres"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
-                  <Label>Rol</Label>
+                  <Label>Rol *</Label>
                   <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="sales">Ventas</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="user">Usuario</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.role === "admin"
+                      ? "Acceso completo a todos los países"
+                      : "Solo ve datos de países asignados"}
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label>Países asignados *</Label>
-                  <div className="grid grid-cols-2 gap-2 p-3 border rounded-md">
-                    {countries.map((country) => (
-                      <div key={country.code} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={country.code}
-                          checked={formData.country_codes.includes(country.code)}
-                          onCheckedChange={() => toggleCountry(country.code)}
-                        />
-                        <label htmlFor={country.code} className="text-sm cursor-pointer flex items-center gap-1">
-                          <span>{COUNTRY_FLAGS[country.code] || "🌐"}</span>
-                          {country.name}
-                        </label>
-                      </div>
-                    ))}
+                {formData.role === "user" && (
+                  <div className="space-y-2">
+                    <Label>Países asignados *</Label>
+                    <div className="grid grid-cols-2 gap-2 p-3 border rounded-md">
+                      {countries.map((country) => (
+                        <div key={country.code} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={country.code}
+                            checked={formData.country_codes.includes(country.code)}
+                            onCheckedChange={() => toggleCountry(country.code)}
+                          />
+                          <label htmlFor={country.code} className="text-sm cursor-pointer flex items-center gap-1">
+                            <span>{COUNTRY_FLAGS[country.code] || "🌐"}</span>
+                            {country.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    {formData.country_codes.length === 0 && (
+                      <p className="text-xs text-destructive">Selecciona al menos un país</p>
+                    )}
                   </div>
-                  {formData.country_codes.length === 0 && (
-                    <p className="text-xs text-destructive">Selecciona al menos un país</p>
-                  )}
-                </div>
+                )}
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="is_active"
@@ -342,9 +381,7 @@ export default function GlobalTeamPage() {
                       <TableCell className="font-medium">{member.name}</TableCell>
                       <TableCell>{member.email}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {member.role === "sales" ? "Ventas" : member.role === "manager" ? "Manager" : "Admin"}
-                        </Badge>
+                        <Badge variant="outline">{member.role === "admin" ? "Admin" : "Usuario"}</Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
