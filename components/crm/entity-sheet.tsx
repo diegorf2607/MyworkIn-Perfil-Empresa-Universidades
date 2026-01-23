@@ -516,11 +516,11 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
 
     startTransition(async () => {
       try {
-        // Note: fit_comercial is not in AccountUpdate type, so we only update it locally
-        setEditedAccount({ ...editedAccount, fit_comercial: normalizedFit })
         await updateAccount({
           id: editedAccount.id,
+          fit_comercial: normalizedFit as "alto" | "medio" | "bajo",
         })
+        setEditedAccount({ ...editedAccount, fit_comercial: normalizedFit })
 
         // Create activity for histórico
         await createActivity({
@@ -828,7 +828,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
                               <span className="font-medium">{contact.name}</span>
                               {contact.role && (
                                 <Badge variant="secondary" className="text-xs">
-                                  {contact.role === "KDM"
+                                  {contact.role === "KDM" || contact.role === "kdm"
                                     ? "KDM"
                                     : contact.role === "influencer"
                                       ? "Influencer"
@@ -870,7 +870,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
                                 setContactForm({
                                   name: contact.name,
                                   title: contact.title || "",
-                                  role: (contact.role === "kdm" ? "KDM" : (contact.role as "" | "KDM" | "influencer" | "procurement")) || "",
+                                  role: (contact.role === "kdm" || contact.role === "KDM" ? "KDM" : (contact.role as "" | "influencer" | "procurement")) || "",
                                   email: contact.email || "",
                                   whatsapp: contact.whatsapp || "",
                                 })

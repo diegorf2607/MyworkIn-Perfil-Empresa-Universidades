@@ -62,6 +62,7 @@ export function CreateAccountDialog({
           type: formData.type,
           size: formData.size,
           website: formData.website || undefined,
+          fit_comercial: formData.fit_comercial,
           stage: defaultStage,
           source: formData.source,
           notes: formData.notes || undefined,

@@ -21,6 +21,7 @@ export type AccountInsert = {
   mrr?: number
   status?: "activo" | "pausado" | "archivado"
   notes?: string
+  fit_comercial?: "alto" | "medio" | "bajo"
   first_contact_at?: string
   last_contact_at?: string
   next_follow_up_at?: string
