@@ -173,7 +173,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
           kind: formData.kind,
           date_time: new Date(formData.date_time).toISOString(),
           outcome: "pending",
-          notes: formData.notes || null,
+          notes: formData.notes || undefined,
           contact_name: formData.contact_name,
           contact_email: formData.contact_email,
           next_step_type: formData.next_step_type || undefined,
@@ -446,7 +446,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isPending || (effectiveCountry && teamMembers.length === 0)}>
+          <Button onClick={handleSubmit} disabled={isPending || (!!effectiveCountry && teamMembers.length === 0)}>
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -175,7 +175,7 @@ export function OpportunitySheet({ opportunity, open, onOpenChange }: Opportunit
               </div>
               <div className="space-y-2">
                 <Label>Producto</Label>
-                <Select value={editedOpp.product} onValueChange={(v) => setEditedOpp({ ...editedOpp, product: v })}>
+                <Select value={editedOpp.product || ""} onValueChange={(v) => setEditedOpp({ ...editedOpp, product: v as any })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

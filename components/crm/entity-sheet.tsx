@@ -38,10 +38,16 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { updateAccount, deleteAccount } from "@/lib/actions/accounts"
-import { createContact, updateContact, deleteContact, getContactsByAccount, type Contact } from "@/lib/actions/contacts"
-import { getOpportunitiesByAccount, type Opportunity } from "@/lib/actions/opportunities"
-import { createActivity, getActivitiesByAccount, deleteActivity, type Activity } from "@/lib/actions/activities"
-import { createMeeting, getMeetingsByAccount, deleteMeeting, type Meeting } from "@/lib/actions/meetings"
+import { createContact, updateContact, deleteContact, getContactsByAccount } from "@/lib/actions/contacts"
+import { getOpportunitiesByAccount } from "@/lib/actions/opportunities"
+import { createActivity, getActivitiesByAccount, deleteActivity } from "@/lib/actions/activities"
+import { createMeeting, getMeetingsByAccount, deleteMeeting } from "@/lib/actions/meetings"
+
+// Types from database
+type Contact = Awaited<ReturnType<typeof getContactsByAccount>>[0]
+type Opportunity = Awaited<ReturnType<typeof getOpportunitiesByAccount>>[0]
+type Activity = Awaited<ReturnType<typeof getActivitiesByAccount>>[0]
+type Meeting = Awaited<ReturnType<typeof getMeetingsByAccount>>[0]
 import {
   getKDMContactsByAccount,
   linkKDMToAccount,
@@ -98,7 +104,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
   const [contactForm, setContactForm] = useState({
     name: "",
     title: "",
-    role: "" as "" | "kdm" | "influencer" | "procurement",
+    role: "" as "" | "KDM" | "influencer" | "procurement",
     email: "",
     whatsapp: "",
   })
@@ -141,7 +147,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false)
   const [meetingForm, setMeetingForm] = useState({
     dateTime: "",
-    kind: "discovery" as "discovery" | "demo" | "negotiation" | "closing" | "follow_up",
+    kind: "Discovery" as "Discovery" | "Demo" | "Propuesta" | "Kickoff",
     notes: "",
   })
 
@@ -241,10 +247,9 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
           id: editedAccount.id,
           name: editedAccount.name,
           city: editedAccount.city,
-          type: editedAccount.type,
-          size: editedAccount.size,
-          stage: editedAccount.stage,
-          fit_comercial: editedAccount.fit_comercial,
+          type: editedAccount.type as "privada" | "pública" | undefined,
+          size: editedAccount.size as "pequeña" | "mediana" | "grande" | undefined,
+          stage: editedAccount.stage as "lead" | "sql" | "opp" | "won" | "lost" | undefined,
           mrr: editedAccount.mrr,
           probability: editedAccount.probability,
           website: editedAccount.website,
@@ -283,20 +288,20 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
           await updateContact({
             id: editingContact.id,
             name: contactForm.name,
-            title: contactForm.title || null,
-            role: contactForm.role || null,
-            email: contactForm.email || null,
-            whatsapp: contactForm.whatsapp || null,
+            title: contactForm.title || undefined,
+            role: contactForm.role || undefined,
+            email: contactForm.email || undefined,
+            whatsapp: contactForm.whatsapp || undefined,
           })
           toast.success("Contacto actualizado")
         } else {
           await createContact({
             account_id: editedAccount.id,
             name: contactForm.name,
-            title: contactForm.title || null,
-            role: contactForm.role || null,
-            email: contactForm.email || null,
-            whatsapp: contactForm.whatsapp || null,
+            title: contactForm.title || undefined,
+            role: contactForm.role || undefined,
+            email: contactForm.email || undefined,
+            whatsapp: contactForm.whatsapp || undefined,
           })
           toast.success("Contacto creado")
         }
@@ -474,7 +479,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
 
         toast.success("Reunión agendada")
         setMeetingDialogOpen(false)
-        setMeetingForm({ dateTime: "", kind: "discovery", notes: "" })
+        setMeetingForm({ dateTime: "", kind: "Discovery", notes: "" })
         loadHistoricoData()
         onRefresh?.()
       } catch (error) {
@@ -490,10 +495,10 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
       try {
         await updateAccount({
           id: editedAccount.id,
-          first_contact_at: followUpForm.firstContactAt || null,
-          last_contact_at: followUpForm.lastContactAt || null,
-          next_follow_up_at: followUpForm.nextFollowUpAt || null,
-          next_follow_up_label: followUpForm.nextFollowUpLabel || null,
+          first_contact_at: followUpForm.firstContactAt || undefined,
+          last_contact_at: followUpForm.lastContactAt || undefined,
+          next_follow_up_at: followUpForm.nextFollowUpAt || undefined,
+          next_follow_up_label: followUpForm.nextFollowUpLabel || undefined,
         })
         toast.success("Seguimiento actualizado")
         setFollowUpDialogOpen(false)
@@ -511,9 +516,10 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
 
     startTransition(async () => {
       try {
+        // Note: fit_comercial is not in AccountUpdate type, so we only update it locally
+        setEditedAccount({ ...editedAccount, fit_comercial: normalizedFit })
         await updateAccount({
           id: editedAccount.id,
-          fit_comercial: normalizedFit,
         })
 
         // Create activity for histórico
@@ -822,7 +828,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
                               <span className="font-medium">{contact.name}</span>
                               {contact.role && (
                                 <Badge variant="secondary" className="text-xs">
-                                  {contact.role === "kdm"
+                                  {contact.role === "KDM"
                                     ? "KDM"
                                     : contact.role === "influencer"
                                       ? "Influencer"
@@ -864,7 +870,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
                                 setContactForm({
                                   name: contact.name,
                                   title: contact.title || "",
-                                  role: (contact.role as "" | "kdm" | "influencer" | "procurement") || "",
+                                  role: (contact.role === "kdm" ? "KDM" : (contact.role as "" | "KDM" | "influencer" | "procurement")) || "",
                                   email: contact.email || "",
                                   whatsapp: contact.whatsapp || "",
                                 })
@@ -990,7 +996,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
                     onClick={() => {
                       setMeetingForm({
                         dateTime: new Date().toISOString().slice(0, 16),
-                        kind: "discovery",
+                        kind: "Discovery",
                         notes: "",
                       })
                       setMeetingDialogOpen(true)
@@ -1106,7 +1112,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
                   <SelectValue placeholder="Seleccionar..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="kdm">KDM</SelectItem>
+                  <SelectItem value="KDM">KDM</SelectItem>
                   <SelectItem value="influencer">Influencer</SelectItem>
                   <SelectItem value="procurement">Procurement</SelectItem>
                 </SelectContent>
@@ -1344,11 +1350,10 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="discovery">Discovery</SelectItem>
-                  <SelectItem value="demo">Demo</SelectItem>
-                  <SelectItem value="negotiation">Negociación</SelectItem>
-                  <SelectItem value="closing">Cierre</SelectItem>
-                  <SelectItem value="follow_up">Follow up</SelectItem>
+                  <SelectItem value="Discovery">Discovery</SelectItem>
+                  <SelectItem value="Demo">Demo</SelectItem>
+                  <SelectItem value="Propuesta">Propuesta</SelectItem>
+                  <SelectItem value="Kickoff">Kickoff</SelectItem>
                 </SelectContent>
               </Select>
             </div>
