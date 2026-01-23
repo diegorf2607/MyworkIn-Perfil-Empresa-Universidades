@@ -153,7 +153,7 @@ function Sidebar({
       <div
         data-slot="sidebar"
         className={cn(
-          "bg-gradient-to-r from-[#005691] via-[#005691] to-[#0078D4] text-white flex h-full w-(--sidebar-width) flex-col",
+          "bg-[#005691] text-white flex h-full w-(--sidebar-width) flex-col",
           className,
         )}
         {...props}
@@ -170,7 +170,7 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-        className="bg-gradient-to-r from-[#005691] via-[#005691] to-[#0078D4] text-white w-(--sidebar-width) p-0 [&>button]:hidden"
+        className="bg-[#005691] text-white w-(--sidebar-width) p-0 [&>button]:hidden"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -227,7 +227,7 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="bg-gradient-to-r from-[#005691] via-[#005691] to-[#0078D4] text-white group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+          className="bg-[#005691] text-white group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
         >
           {children}
         </div>
