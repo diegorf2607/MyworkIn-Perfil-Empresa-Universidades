@@ -30,12 +30,14 @@ import {
   Loader2,
   Calendar,
   Globe,
+  LogOut,
 } from "lucide-react"
 import { toast } from "sonner"
 import { getCountries, addCountry, updateCountry, deleteCountry } from "@/lib/actions/countries"
 import { getAccounts } from "@/lib/actions/accounts"
 import { getOpportunities } from "@/lib/actions/opportunities"
 import { getMeetings } from "@/lib/actions/meetings"
+import { createClient } from "@/lib/supabase/client"
 
 interface Country {
   code: string
@@ -466,6 +468,27 @@ export default function CountriesPage() {
           </div>
         )}
       </main>
+
+      {/* Footer con botón de cerrar sesión */}
+      <footer className="border-t border-border bg-background py-6 mt-auto">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="flex items-center justify-center">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                const supabase = createClient();
+                await supabase.auth.signOut();
+                router.push('/login');
+                router.refresh();
+              }}
+              className="gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Cerrar sesión
+            </Button>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
