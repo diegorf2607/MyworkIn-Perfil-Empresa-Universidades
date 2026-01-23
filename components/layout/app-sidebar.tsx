@@ -61,12 +61,12 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
 
     return (
       <Sidebar>
-        <SidebarHeader className="border-b border-border px-4 py-3">
+        <SidebarHeader className="border-b border-white/15 px-4 py-3">
           <Link href="/all/overview" className="flex items-center gap-3">
             <MyWorkInLogo variant="icon" size="sm" />
             <div>
-              <h2 className="font-semibold text-foreground">MyWorkIn CRM</h2>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <h2 className="font-semibold text-white">MyWorkIn CRM</h2>
+              <p className="text-xs text-white/70 flex items-center gap-1">
                 <Globe className="h-3 w-3" />
                 Vista Global
               </p>
@@ -130,10 +130,10 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-border p-4">
+        <SidebarFooter className="border-t border-white/15 p-4">
           <Link
             href="/countries"
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-sm text-white/80 hover:text-white transition-colors"
           >
             <Globe className="h-4 w-4" />
             Seleccionar país
@@ -173,11 +173,11 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b border-border px-4 py-3">
+      <SidebarHeader className="border-b border-white/15 px-4 py-3">
         <Link href={`/c/${countryCode}/overview`} className="flex items-center gap-3">
           <MyWorkInLogo variant="icon" size="sm" />
           <div>
-            <h2 className="font-semibold text-foreground">MyWorkIn</h2>
+            <h2 className="font-semibold text-white">MyWorkIn</h2>
           </div>
         </Link>
       </SidebarHeader>
@@ -276,10 +276,10 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border p-4">
+      <SidebarFooter className="border-t border-white/15 p-4">
         <Link
           href="/countries"
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-sm text-white/80 hover:text-white transition-colors"
         >
           <Globe className="h-4 w-4" />
           Seleccionar país
