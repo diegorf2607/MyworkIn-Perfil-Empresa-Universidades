@@ -119,27 +119,36 @@ export default function CountriesPage() {
   const inactiveCountries = countries.filter((c) => !c.active)
 
   const handleAddCountry = () => {
-    if (!newCountry.code || !newCountry.name) {
+    const code = newCountry.code.trim()
+    const name = newCountry.name.trim()
+    if (!code || !name) {
       toast.error("Completa todos los campos")
       return
     }
 
-    const codeUpper = newCountry.code.toUpperCase()
-    if (countries.some((c) => c.code === codeUpper)) {
-      toast.error("Ya existe un país con ese código")
+    const codeUpper = code.toUpperCase()
+    const existingCountry = countries.find((c) => c.code === codeUpper)
+    if (existingCountry?.active) {
+      toast.error("Ya existe un país activo con ese código")
       return
     }
 
     startTransition(async () => {
       try {
-        await addCountry(codeUpper, newCountry.name)
-        toast.success(`${newCountry.name} agregado correctamente`)
+        if (existingCountry) {
+          await updateCountry(codeUpper, { active: true, name })
+          toast.success(`${name} reactivado correctamente`)
+        } else {
+          await addCountry(codeUpper, name)
+          toast.success(`${name} agregado correctamente`)
+        }
         setNewCountry({ code: "", name: "" })
         setDialogOpen(false)
         loadData()
       } catch (error) {
-        toast.error("Error al agregar país")
-        console.error(error)
+        const message = error instanceof Error ? error.message : "Error al agregar país"
+        toast.error(message)
+        console.error("Error al agregar país:", error)
       }
     })
   }

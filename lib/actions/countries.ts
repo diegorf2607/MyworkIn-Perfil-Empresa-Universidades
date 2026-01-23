@@ -34,7 +34,7 @@ export async function addCountry(code: string, name: string) {
 
   const { data, error } = await supabase
     .from("countries")
-    .insert({ code: codeUpper, name, active: true })
+    .upsert({ code: codeUpper, name, active: true }, { onConflict: "code" })
     .select()
     .single()
 
