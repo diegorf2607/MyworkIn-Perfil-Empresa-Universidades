@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
+import MyWorkInLogo from "@/components/MyWorkInLogo"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -190,15 +190,7 @@ export default function CountriesPage() {
         <div className="mx-auto max-w-6xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl p-2 bg-card">
-                <Image
-                  src="/images/myworkin-logo.png"
-                  alt="MyWorkIn"
-                  width={48}
-                  height={48}
-                  className="h-10 w-10 object-contain"
-                />
-              </div>
+              <MyWorkInLogo variant="horizontal" size="lg" className="text-white" />
               <div className="text-white">
                 <h1 className="text-3xl font-bold">MyWorkIn CRM</h1>
                 <p className="text-white/80">Selecciona un país para comenzar</p>

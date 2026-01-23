@@ -23,20 +23,26 @@ export default function MyWorkInLogo({
     <svg
       width={currentSize.icon}
       height={currentSize.icon}
-      viewBox="0 0 56 56"
+      viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="flex-shrink-0"
     >
-      {/* Elemento inferior (azul oscuro #005691) - Base izquierda */}
+      {/* Logo W - Parte inferior izquierda (azul oscuro #005691) - Base del W */}
       <path
-        d="M8 40L8 28C8 18.059 16.059 10 26 10H30C39.941 10 48 18.059 48 28V40L42 46H14L8 40Z"
+        d="M8 52L8 40C8 28.954 16.954 20 28 20H32C43.046 20 52 28.954 52 40V52L46 60H18L8 52Z"
         fill="#005691"
       />
-      {/* Elemento superior (azul claro #0078D4) - Parte superior derecha */}
+      {/* Logo W - Parte superior derecha (azul claro #0078D4) - Parte superior del W */}
       <path
-        d="M18 6H26C35.941 6 44 14.059 44 24V36L38 42H26L18 34V24C18 14.059 18 6 18 6Z"
+        d="M20 4H28C39.046 4 48 12.954 48 24V36L42 44H30L22 36V24C22 12.954 20 4 20 4Z"
         fill="#0078D4"
+      />
+      {/* Parte central que conecta ambas partes del W */}
+      <path
+        d="M24 8H32C38.627 8 44 13.373 44 20V28L38 36H30L22 28V20C22 13.373 24 8 24 8Z"
+        fill="#0078D4"
+        opacity="0.85"
       />
     </svg>
   );
@@ -64,7 +70,7 @@ export default function MyWorkInLogo({
   return (
     <div className={`inline-flex items-center gap-3 ${className}`}>
       <Icon />
-      <span className={`font-bold ${currentSize.text} text-[#005691] tracking-tight`}>
+      <span className={`font-bold ${currentSize.text} tracking-tight ${className.includes('text-white') ? 'text-white' : 'text-[#005691]'}`}>
         MyWorkIn
       </span>
     </div>
