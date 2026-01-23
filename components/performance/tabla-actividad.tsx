@@ -212,7 +212,7 @@ export function TablaActividadComercial({
           </div>
 
           {/* Tabla */}
-          <div className="rounded-md border">
+          <div>
             <Table>
               <TableHeader>
                 <TableRow>

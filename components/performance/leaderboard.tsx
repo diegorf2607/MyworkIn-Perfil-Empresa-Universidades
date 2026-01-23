@@ -113,7 +113,7 @@ export function Leaderboard({ data }: LeaderboardProps) {
         </div>
 
         {/* Tabla */}
-        <div className="rounded-md border overflow-x-auto">
+        <div>
           <Table>
             <TableHeader>
               <TableRow>

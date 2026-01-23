@@ -109,7 +109,7 @@ export function DataTable<T extends { id: string }>({
       )}
 
       {/* Table */}
-      <div className="rounded-lg border border-border bg-card">
+      <div>
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
