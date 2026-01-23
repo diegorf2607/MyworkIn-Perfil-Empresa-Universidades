@@ -11,7 +11,7 @@ interface CountryLayoutClientProps {
 
 export function CountryLayoutClient({ children, countryCode }: CountryLayoutClientProps) {
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       <Sidebar countryCode={countryCode} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar countryCode={countryCode} />
