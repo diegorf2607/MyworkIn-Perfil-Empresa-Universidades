@@ -19,11 +19,12 @@ export default function MyWorkInLogo({
 
   const currentSize = sizeClasses[size]
   const useWhite = className.includes("text-white")
-  const iconClassName = `flex-shrink-0 ${useWhite ? "brightness-0 invert" : ""}`
+  const iconClassName = "flex-shrink-0"
+  const logoSrc = useWhite ? "/images/myworkin-logo-white.svg" : "/images/myworkin-logo.png"
 
   const Icon = () => (
     <img
-      src="/images/myworkin-logo.png"
+      src={logoSrc}
       alt="MyWorkIn"
       width={currentSize.icon}
       height={currentSize.icon}
