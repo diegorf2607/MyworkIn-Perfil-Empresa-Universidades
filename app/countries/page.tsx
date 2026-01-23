@@ -137,9 +137,15 @@ export default function CountriesPage() {
       try {
         if (existingCountry) {
           await updateCountry(codeUpper, { active: true, name })
+          setCountries((prev) =>
+            prev.map((country) =>
+              country.code === codeUpper ? { ...country, name, active: true } : country,
+            ),
+          )
           toast.success(`${name} reactivado correctamente`)
         } else {
           await addCountry(codeUpper, name)
+          setCountries((prev) => [...prev, { code: codeUpper, name, active: true }])
           toast.success(`${name} agregado correctamente`)
         }
         setNewCountry({ code: "", name: "" })
