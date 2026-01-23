@@ -45,7 +45,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#F9FBfd] via-white to-[#F0F4F8] flex items-center justify-center p-4">
       {/* Header con logo */}
       <div className="absolute top-0 left-0 right-0 p-6">
-        <MyWorkInLogo variant="horizontal" size="lg" />
+        <MyWorkInLogo variant="horizontal" size="md" />
       </div>
 
       {/* Card de login */}
