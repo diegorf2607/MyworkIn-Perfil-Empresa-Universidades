@@ -32,7 +32,7 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        router.push('/countries');
+        router.push('/all/overview');
         router.refresh();
       }
     } catch (err: any) {

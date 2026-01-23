@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import Image from "next/image"
+import MyWorkInLogo from "@/components/MyWorkInLogo"
 import {
   Sidebar,
   SidebarContent,
@@ -62,16 +62,8 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
     return (
       <Sidebar>
         <SidebarHeader className="border-b border-border px-4 py-3">
-          <Link href="/countries" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg p-1.5 bg-white">
-              <Image
-                src="/images/myworkin-logo.png"
-                alt="MyWorkIn"
-                width={32}
-                height={32}
-                className="h-7 w-7 object-contain"
-              />
-            </div>
+          <Link href="/all/overview" className="flex items-center gap-3">
+            <MyWorkInLogo variant="icon" size="sm" />
             <div>
               <h2 className="font-semibold text-foreground">MyWorkIn CRM</h2>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -182,16 +174,8 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-border px-4 py-3">
-        <Link href="/countries" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1.5">
-            <Image
-              src="/images/myworkin-logo.png"
-              alt="MyWorkIn"
-              width={32}
-              height={32}
-              className="h-7 w-7 object-contain"
-            />
-          </div>
+        <Link href={`/c/${countryCode}/overview`} className="flex items-center gap-3">
+          <MyWorkInLogo variant="icon" size="sm" />
           <div>
             <h2 className="font-semibold text-foreground">MyWorkIn</h2>
           </div>
