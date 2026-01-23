@@ -63,7 +63,7 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
       <Sidebar>
         <SidebarHeader className="border-b border-white/15 px-4 py-3">
           <Link href="/all/overview" className="flex items-center gap-3">
-            <MyWorkInLogo variant="icon" size="sm" />
+            <MyWorkInLogo variant="icon" size="sm" className="text-white" />
             <div>
               <h2 className="font-semibold text-white">MyWorkIn CRM</h2>
               <p className="text-xs text-white/70 flex items-center gap-1">
@@ -175,7 +175,7 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
     <Sidebar>
       <SidebarHeader className="border-b border-white/15 px-4 py-3">
         <Link href={`/c/${countryCode}/overview`} className="flex items-center gap-3">
-          <MyWorkInLogo variant="icon" size="sm" />
+          <MyWorkInLogo variant="icon" size="sm" className="text-white" />
           <div>
             <h2 className="font-semibold text-white">MyWorkIn</h2>
           </div>

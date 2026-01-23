@@ -73,7 +73,7 @@ export function Topbar({ countryCode, hideFilters = false, hideSearch = false }:
   }
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-slate-200/40 bg-gradient-to-r from-[#005691] via-[#005691] to-[#0078D4] px-6 text-white shadow-sm">
+    <header className="flex h-16 items-center justify-between border-b border-white/10 bg-[#005691] px-6 text-white shadow-sm">
       {!hideSearch ? (
         <div className="relative w-80">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/80" />
