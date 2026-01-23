@@ -190,7 +190,7 @@ export default function CountriesPage() {
         <div className="mx-auto max-w-7xl px-6 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <MyWorkInLogo variant="horizontal" size="lg" className="text-white" />
+              <MyWorkInLogo variant="icon" size="lg" className="text-white" />
               <div className="text-white">
                 <h1 className="text-3xl font-bold tracking-tight">MyWorkIn CRM</h1>
                 <p className="text-white/90 mt-1">Selecciona un país para comenzar</p>

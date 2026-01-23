@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
 export async function getCountries() {
@@ -28,7 +29,7 @@ export async function getCountryByCode(code: string) {
 }
 
 export async function addCountry(code: string, name: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const codeUpper = code.toUpperCase()
 
   const { data, error } = await supabase
@@ -47,7 +48,7 @@ export async function addCountry(code: string, name: string) {
 }
 
 export async function updateCountry(code: string, updates: { name?: string; active?: boolean }) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("countries")
     .update(updates)
@@ -65,7 +66,7 @@ export async function updateCountry(code: string, updates: { name?: string; acti
 }
 
 export async function deleteCountry(code: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("countries").delete().eq("code", code.toUpperCase())
 
   if (error) throw error
