@@ -183,22 +183,6 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Link to Global View */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/all/overview">
-                    <Globe className="h-4 w-4" />
-                    <span>Todos los países</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
         {/* MYWORKIN Section */}
         <SidebarGroup>
           <SidebarGroupLabel>MYWORKIN</SidebarGroupLabel>

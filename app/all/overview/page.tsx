@@ -9,60 +9,53 @@ export default async function GlobalOverviewPage() {
 
   const activeCountries = countries?.filter((c) => c.active) || []
 
-  const kpis = [
-    { label: "Total Universidades", value: metrics.totalAccounts, icon: Building2, color: "text-primary" },
-    { label: "Leads Activos", value: metrics.leads, icon: Users, color: "text-blue-600" },
+  // Agrupar KPIs para mejor estructura visual
+  const mainKpis = [
+    { label: "Total Universidades", value: metrics.totalAccounts, icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "Leads Activos", value: metrics.leads, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
+    { label: "Oportunidades", value: metrics.oppsActive, icon: TrendingUp, color: "text-orange-600", bg: "bg-orange-50" },
+    { label: "MRR Pipeline", value: `$${metrics.mrrPipeline.toLocaleString()}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
+  ]
+
+  const secondaryKpis = [
     { label: "SQLs", value: metrics.sqls, icon: Target, color: "text-purple-600" },
-    { label: "Oportunidades", value: metrics.oppsActive, icon: TrendingUp, color: "text-orange-600" },
     { label: "Won", value: metrics.won, icon: Trophy, color: "text-green-600" },
-    { label: "Lost", value: metrics.lost, icon: XCircle, color: "text-red-600" },
-    {
-      label: "MRR Pipeline",
-      value: `$${metrics.mrrPipeline.toLocaleString()}`,
-      icon: DollarSign,
-      color: "text-yellow-600",
-    },
-    { label: "MRR Won", value: `$${metrics.mrrWon.toLocaleString()}`, icon: DollarSign, color: "text-green-600" },
-    { label: "Reuniones (7 días)", value: metrics.upcomingMeetings, icon: Calendar, color: "text-indigo-600" },
     { label: "Win Rate", value: `${metrics.winRate}%`, icon: Trophy, color: "text-emerald-600" },
+    { label: "Lost", value: metrics.lost, icon: XCircle, color: "text-red-600" },
+    { label: "MRR Won", value: `$${metrics.mrrWon.toLocaleString()}`, icon: DollarSign, color: "text-green-600" },
+    { label: "Reuniones (7 días)", value: metrics.upcomingMeetings, icon: Calendar, color: "text-blue-600" },
   ]
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="space-y-8 py-8">
+    <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 pb-12">
+      <div className="space-y-10 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3 text-slate-900">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#005691] to-[#0078D4] text-white shadow-lg">
-                <Globe className="h-6 w-6" />
-              </div>
-              Vista Global
-            </h1>
-            <p className="text-slate-600 mt-2">Métricas consolidadas de {activeCountries.length} países activos</p>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Vista Global</h1>
+            <p className="text-slate-500 mt-1 text-lg">Panorama general de {activeCountries.length} países activos</p>
           </div>
-          <div className="flex gap-2">
-            {activeCountries.slice(0, 5).map((country) => (
-              <Badge key={country.code} variant="secondary">
-                {country.code}
+          <div className="flex flex-wrap gap-2">
+            {activeCountries.map((country) => (
+              <Badge key={country.code} variant="secondary" className="px-3 py-1 text-sm font-medium bg-white border border-slate-200 shadow-sm">
+                {country.name}
               </Badge>
             ))}
-            {activeCountries.length > 5 && <Badge variant="outline">+{activeCountries.length - 5} más</Badge>}
           </div>
         </div>
 
-        {/* KPI Grid */}
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-          {kpis.map((kpi) => (
-            <Card key={kpi.label} className="border-slate-200 bg-white hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-slate-50 to-slate-100`}>
-                    <kpi.icon className={`h-6 w-6 ${kpi.color}`} />
-                  </div>
+        {/* Main KPIs - Destacados */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {mainKpis.map((kpi) => (
+            <Card key={kpi.label} className="border-none shadow-md hover:shadow-lg transition-all duration-200">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-2xl font-bold text-slate-900">{kpi.value}</p>
-                    <p className="text-xs text-slate-600 font-medium mt-1">{kpi.label}</p>
+                    <p className="text-sm font-medium text-slate-500">{kpi.label}</p>
+                    <p className="text-3xl font-bold text-slate-900 mt-2">{kpi.value}</p>
+                  </div>
+                  <div className={`p-3 rounded-xl ${kpi.bg}`}>
+                    <kpi.icon className={`h-6 w-6 ${kpi.color}`} />
                   </div>
                 </div>
               </CardContent>
@@ -70,48 +63,68 @@ export default async function GlobalOverviewPage() {
           ))}
         </div>
 
-        {/* Country Breakdown */}
-        <Card className="border-slate-200 bg-white shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl font-bold text-slate-900">Desglose por País</CardTitle>
-            <CardDescription className="text-slate-600">Métricas principales por cada país activo</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {activeCountries.map((country) => {
-                const countryMetrics = metrics.byCountry?.[country.code]
-                return (
-                  <Card key={country.code} className="bg-gradient-to-br from-slate-50 to-white border-slate-200 hover:shadow-md transition-shadow">
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-[#005691] text-white font-semibold">{country.code}</Badge>
-                          <span className="font-semibold text-slate-900">{country.name}</span>
+        {/* Secondary KPIs - Grid más compacto */}
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 px-1">Métricas de Rendimiento</h3>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {secondaryKpis.map((kpi) => (
+              <Card key={kpi.label} className="border border-slate-100 shadow-sm hover:shadow-md transition-all bg-white/50">
+                <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                  <div className={`p-2 rounded-lg bg-slate-50`}>
+                    <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-slate-900">{kpi.value}</p>
+                    <p className="text-xs text-slate-500 font-medium">{kpi.label}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Country Breakdown - Lista limpia */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-slate-900 px-1">Desglose por País</h3>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {activeCountries.map((country) => {
+              const countryMetrics = metrics.byCountry?.[country.code]
+              return (
+                <Card key={country.code} className="overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                  <div className="h-2 bg-[#005691] w-full" />
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-[#005691]">
+                          {country.code}
                         </div>
+                        <span className="font-bold text-lg text-slate-900">{country.name}</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-3 text-center">
-                        <div className="p-2 rounded-lg bg-white">
-                          <p className="text-lg font-bold text-slate-900">{countryMetrics?.accounts || 0}</p>
-                          <p className="text-xs text-slate-600 font-medium">Unis</p>
-                        </div>
-                        <div className="p-2 rounded-lg bg-white">
-                          <p className="text-lg font-bold text-slate-900">{countryMetrics?.sqls || 0}</p>
-                          <p className="text-xs text-slate-600 font-medium">SQLs</p>
-                        </div>
-                        <div className="p-2 rounded-lg bg-white">
-                          <p className="text-lg font-bold text-green-600">
-                            ${(countryMetrics?.mrr || 0).toLocaleString()}
-                          </p>
-                          <p className="text-xs text-slate-600 font-medium">MRR</p>
-                        </div>
+                      <Globe className="h-5 w-5 text-slate-300 group-hover:text-[#005691] transition-colors" />
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 border-t border-slate-50 pt-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-slate-900">{countryMetrics?.accounts || 0}</p>
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">Unis</p>
                       </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                      <div className="text-center border-l border-slate-100">
+                        <p className="text-2xl font-bold text-slate-900">{countryMetrics?.sqls || 0}</p>
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">SQLs</p>
+                      </div>
+                      <div className="text-center border-l border-slate-100">
+                        <p className="text-2xl font-bold text-emerald-600">
+                          ${(countryMetrics?.mrr || 0).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">MRR</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </div>
   )
