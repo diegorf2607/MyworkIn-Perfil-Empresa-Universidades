@@ -185,21 +185,21 @@ export default function CountriesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-primary px-6 py-8">
-        <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      <header className="border-b border-slate-200/80 bg-gradient-to-r from-[#005691] via-[#005691] to-[#0078D4] shadow-sm">
+        <div className="mx-auto max-w-7xl px-6 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <MyWorkInLogo variant="horizontal" size="lg" className="text-white" />
               <div className="text-white">
-                <h1 className="text-3xl font-bold">MyWorkIn CRM</h1>
-                <p className="text-white/80">Selecciona un país para comenzar</p>
+                <h1 className="text-3xl font-bold tracking-tight">MyWorkIn CRM</h1>
+                <p className="text-white/90 mt-1">Selecciona un país para comenzar</p>
               </div>
             </div>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="secondary" className="gap-2">
+                <Button variant="secondary" className="gap-2 bg-white/95 hover:bg-white text-[#005691] font-semibold shadow-md hover:shadow-lg transition-all border-0">
                   <Plus className="h-4 w-4" />
                   Agregar País
                 </Button>
@@ -245,62 +245,64 @@ export default function CountriesPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl p-6">
+      <main className="mx-auto max-w-7xl px-6 py-8">
         <div className="mb-8">
           <Card
-            className="cursor-pointer border-2 border-primary/20 bg-primary/5 transition-all hover:border-primary hover:shadow-lg"
+            className="cursor-pointer border-2 border-[#005691]/20 bg-gradient-to-br from-[#005691]/5 via-[#0078D4]/5 to-[#005691]/5 transition-all hover:border-[#0078D4]/40 hover:shadow-xl hover:shadow-[#0078D4]/10 group"
             onClick={() => router.push("/all/overview")}
           >
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white">
-                    <Globe className="h-6 w-6" />
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-[#005691] to-[#0078D4] text-white shadow-lg group-hover:scale-105 transition-transform">
+                    <Globe className="h-7 w-7" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl">Todos los países</CardTitle>
-                    <CardDescription>Ver métricas consolidadas de {activeCountries.length} países</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-slate-900">Todos los países</CardTitle>
+                    <CardDescription className="text-slate-600 mt-1">Ver métricas consolidadas de {activeCountries.length} países</CardDescription>
                   </div>
                 </div>
-                <Button>Ver dashboard global</Button>
+                <Button className="bg-gradient-to-r from-[#005691] to-[#0078D4] hover:from-[#004578] hover:to-[#0066B3] text-white shadow-md hover:shadow-lg transition-all">
+                  Ver dashboard global
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                    <Building2 className="h-4 w-4 text-primary" />
+              <div className="grid grid-cols-4 gap-6">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50/50 hover:bg-slate-100/50 transition-colors">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#005691]/10 to-[#005691]/20">
+                    <Building2 className="h-5 w-5 text-[#005691]" />
                   </div>
                   <div>
-                    <p className="text-lg font-semibold">{globalStats.totalAccounts}</p>
-                    <p className="text-xs text-muted-foreground">Universidades</p>
+                    <p className="text-xl font-bold text-slate-900">{globalStats.totalAccounts}</p>
+                    <p className="text-xs text-slate-600 font-medium">Universidades</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
-                    <TrendingUp className="h-4 w-4 text-blue-600" />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50/50 hover:bg-blue-100/50 transition-colors">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-blue-200">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-lg font-semibold">{globalStats.activeOpps}</p>
-                    <p className="text-xs text-muted-foreground">Opps activas</p>
+                    <p className="text-xl font-bold text-slate-900">{globalStats.activeOpps}</p>
+                    <p className="text-xs text-slate-600 font-medium">Opps activas</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100">
-                    <Calendar className="h-4 w-4 text-orange-600" />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-50/50 hover:bg-orange-100/50 transition-colors">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-orange-100 to-orange-200">
+                    <Calendar className="h-5 w-5 text-orange-600" />
                   </div>
                   <div>
-                    <p className="text-lg font-semibold">{globalStats.pendingMeetings}</p>
-                    <p className="text-xs text-muted-foreground">Reuniones</p>
+                    <p className="text-xl font-bold text-slate-900">{globalStats.pendingMeetings}</p>
+                    <p className="text-xs text-slate-600 font-medium">Reuniones</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
-                    <DollarSign className="h-4 w-4 text-green-600" />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50/50 hover:bg-green-100/50 transition-colors">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-green-100 to-green-200">
+                    <DollarSign className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-lg font-semibold">${globalStats.totalMrr.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">MRR Won</p>
+                    <p className="text-xl font-bold text-slate-900">${globalStats.totalMrr.toLocaleString()}</p>
+                    <p className="text-xs text-slate-600 font-medium">MRR Won</p>
                   </div>
                 </div>
               </div>
@@ -309,11 +311,11 @@ export default function CountriesPage() {
         </div>
 
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-foreground">Países activos</h2>
-          <p className="text-sm text-muted-foreground">{activeCountries.length} países configurados en tu cuenta</p>
+          <h2 className="text-2xl font-bold text-slate-900 mb-1">Países activos</h2>
+          <p className="text-sm text-slate-600">{activeCountries.length} países configurados en tu cuenta</p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {activeCountries.map((country) => {
             const countryStats = stats[country.code] || {
               totalAccounts: 0,
@@ -325,7 +327,7 @@ export default function CountriesPage() {
             return (
               <Card
                 key={country.code}
-                className="group relative cursor-pointer transition-all hover:border-primary hover:shadow-lg"
+                className="group relative cursor-pointer transition-all hover:border-[#0078D4]/40 hover:shadow-xl hover:shadow-[#0078D4]/5 border-slate-200 bg-white"
                 onClick={() => router.push(`/c/${country.code}/scorecards`)}
               >
                 <div
@@ -354,51 +356,51 @@ export default function CountriesPage() {
                   </DropdownMenu>
                 </div>
 
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl">{country.name}</CardTitle>
-                    <Badge variant="secondary" className="text-xs">
+                    <CardTitle className="text-xl font-bold text-slate-900">{country.name}</CardTitle>
+                    <Badge variant="secondary" className="text-xs font-semibold bg-slate-100 text-slate-700">
                       {country.code}
                     </Badge>
                   </div>
-                  <CardDescription>Ver dashboard del país</CardDescription>
+                  <CardDescription className="text-slate-600 mt-1">Ver dashboard del país</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                        <Building2 className="h-4 w-4 text-primary" />
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-50/50">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#005691]/10 to-[#005691]/20">
+                        <Building2 className="h-4 w-4 text-[#005691]" />
                       </div>
                       <div>
-                        <p className="text-lg font-semibold">{countryStats.totalAccounts}</p>
-                        <p className="text-xs text-muted-foreground">Universidades</p>
+                        <p className="text-lg font-bold text-slate-900">{countryStats.totalAccounts}</p>
+                        <p className="text-xs text-slate-600 font-medium">Universidades</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-blue-50/50">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-blue-200">
                         <TrendingUp className="h-4 w-4 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-lg font-semibold">{countryStats.activeOpps}</p>
-                        <p className="text-xs text-muted-foreground">Opps activas</p>
+                        <p className="text-lg font-bold text-slate-900">{countryStats.activeOpps}</p>
+                        <p className="text-xs text-slate-600 font-medium">Opps activas</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100">
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-orange-50/50">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-100 to-orange-200">
                         <Calendar className="h-4 w-4 text-orange-600" />
                       </div>
                       <div>
-                        <p className="text-lg font-semibold">{countryStats.pendingMeetings}</p>
-                        <p className="text-xs text-muted-foreground">Reuniones</p>
+                        <p className="text-lg font-bold text-slate-900">{countryStats.pendingMeetings}</p>
+                        <p className="text-xs text-slate-600 font-medium">Reuniones</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-green-50/50">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-green-100 to-green-200">
                         <DollarSign className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
-                        <p className="text-lg font-semibold">${countryStats.totalMrr.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">MRR Won</p>
+                        <p className="text-lg font-bold text-slate-900">${countryStats.totalMrr.toLocaleString()}</p>
+                        <p className="text-xs text-slate-600 font-medium">MRR Won</p>
                       </div>
                     </div>
                   </div>
@@ -409,9 +411,14 @@ export default function CountriesPage() {
         </div>
 
         {activeCountries.length === 0 && (
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">No hay países activos.</p>
-            <p className="text-sm text-muted-foreground">Agrega o activa un país para comenzar.</p>
+          <Card className="p-12 text-center border-dashed border-2 border-slate-300 bg-slate-50/50">
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-200">
+                <Globe className="h-8 w-8 text-slate-400" />
+              </div>
+              <p className="text-lg font-semibold text-slate-700">No hay países activos</p>
+              <p className="text-sm text-slate-500">Agrega o activa un país para comenzar</p>
+            </div>
           </Card>
         )}
 
@@ -462,8 +469,8 @@ export default function CountriesPage() {
       </main>
 
       {/* Footer con botón de cerrar sesión */}
-      <footer className="border-t border-border bg-background py-6 mt-auto">
-        <div className="mx-auto max-w-6xl px-6">
+      <footer className="border-t border-slate-200 bg-white/80 backdrop-blur-sm py-6 mt-12">
+        <div className="mx-auto max-w-7xl px-6">
           <div className="flex items-center justify-center">
             <Button
               variant="outline"
@@ -473,7 +480,7 @@ export default function CountriesPage() {
                 router.push('/login');
                 router.refresh();
               }}
-              className="gap-2"
+              className="gap-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400"
             >
               <LogOut className="h-4 w-4" />
               Cerrar sesión
