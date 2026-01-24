@@ -260,7 +260,7 @@ export default function CountriesPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-7xl px-6 py-12">
         <div className="mb-8">
           <Card
             className="cursor-pointer border-2 border-[#005691]/20 bg-gradient-to-br from-[#005691]/5 via-[#0078D4]/5 to-[#005691]/5 transition-all hover:border-[#0078D4]/40 hover:shadow-xl hover:shadow-[#0078D4]/10 group"
