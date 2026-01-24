@@ -268,56 +268,56 @@ export default function CountriesPage() {
           >
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-[#005691] to-[#0078D4] text-white shadow-lg group-hover:scale-105 transition-transform">
-                    <Globe className="h-7 w-7" />
+                <div className="flex items-center gap-5">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-[#005691] to-[#0078D4] text-white shadow-lg group-hover:scale-105 transition-transform">
+                    <Globe className="h-8 w-8" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-bold text-slate-900">Todos los países</CardTitle>
-                    <CardDescription className="text-slate-600 mt-1">Ver métricas consolidadas de {activeCountries.length} países</CardDescription>
+                    <CardTitle className="text-3xl font-bold text-slate-900">Todos los países</CardTitle>
+                    <CardDescription className="text-slate-600 mt-1 text-base">Ver métricas consolidadas de {activeCountries.length} países</CardDescription>
                   </div>
                 </div>
-                <Button className="bg-gradient-to-r from-[#005691] to-[#0078D4] hover:from-[#004578] hover:to-[#0066B3] text-white shadow-md hover:shadow-lg transition-all">
+                <Button className="bg-gradient-to-r from-[#005691] to-[#0078D4] hover:from-[#004578] hover:to-[#0066B3] text-white shadow-md hover:shadow-lg transition-all h-11 px-6 text-base">
                   Ver dashboard global
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-8">
               <div className="grid grid-cols-4 gap-6">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50/50 hover:bg-slate-100/50 transition-colors">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#005691]/10 to-[#005691]/20">
-                    <Building2 className="h-5 w-5 text-[#005691]" />
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50/50 hover:bg-slate-100/50 transition-colors border border-transparent hover:border-slate-200">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#005691]/10 to-[#005691]/20">
+                    <Building2 className="h-6 w-6 text-[#005691]" />
                   </div>
                   <div>
-                    <p className="text-xl font-bold text-slate-900">{globalStats.totalAccounts}</p>
-                    <p className="text-xs text-slate-600 font-medium">Universidades</p>
+                    <p className="text-2xl font-bold text-slate-900">{globalStats.totalAccounts}</p>
+                    <p className="text-sm text-slate-600 font-medium">Universidades</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50/50 hover:bg-blue-100/50 transition-colors">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-blue-200">
-                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-blue-50/50 hover:bg-blue-100/50 transition-colors border border-transparent hover:border-blue-200">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-200">
+                    <TrendingUp className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-xl font-bold text-slate-900">{globalStats.activeOpps}</p>
-                    <p className="text-xs text-slate-600 font-medium">Opps activas</p>
+                    <p className="text-2xl font-bold text-slate-900">{globalStats.activeOpps}</p>
+                    <p className="text-sm text-slate-600 font-medium">Opps activas</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-50/50 hover:bg-orange-100/50 transition-colors">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-orange-100 to-orange-200">
-                    <Calendar className="h-5 w-5 text-orange-600" />
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-orange-50/50 hover:bg-orange-100/50 transition-colors border border-transparent hover:border-orange-200">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-orange-200">
+                    <Calendar className="h-6 w-6 text-orange-600" />
                   </div>
                   <div>
-                    <p className="text-xl font-bold text-slate-900">{globalStats.pendingMeetings}</p>
-                    <p className="text-xs text-slate-600 font-medium">Reuniones</p>
+                    <p className="text-2xl font-bold text-slate-900">{globalStats.pendingMeetings}</p>
+                    <p className="text-sm text-slate-600 font-medium">Reuniones</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50/50 hover:bg-green-100/50 transition-colors">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-green-100 to-green-200">
-                    <DollarSign className="h-5 w-5 text-green-600" />
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-green-50/50 hover:bg-green-100/50 transition-colors border border-transparent hover:border-green-200">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-100 to-green-200">
+                    <DollarSign className="h-6 w-6 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-xl font-bold text-slate-900">${globalStats.totalMrr.toLocaleString()}</p>
-                    <p className="text-xs text-slate-600 font-medium">MRR Won</p>
+                    <p className="text-2xl font-bold text-slate-900">${globalStats.totalMrr.toLocaleString()}</p>
+                    <p className="text-sm text-slate-600 font-medium">MRR Won</p>
                   </div>
                 </div>
               </div>
