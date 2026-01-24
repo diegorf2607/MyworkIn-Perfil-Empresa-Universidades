@@ -30,6 +30,7 @@ import {
   UserCircle,
   Activity,
   Mail,
+  Kanban,
 } from "lucide-react"
 
 interface AppSidebarProps {
@@ -51,6 +52,7 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
 
     const performanceItems = [
       { title: "Performance", href: `${basePath}/ventas`, icon: BarChart3 },
+      { title: "Pipeline", href: `${basePath}/pipeline`, icon: Kanban },
       { title: "Actividad", href: `${basePath}/actividad`, icon: Activity },
     ]
 
