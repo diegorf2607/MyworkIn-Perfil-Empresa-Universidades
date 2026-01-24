@@ -42,30 +42,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F9FBfd] via-white to-[#F0F4F8] flex items-center justify-center p-4">
-      {/* Header con logo */}
-      <div className="absolute top-0 left-0 right-0 p-6">
-        <MyWorkInLogo variant="horizontal" size="md" />
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-[#F9FBfd] via-white to-[#F0F4F8] flex flex-col items-center justify-center p-4">
       {/* Card de login */}
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl shadow-[#005691]/10 p-8 md:p-10 border border-gray-100">
-          {/* Icono de candado */}
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#0078D4] to-[#005691] flex items-center justify-center shadow-lg">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
+          {/* Logo centrado */}
+          <div className="flex justify-center mb-8">
+            <MyWorkInLogo variant="horizontal" size="lg" />
           </div>
 
           {/* Título */}
