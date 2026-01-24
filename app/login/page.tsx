@@ -48,7 +48,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-2xl shadow-[#005691]/10 p-8 md:p-10 border border-gray-100">
           {/* Logo centrado */}
           <div className="flex justify-center mb-8">
-            <MyWorkInLogo variant="horizontal" size="lg" />
+            <MyWorkInLogo variant="horizontal" size="sm" />
           </div>
 
           {/* Título */}
