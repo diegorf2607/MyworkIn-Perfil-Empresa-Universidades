@@ -266,58 +266,58 @@ export default function CountriesPage() {
             className="cursor-pointer border-2 border-[#005691]/20 bg-gradient-to-br from-[#005691]/5 via-[#0078D4]/5 to-[#005691]/5 transition-all hover:border-[#0078D4]/40 hover:shadow-xl hover:shadow-[#0078D4]/10 group"
             onClick={() => router.push("/all/overview")}
           >
-            <CardHeader>
+            <CardHeader className="p-8 pb-0">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-5">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-[#005691] to-[#0078D4] text-white shadow-lg group-hover:scale-105 transition-transform">
+                <div className="flex items-center gap-6">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#005691] to-[#0078D4] text-white shadow-lg group-hover:scale-105 transition-transform">
                     <Globe className="h-8 w-8" />
                   </div>
                   <div>
                     <CardTitle className="text-3xl font-bold text-slate-900">Todos los países</CardTitle>
-                    <CardDescription className="text-slate-600 mt-1 text-base">Ver métricas consolidadas de {activeCountries.length} países</CardDescription>
+                    <CardDescription className="text-slate-600 mt-1.5 text-base">Ver métricas consolidadas de {activeCountries.length} países</CardDescription>
                   </div>
                 </div>
-                <Button className="bg-gradient-to-r from-[#005691] to-[#0078D4] hover:from-[#004578] hover:to-[#0066B3] text-white shadow-md hover:shadow-lg transition-all h-11 px-6 text-base">
+                <Button className="bg-gradient-to-r from-[#005691] to-[#0078D4] hover:from-[#004578] hover:to-[#0066B3] text-white shadow-md hover:shadow-lg transition-all h-12 px-8 text-base rounded-xl">
                   Ver dashboard global
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="pb-8">
+            <CardContent className="p-8 pt-8">
               <div className="grid grid-cols-4 gap-6">
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50/50 hover:bg-slate-100/50 transition-colors border border-transparent hover:border-slate-200">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#005691]/10 to-[#005691]/20">
-                    <Building2 className="h-6 w-6 text-[#005691]" />
+                <div className="flex items-center gap-5 p-5 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-100 group/item">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-sm border border-slate-100 group-hover/item:border-slate-200 transition-colors">
+                    <Building2 className="h-7 w-7 text-[#005691]" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-900">{globalStats.totalAccounts}</p>
-                    <p className="text-sm text-slate-600 font-medium">Universidades</p>
+                    <p className="text-3xl font-bold text-slate-900 leading-none mb-1">{globalStats.totalAccounts}</p>
+                    <p className="text-sm text-slate-500 font-medium">Universidades</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-blue-50/50 hover:bg-blue-100/50 transition-colors border border-transparent hover:border-blue-200">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-200">
-                    <TrendingUp className="h-6 w-6 text-blue-600" />
+                <div className="flex items-center gap-5 p-5 rounded-2xl bg-blue-50/50 hover:bg-blue-50 transition-colors border border-blue-100/50 hover:border-blue-100 group/item">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-sm border border-blue-100 group-hover/item:border-blue-200 transition-colors">
+                    <TrendingUp className="h-7 w-7 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-900">{globalStats.activeOpps}</p>
-                    <p className="text-sm text-slate-600 font-medium">Opps activas</p>
+                    <p className="text-3xl font-bold text-slate-900 leading-none mb-1">{globalStats.activeOpps}</p>
+                    <p className="text-sm text-slate-500 font-medium">Opps activas</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-orange-50/50 hover:bg-orange-100/50 transition-colors border border-transparent hover:border-orange-200">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-orange-200">
-                    <Calendar className="h-6 w-6 text-orange-600" />
+                <div className="flex items-center gap-5 p-5 rounded-2xl bg-orange-50/50 hover:bg-orange-50 transition-colors border border-orange-100/50 hover:border-orange-100 group/item">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-sm border border-orange-100 group-hover/item:border-orange-200 transition-colors">
+                    <Calendar className="h-7 w-7 text-orange-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-900">{globalStats.pendingMeetings}</p>
-                    <p className="text-sm text-slate-600 font-medium">Reuniones</p>
+                    <p className="text-3xl font-bold text-slate-900 leading-none mb-1">{globalStats.pendingMeetings}</p>
+                    <p className="text-sm text-slate-500 font-medium">Reuniones</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-green-50/50 hover:bg-green-100/50 transition-colors border border-transparent hover:border-green-200">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-100 to-green-200">
-                    <DollarSign className="h-6 w-6 text-green-600" />
+                <div className="flex items-center gap-5 p-5 rounded-2xl bg-green-50/50 hover:bg-green-50 transition-colors border border-green-100/50 hover:border-green-100 group/item">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-sm border border-green-100 group-hover/item:border-green-200 transition-colors">
+                    <DollarSign className="h-7 w-7 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-900">${globalStats.totalMrr.toLocaleString()}</p>
-                    <p className="text-sm text-slate-600 font-medium">MRR Won</p>
+                    <p className="text-3xl font-bold text-slate-900 leading-none mb-1">${globalStats.totalMrr.toLocaleString()}</p>
+                    <p className="text-sm text-slate-500 font-medium">MRR Won</p>
                   </div>
                 </div>
               </div>
