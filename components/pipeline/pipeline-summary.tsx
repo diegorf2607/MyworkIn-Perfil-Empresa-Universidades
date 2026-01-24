@@ -209,13 +209,13 @@ export function PipelineSummary({ deals, allDeals }: PipelineSummaryProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Por País */}
         <Card>
-          <CardHeader>
+          <CardHeader className="p-8 pb-0">
             <CardTitle className="flex items-center gap-2 text-base">
               <Target className="h-5 w-5" />
               Pipeline por País
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 pt-8">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -253,13 +253,13 @@ export function PipelineSummary({ deals, allDeals }: PipelineSummaryProps) {
 
         {/* Por Owner */}
         <Card>
-          <CardHeader>
+          <CardHeader className="p-8 pb-0">
             <CardTitle className="flex items-center gap-2 text-base">
               <Users className="h-5 w-5" />
               Pipeline por Owner
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 pt-8">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -303,13 +303,13 @@ export function PipelineSummary({ deals, allDeals }: PipelineSummaryProps) {
       {/* Aging Deals */}
       {agingDeals.length > 0 && (
         <Card className="border-amber-200 bg-amber-50/50">
-          <CardHeader>
+          <CardHeader className="p-8 pb-0">
             <CardTitle className="flex items-center gap-2 text-base text-amber-700">
               <AlertCircle className="h-5 w-5" />
               Deals en Riesgo (&gt;14 días sin movimiento)
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 pt-8">
             <Table>
               <TableHeader>
                 <TableRow>

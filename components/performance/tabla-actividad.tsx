@@ -142,7 +142,7 @@ export function TablaActividadComercial({
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="p-8 pb-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle>Log de Actividad</CardTitle>
@@ -161,7 +161,7 @@ export function TablaActividadComercial({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6 p-8 pt-8">
           {/* Filtros */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
