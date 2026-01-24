@@ -318,28 +318,28 @@ export default function GlobalTeamPage() {
 
         {/* Filters and table */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+          <CardHeader className="p-8 pb-0">
+            <CardTitle className="flex items-center gap-3 text-2xl">
+              <Users className="h-7 w-7 text-primary" />
               Todos los miembros
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-base mt-2">
               {filteredMembers.length} miembros {!showInactive && "activos"}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <CardContent className="p-8 pt-8">
+            <div className="flex flex-col md:flex-row gap-6 mb-8">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por nombre o email..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
+                  className="pl-10 h-11 text-base"
                 />
               </div>
               <Select value={filterCountry} onValueChange={setFilterCountry}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[200px] h-11">
                   <SelectValue placeholder="Filtrar país" />
                 </SelectTrigger>
                 <SelectContent>
@@ -351,60 +351,60 @@ export default function GlobalTeamPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3 px-2">
                 <Switch id="show-inactive" checked={showInactive} onCheckedChange={setShowInactive} />
-                <Label htmlFor="show-inactive" className="text-sm">
+                <Label htmlFor="show-inactive" className="text-base cursor-pointer">
                   Mostrar inactivos
                 </Label>
               </div>
             </div>
 
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Cargando...</div>
+              <div className="text-center py-12 text-muted-foreground text-lg">Cargando...</div>
             ) : filteredMembers.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">No hay miembros del equipo</div>
+              <div className="text-center py-12 text-muted-foreground text-lg">No hay miembros del equipo</div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Rol</TableHead>
-                    <TableHead>Países</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead className="py-4 text-base">Nombre</TableHead>
+                    <TableHead className="py-4 text-base">Email</TableHead>
+                    <TableHead className="py-4 text-base">Rol</TableHead>
+                    <TableHead className="py-4 text-base">Países</TableHead>
+                    <TableHead className="py-4 text-base">Estado</TableHead>
+                    <TableHead className="py-4 text-base text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredMembers.map((member) => (
                     <TableRow key={member.id} className={member.is_active === false ? "opacity-50" : ""}>
-                      <TableCell className="font-medium">{member.name}</TableCell>
-                      <TableCell>{member.email}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{member.role === "admin" ? "Admin" : "Usuario"}</Badge>
+                      <TableCell className="py-4 font-medium text-base">{member.name}</TableCell>
+                      <TableCell className="py-4 text-base">{member.email}</TableCell>
+                      <TableCell className="py-4">
+                        <Badge variant="outline" className="text-sm py-1 px-3">{member.role === "admin" ? "Admin" : "Usuario"}</Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
+                      <TableCell className="py-4">
+                        <div className="flex flex-wrap gap-1.5">
                           {member.country_codes?.map((code) => (
-                            <Badge key={code} variant="secondary" className="text-xs">
+                            <Badge key={code} variant="secondary" className="text-xs py-1">
                               {COUNTRY_FLAGS[code] || "🌐"} {code}
                             </Badge>
                           ))}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-4">
                         {member.is_active !== false ? (
-                          <Badge className="bg-green-100 text-green-800">Activo</Badge>
+                          <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-sm py-1 px-3 hover:bg-emerald-200">Activo</Badge>
                         ) : (
-                          <Badge variant="secondary">Inactivo</Badge>
+                          <Badge variant="secondary" className="text-sm py-1 px-3">Inactivo</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEditMemberDialog(member)}>
+                      <TableCell className="py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => openEditMemberDialog(member)} className="h-9 w-9">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(member.id)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(member.id)} className="h-9 w-9">
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
