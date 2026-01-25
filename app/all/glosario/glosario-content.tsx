@@ -211,11 +211,11 @@ export default function GlosarioContent() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="p-8 pb-0">
           <CardTitle>Términos</CardTitle>
           <CardDescription>Haz clic en un término para ver su definición</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-8 pt-8">
           {filteredTerms.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
               {searchTerm ? "No se encontraron términos" : "No hay términos en el glosario"}

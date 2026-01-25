@@ -431,8 +431,8 @@ export default function GlobalKDMPage() {
 
         {/* Filters and Actions */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
+          <CardContent className="p-8">
+            <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -490,11 +490,11 @@ export default function GlobalKDMPage() {
 
         {/* Table */}
         <Card>
-          <CardHeader>
+          <CardHeader className="p-8 pb-0">
             <CardTitle>Todos los KDM</CardTitle>
             <CardDescription>Contactos clave para la toma de decisiones</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 pt-8">
             {filteredKDM.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <UserCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
