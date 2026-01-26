@@ -21,7 +21,7 @@ export default function MyWorkInLogo({
   const useWhite = className.includes("text-white")
   const iconClassName = "flex-shrink-0"
   const iconSrc = useWhite
-    ? "/images/myworkin-logo-white.svg"
+    ? "/images/myworkin-icon-white.png"
     : "/images/myworkin-logo.png"
   const logoSrc = "/images/MyWorkIn (1).png"
 
