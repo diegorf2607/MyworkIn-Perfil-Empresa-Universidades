@@ -4,16 +4,34 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
+export type OpportunityStage = 
+  | "primera_reunion_programada"
+  | "primera_reunion_realizada" 
+  | "demo_programada"
+  | "propuesta_enviada"
+  | "negociacion"
+  | "won"
+  | "lost"
+  | "nurture"
+  // Legacy stages (for backwards compatibility)
+  | "discovery"
+  | "demo"
+  | "propuesta"
+
 export type OpportunityInsert = {
   account_id: string
   country_code: string
   product?: string
-  stage?: "discovery" | "demo" | "propuesta" | "negociacion" | "won" | "lost"
+  stage?: OpportunityStage
   probability?: number
   mrr?: number
   next_step?: string
   next_step_date?: string
   lost_reason?: string
+  owner_id?: string
+  source?: "inbound" | "outbound" | "referido"
+  icp_tier?: "A" | "B" | "C"
+  expected_close_date?: string
 }
 
 export type OpportunityUpdate = Partial<OpportunityInsert> & { id: string }

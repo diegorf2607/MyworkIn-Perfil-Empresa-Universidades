@@ -1,30 +1,44 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Kanban, BarChart3 } from "lucide-react"
+import { Kanban, BarChart3, Loader2, RefreshCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { PipelineFilters, type PipelineFilterState } from "@/components/pipeline/pipeline-filters"
 import { PipelineKanban } from "@/components/pipeline/pipeline-kanban"
 import { PipelineSummary } from "@/components/pipeline/pipeline-summary"
 import { DealDrawer } from "@/components/pipeline/deal-drawer"
 import { LostReasonDialog } from "@/components/pipeline/lost-reason-dialog"
+import { toast } from "sonner"
 import { 
-  MOCK_DEALS, 
-  MOCK_TEAM, 
-  type Deal,
-  type DealStage,
-  isActionOverdue 
-} from "@/lib/mock-data/deals"
+  getPipelineDeals, 
+  getPipelineTeamMembers, 
+  getPipelineCountries,
+  updateDealStage,
+  markActionComplete,
+  type PipelineDeal,
+  type PipelineTeamMember
+} from "@/lib/actions/pipeline"
+import type { OpportunityStage } from "@/lib/actions/opportunities"
+
+// Función para verificar si una acción está vencida
+function isActionOverdue(date: string): boolean {
+  return new Date(date) < new Date()
+}
 
 export default function PipelinePage() {
   const [view, setView] = useState<"kanban" | "pipeline">("kanban")
-  const [deals, setDeals] = useState<Deal[]>(MOCK_DEALS)
-  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
+  const [deals, setDeals] = useState<PipelineDeal[]>([])
+  const [teamMembers, setTeamMembers] = useState<PipelineTeamMember[]>([])
+  const [countries, setCountries] = useState<{ code: string; name: string }[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [selectedDeal, setSelectedDeal] = useState<PipelineDeal | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [lostDialogOpen, setLostDialogOpen] = useState(false)
   const [pendingStageChange, setPendingStageChange] = useState<{
     dealId: string
-    newStage: DealStage
+    newStage: OpportunityStage
   } | null>(null)
   
   const [filters, setFilters] = useState<PipelineFilterState>({
@@ -35,6 +49,37 @@ export default function PipelinePage() {
     soloVencidas: false,
     showNurture: false,
   })
+
+  // Cargar datos iniciales
+  const loadData = useCallback(async () => {
+    try {
+      const [dealsData, teamData, countriesData] = await Promise.all([
+        getPipelineDeals(),
+        getPipelineTeamMembers(),
+        getPipelineCountries()
+      ])
+      setDeals(dealsData)
+      setTeamMembers(teamData)
+      setCountries(countriesData)
+    } catch (error) {
+      console.error("Error loading pipeline data:", error)
+      toast.error("Error al cargar datos del pipeline")
+    } finally {
+      setIsLoading(false)
+      setIsRefreshing(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  // Refrescar datos
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    await loadData()
+    toast.success("Datos actualizados")
+  }
 
   // Filtrar deals según filtros activos
   const filteredDeals = deals.filter(deal => {
@@ -52,7 +97,7 @@ export default function PipelinePage() {
     }
     
     // Filtro de owners
-    if (filters.owners.length > 0 && !filters.owners.includes(deal.ownerId)) {
+    if (filters.owners.length > 0 && deal.ownerId && !filters.owners.includes(deal.ownerId)) {
       return false
     }
     
@@ -69,12 +114,12 @@ export default function PipelinePage() {
     return true
   })
 
-  const handleDealClick = (deal: Deal) => {
+  const handleDealClick = (deal: PipelineDeal) => {
     setSelectedDeal(deal)
     setDrawerOpen(true)
   }
 
-  const handleStageChange = (dealId: string, newStage: DealStage) => {
+  const handleStageChange = async (dealId: string, newStage: OpportunityStage) => {
     // Si se mueve a Lost, mostrar diálogo para razón
     if (newStage === "lost") {
       setPendingStageChange({ dealId, newStage })
@@ -82,21 +127,56 @@ export default function PipelinePage() {
       return
     }
     
-    // Actualizar stage directamente
-    setDeals(prev => prev.map(d => 
-      d.id === dealId 
-        ? { ...d, stage: newStage, status: newStage === "won" ? "won" : d.status }
-        : d
-    ))
-  }
-
-  const handleLostConfirm = (reason: string) => {
-    if (pendingStageChange) {
+    try {
+      // Actualizar en la base de datos
+      await updateDealStage(dealId, newStage)
+      
+      // Actualizar estado local optimistamente
       setDeals(prev => prev.map(d => 
-        d.id === pendingStageChange.dealId 
-          ? { ...d, stage: "lost", status: "lost", lostReason: reason }
+        d.id === dealId 
+          ? { 
+              ...d, 
+              stage: newStage, 
+              status: newStage === "won" ? "won" : newStage === "nurture" ? "nurture" : d.status,
+              updatedAt: new Date().toISOString(),
+              stuckDays: 0
+            }
           : d
       ))
+      
+      toast.success("Etapa actualizada")
+    } catch (error) {
+      console.error("Error updating stage:", error)
+      toast.error("Error al actualizar etapa")
+      // Recargar datos para sincronizar
+      loadData()
+    }
+  }
+
+  const handleLostConfirm = async (reason: string) => {
+    if (pendingStageChange) {
+      try {
+        await updateDealStage(pendingStageChange.dealId, "lost", reason)
+        
+        setDeals(prev => prev.map(d => 
+          d.id === pendingStageChange.dealId 
+            ? { 
+                ...d, 
+                stage: "lost" as OpportunityStage, 
+                status: "lost" as const, 
+                lostReason: reason,
+                updatedAt: new Date().toISOString()
+              }
+            : d
+        ))
+        
+        toast.success("Oportunidad marcada como perdida")
+      } catch (error) {
+        console.error("Error marking as lost:", error)
+        toast.error("Error al marcar como perdida")
+        loadData()
+      }
+      
       setPendingStageChange(null)
     }
     setLostDialogOpen(false)
@@ -107,33 +187,44 @@ export default function PipelinePage() {
     setLostDialogOpen(false)
   }
 
-  const handleMarkActionDone = (dealId: string) => {
-    setDeals(prev => prev.map(d => 
-      d.id === dealId 
-        ? { 
-            ...d, 
-            lastActivity: d.nextAction ? {
-              type: d.nextAction.type === "reunion" ? "reunion" : 
-                    d.nextAction.type === "demo" ? "demo" :
-                    d.nextAction.type === "llamada" ? "llamada" : "email",
-              date: new Date().toISOString(),
-              description: `${d.nextAction.type} completado`
-            } : d.lastActivity,
-            nextAction: null,
-            stuckDays: 0,
-            updatedAt: new Date().toISOString()
-          }
-        : d
-    ))
+  const handleMarkActionDone = async (dealId: string) => {
+    try {
+      await markActionComplete(dealId)
+      
+      setDeals(prev => prev.map(d => 
+        d.id === dealId 
+          ? { 
+              ...d, 
+              lastActivity: d.nextAction ? {
+                type: d.nextAction.type,
+                date: new Date().toISOString(),
+                description: `${d.nextAction.type} completado`
+              } : d.lastActivity,
+              nextAction: null,
+              stuckDays: 0,
+              updatedAt: new Date().toISOString()
+            }
+          : d
+      ))
+      
+      toast.success("Acción marcada como completada")
+    } catch (error) {
+      console.error("Error marking action done:", error)
+      toast.error("Error al marcar acción")
+      loadData()
+    }
   }
 
-  const countries = [
-    { code: "AR", name: "Argentina" },
-    { code: "BR", name: "Brasil" },
-    { code: "CL", name: "Chile" },
-    { code: "CO", name: "Colombia" },
-    { code: "MX", name: "México" },
-  ]
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Cargando pipeline...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -146,49 +237,74 @@ export default function PipelinePage() {
           </p>
         </div>
         
-        {/* Toggle Kanban / Pipeline */}
-        <Tabs value={view} onValueChange={(v) => setView(v as "kanban" | "pipeline")}>
-          <TabsList className="grid grid-cols-2 w-[220px]">
-            <TabsTrigger value="kanban" className="gap-2">
-              <Kanban className="h-4 w-4" />
-              Kanban
-            </TabsTrigger>
-            <TabsTrigger value="pipeline" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Pipeline
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-3">
+          {/* Botón refrescar */}
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+          
+          {/* Toggle Kanban / Pipeline */}
+          <Tabs value={view} onValueChange={(v) => setView(v as "kanban" | "pipeline")}>
+            <TabsList className="grid grid-cols-2 w-[220px]">
+              <TabsTrigger value="kanban" className="gap-2">
+                <Kanban className="h-4 w-4" />
+                Kanban
+              </TabsTrigger>
+              <TabsTrigger value="pipeline" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Pipeline
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       {/* Filtros */}
       <PipelineFilters
         filters={filters}
         onFiltersChange={setFilters}
-        teamMembers={MOCK_TEAM}
+        teamMembers={teamMembers}
         countries={countries}
       />
 
       {/* Contenido principal */}
       <div className="flex-1 overflow-hidden">
-        {view === "kanban" ? (
+        {filteredDeals.length === 0 && !isLoading ? (
+          <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 mb-4">
+              <Kanban className="h-8 w-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-700">No hay oportunidades</h3>
+            <p className="text-sm text-slate-500 mt-1 max-w-md">
+              {deals.length === 0 
+                ? "Crea oportunidades en las cuentas para verlas aquí en el pipeline"
+                : "No hay oportunidades que coincidan con los filtros seleccionados"}
+            </p>
+          </div>
+        ) : view === "kanban" ? (
           <PipelineKanban
-            deals={filteredDeals}
-            onDealClick={handleDealClick}
-            onStageChange={handleStageChange}
+            deals={filteredDeals as any}
+            onDealClick={handleDealClick as any}
+            onStageChange={handleStageChange as any}
             showNurture={filters.showNurture}
           />
         ) : (
           <PipelineSummary
-            deals={filteredDeals}
-            allDeals={deals}
+            deals={filteredDeals as any}
+            allDeals={deals as any}
           />
         )}
       </div>
 
       {/* Drawer de detalle */}
       <DealDrawer
-        deal={selectedDeal}
+        deal={selectedDeal as any}
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         onMarkActionDone={handleMarkActionDone}
