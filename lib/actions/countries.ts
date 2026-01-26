@@ -4,12 +4,21 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
 export async function getCountries() {
-  // Use admin client to bypass RLS - countries are public data within the app
-  const supabase = createAdminClient()
-  const { data, error } = await supabase.from("countries").select("*").order("name")
+  try {
+    // Use admin client to bypass RLS - countries are public data within the app
+    const supabase = createAdminClient()
+    const { data, error } = await supabase.from("countries").select("*").order("name")
 
-  if (error) throw error
-  return data
+    if (error) {
+      console.error("Error fetching countries:", error)
+      throw error
+    }
+    return data
+  } catch (error) {
+    console.error("Failed to get countries:", error)
+    // Return empty array instead of throwing to prevent page crash
+    return []
+  }
 }
 
 export async function getActiveCountries() {
