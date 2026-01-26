@@ -1,11 +1,11 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
 export async function getCountries() {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS - countries are public data within the app
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("countries").select("*").order("name")
 
   if (error) throw error
@@ -13,7 +13,8 @@ export async function getCountries() {
 }
 
 export async function getActiveCountries() {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS - countries are public data within the app
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("countries").select("*").eq("active", true).order("name")
 
   if (error) throw error
@@ -21,7 +22,8 @@ export async function getActiveCountries() {
 }
 
 export async function getCountryByCode(code: string) {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS - countries are public data within the app
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("countries").select("*").eq("code", code.toUpperCase()).single()
 
   if (error && error.code !== "PGRST116") throw error

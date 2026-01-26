@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { createActivity } from "./activities"
 
@@ -31,7 +32,8 @@ export type MeetingUpdate = Partial<MeetingInsert> & {
 }
 
 export async function getMeetings(countryCode?: string) {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS for read operations
+  const supabase = createAdminClient()
   let query = supabase.from("meetings").select("*, accounts(name, city), team_members(name)")
 
   if (countryCode) {

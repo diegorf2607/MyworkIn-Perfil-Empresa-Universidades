@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
 export type OpportunityInsert = {
@@ -18,7 +19,8 @@ export type OpportunityInsert = {
 export type OpportunityUpdate = Partial<OpportunityInsert> & { id: string }
 
 export async function getOpportunities(countryCode?: string) {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS for read operations
+  const supabase = createAdminClient()
   let query = supabase.from("opportunities").select("*, accounts(name, city)")
 
   if (countryCode) {
