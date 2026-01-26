@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
+import { unstable_noStore as noStore } from "next/cache"
 
 export type OpportunityStage = 
   | "primera_reunion_programada"
@@ -37,6 +38,9 @@ export type OpportunityInsert = {
 export type OpportunityUpdate = Partial<OpportunityInsert> & { id: string }
 
 export async function getOpportunities(countryCode?: string) {
+  // Disable caching - always fetch fresh data
+  noStore()
+  
   // Use admin client to bypass RLS for read operations
   const supabase = createAdminClient()
   let query = supabase.from("opportunities").select("*, accounts(name, city)")

@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
+import { unstable_noStore as noStore } from "next/cache"
 import { createActivity } from "./activities"
 
 export type MeetingInsert = {
@@ -32,6 +33,9 @@ export type MeetingUpdate = Partial<MeetingInsert> & {
 }
 
 export async function getMeetings(countryCode?: string) {
+  // Disable caching - always fetch fresh data
+  noStore()
+  
   // Use admin client to bypass RLS for read operations
   const supabase = createAdminClient()
   let query = supabase.from("meetings").select("*, accounts(name, city), team_members(name)")

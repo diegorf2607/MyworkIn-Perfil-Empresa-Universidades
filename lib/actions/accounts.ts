@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
+import { unstable_noStore as noStore } from "next/cache"
 import { createActivity } from "./activities"
 
 export type AccountInsert = {
@@ -32,6 +33,9 @@ export type AccountInsert = {
 export type AccountUpdate = Partial<AccountInsert> & { id: string }
 
 export async function getAccounts(countryCode?: string) {
+  // Disable caching - always fetch fresh data
+  noStore()
+  
   // Use admin client to bypass RLS for read operations
   const supabase = createAdminClient()
   let query = supabase.from("accounts").select("*, contacts(*), opportunities(*)")

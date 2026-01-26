@@ -2,8 +2,12 @@
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
+import { unstable_noStore as noStore } from "next/cache"
 
 export async function getCountries() {
+  // Disable caching - always fetch fresh data
+  noStore()
+  
   try {
     // Use admin client to bypass RLS - countries are public data within the app
     const supabase = createAdminClient()
@@ -22,6 +26,9 @@ export async function getCountries() {
 }
 
 export async function getActiveCountries() {
+  // Disable caching - always fetch fresh data
+  noStore()
+  
   // Use admin client to bypass RLS - countries are public data within the app
   const supabase = createAdminClient()
   const { data, error } = await supabase.from("countries").select("*").eq("active", true).order("name")
