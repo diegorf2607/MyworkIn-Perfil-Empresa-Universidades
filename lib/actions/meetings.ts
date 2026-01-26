@@ -36,18 +36,27 @@ export async function getMeetings(countryCode?: string) {
   // Disable caching - always fetch fresh data
   noStore()
   
-  // Use admin client to bypass RLS for read operations
-  const supabase = createAdminClient()
-  let query = supabase.from("meetings").select("*, accounts(name, city), team_members(name)")
+  try {
+    // Use admin client to bypass RLS for read operations
+    const supabase = createAdminClient()
+    // Simplified query - removed team_members join that may not exist
+    let query = supabase.from("meetings").select("*, accounts(name, city)")
 
-  if (countryCode) {
-    query = query.eq("country_code", countryCode)
+    if (countryCode) {
+      query = query.eq("country_code", countryCode)
+    }
+
+    const { data, error } = await query.order("date_time", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching meetings:", error)
+      return []
+    }
+    return data
+  } catch (error) {
+    console.error("Failed to get meetings:", error)
+    return []
   }
-
-  const { data, error } = await query.order("date_time", { ascending: false })
-
-  if (error) throw error
-  return data
 }
 
 export async function getMeetingsByAccount(accountId: string) {

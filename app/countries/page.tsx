@@ -69,22 +69,46 @@ export default function CountriesPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [countriesData, accountsData, oppsData, meetingsData] = await Promise.all([
-        getCountries(),
+      // Fetch each resource separately to handle individual errors
+      let countriesData: Country[] = []
+      let accountsData: any[] = []
+      let oppsData: any[] = []
+      let meetingsData: any[] = []
+
+      // Countries - most important, fetch first
+      try {
+        countriesData = await getCountries() || []
+      } catch (e) {
+        console.error("Error loading countries:", e)
+        countriesData = []
+      }
+
+      // Other data - fetch in parallel, but handle errors individually
+      const [accountsResult, oppsResult, meetingsResult] = await Promise.allSettled([
         getAccounts(),
         getOpportunities(),
         getMeetings(),
       ])
 
-      setCountries(countriesData || [])
+      if (accountsResult.status === 'fulfilled') {
+        accountsData = accountsResult.value || []
+      }
+      if (oppsResult.status === 'fulfilled') {
+        oppsData = oppsResult.value || []
+      }
+      if (meetingsResult.status === 'fulfilled') {
+        meetingsData = meetingsResult.value || []
+      }
+
+      setCountries(countriesData)
 
       const statsMap: Record<string, CountryStats> = {}
       const globalTotals = { totalAccounts: 0, activeOpps: 0, pendingMeetings: 0, totalMrr: 0 }
 
-      for (const country of (countriesData || []).filter((c) => c.active)) {
-        const countryAccounts = (accountsData || []).filter((a) => a.country_code === country.code)
-        const countryOpps = (oppsData || []).filter((o) => o.country_code === country.code)
-        const countryMeetings = (meetingsData || []).filter((m) => m.country_code === country.code)
+      for (const country of countriesData.filter((c) => c.active)) {
+        const countryAccounts = accountsData.filter((a) => a.country_code === country.code)
+        const countryOpps = oppsData.filter((o) => o.country_code === country.code)
+        const countryMeetings = meetingsData.filter((m) => m.country_code === country.code)
 
         const countryStats = {
           totalAccounts: countryAccounts.length,
