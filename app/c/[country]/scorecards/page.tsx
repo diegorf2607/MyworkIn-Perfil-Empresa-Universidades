@@ -233,11 +233,11 @@ export default function ScorecardsPage() {
 
       {/* Scorecard Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="p-8 pb-0">
           <CardTitle>Scorecard Diario</CardTitle>
           <CardDescription>Últimos 14 días de actividad</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-8 pt-8">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -322,11 +322,11 @@ export default function ScorecardsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Funnel */}
         <Card>
-          <CardHeader>
+          <CardHeader className="p-8 pb-0">
             <CardTitle>Funnel de Ventas</CardTitle>
             <CardDescription>Estado actual del pipeline</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 pt-8">
             <div className="space-y-4">
               {[
                 { label: "Leads (ICP)", value: funnelData.leads, color: "bg-blue-500" },
@@ -353,7 +353,7 @@ export default function ScorecardsPage() {
 
         {/* Tasks */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="p-8 pb-0 flex flex-row items-center justify-between">
             <div>
               <CardTitle>Próximas acciones</CardTitle>
               <CardDescription>{countryTasks.length} tareas pendientes</CardDescription>
@@ -363,7 +363,7 @@ export default function ScorecardsPage() {
               Nueva
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 pt-8">
             <div className="space-y-3">
               {countryTasks.slice(0, 5).map((task) => (
                 <div key={task.id} className="flex items-center gap-3 rounded-lg border p-3">

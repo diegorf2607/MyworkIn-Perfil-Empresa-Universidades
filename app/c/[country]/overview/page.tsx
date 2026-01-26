@@ -220,13 +220,13 @@ export default function OverviewPage() {
 
       {/* Resumen Ejecutivo / Quiénes somos card */}
       <Card>
-        <CardHeader className="pb-4">
+        <CardHeader className="p-8 pb-0">
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-emerald-500" />
             <CardTitle className="text-lg">Resumen Ejecutivo</CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="p-8 pt-8 space-y-6">
           <div>
             <h3 className="text-lg font-semibold text-primary mb-2">Quiénes somos</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -283,7 +283,7 @@ export default function OverviewPage() {
 
       {/* North Star Card */}
       <Card>
-        <CardHeader className="flex flex-row items-center gap-4">
+        <CardHeader className="p-8 pb-0 flex flex-row items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
             <Target className="h-6 w-6 text-primary" />
           </div>
@@ -292,7 +292,7 @@ export default function OverviewPage() {
             <CardDescription>Nuestra visión y objetivos principales</CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-8 pt-8">
           {editingNorthStar ? (
             <div className="space-y-3">
               <Textarea value={northStarText} onChange={(e) => setNorthStarText(e.target.value)} rows={3} />

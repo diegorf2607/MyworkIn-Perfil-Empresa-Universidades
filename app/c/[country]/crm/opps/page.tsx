@@ -231,7 +231,7 @@ export default function OppsPage() {
 
       {/* Filters & View Toggle */}
       <Card>
-        <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4 p-8">
           <div className="flex flex-wrap items-center gap-4">
             <div className="relative min-w-[200px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -279,11 +279,11 @@ export default function OppsPage() {
       {viewMode === "table" ? (
         /* Table View */
         <Card>
-          <CardHeader>
+          <CardHeader className="p-8 pb-0">
             <CardTitle>Lista de Oportunidades</CardTitle>
             <CardDescription>{activeOpps.length} oportunidades activas</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 pt-8">
             <Table>
               <TableHeader>
                 <TableRow>

@@ -370,11 +370,11 @@ export default function TeamPage() {
 
       {/* Full Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="p-8 pb-0">
           <CardTitle>Todos los miembros</CardTitle>
           <CardDescription>{filteredMembers.length} miembros del equipo</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-8 pt-8">
           <Table>
             <TableHeader>
               <TableRow>

@@ -219,7 +219,7 @@ export default function SequencesPage() {
           ) : (
             channelSequences.map((sequence) => (
               <Card key={sequence.id}>
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="p-8 pb-0 flex flex-row items-center justify-between">
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <ChannelIcon className="h-5 w-5" />
@@ -242,7 +242,7 @@ export default function SequencesPage() {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="p-8 pt-8 space-y-3">
                   {sequence.steps.map((step, idx) => (
                     <div key={step.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
                       <div className="flex flex-col items-center gap-1">

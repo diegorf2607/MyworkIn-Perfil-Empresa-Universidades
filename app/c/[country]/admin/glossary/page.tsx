@@ -154,11 +154,11 @@ export default function GlossaryPage() {
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([category, terms]) => (
               <Card key={category}>
-                <CardHeader>
+                <CardHeader className="p-8 pb-0">
                   <CardTitle className="text-base">{category}</CardTitle>
                   <CardDescription>{terms.length} términos</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="p-8 pt-8 space-y-4">
                   {terms
                     .sort((a, b) => a.term.localeCompare(b.term))
                     .map((term) => (

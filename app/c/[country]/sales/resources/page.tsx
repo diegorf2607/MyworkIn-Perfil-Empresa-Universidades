@@ -214,7 +214,7 @@ export default function ResourcesPage() {
 
           return (
             <Card key={key}>
-              <CardHeader className="pb-3">
+              <CardHeader className="p-8 pb-0">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${config.color}`}>
                     <Icon className="h-4 w-4" />
@@ -223,7 +223,7 @@ export default function ResourcesPage() {
                 </CardTitle>
                 <CardDescription>{categoryResources.length} recursos</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="p-8 pt-8 space-y-2">
                 {categoryResources.map((resource) => (
                   <div
                     key={resource.id}

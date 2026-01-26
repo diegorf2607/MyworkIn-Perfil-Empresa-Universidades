@@ -302,7 +302,7 @@ export default function MeetingsPage() {
       </div>
 
       <Card>
-        <CardContent className="flex flex-wrap items-center gap-4 p-4">
+        <CardContent className="flex flex-wrap items-center gap-4 p-8">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -341,11 +341,11 @@ export default function MeetingsPage() {
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="p-8 pb-0">
           <CardTitle>Lista de Reuniones</CardTitle>
           <CardDescription>{filteredMeetings.length} reuniones</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-8 pt-8">
           <Table>
             <TableHeader>
               <TableRow>

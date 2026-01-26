@@ -261,11 +261,11 @@ export default function ClosedPage() {
 
         <TabsContent value="won">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-8 pb-0">
               <CardTitle className="text-green-700">Oportunidades Ganadas</CardTitle>
               <CardDescription>Clientes cerrados exitosamente</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-8 pt-8">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -312,11 +312,11 @@ export default function ClosedPage() {
 
         <TabsContent value="lost">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-8 pb-0">
               <CardTitle className="text-red-700">Oportunidades Perdidas</CardTitle>
               <CardDescription>Análisis de deals perdidos</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-8 pt-8">
               <Table>
                 <TableHeader>
                   <TableRow>

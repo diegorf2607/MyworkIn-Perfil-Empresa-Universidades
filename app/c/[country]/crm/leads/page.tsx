@@ -152,7 +152,7 @@ export default function LeadsPage() {
       </div>
 
       <Card>
-        <CardContent className="flex flex-wrap items-center gap-4 p-4">
+        <CardContent className="flex flex-wrap items-center gap-4 p-8">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -203,11 +203,11 @@ export default function LeadsPage() {
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="p-8 pb-0">
           <CardTitle>Lista de Leads</CardTitle>
           <CardDescription>{leads.length} leads encontrados</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-8 pt-8">
           <Table>
             <TableHeader>
               <TableRow>
