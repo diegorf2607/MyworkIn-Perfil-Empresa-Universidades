@@ -101,25 +101,40 @@ export async function checkAccountNameExists(countryCode: string, name: string):
 }
 
 export async function createAccount(account: AccountInsert) {
+  console.log("[createAccount] Starting with:", JSON.stringify(account))
+  
   const supabase = createAdminClient()
 
-  const exists = await checkAccountNameExists(account.country_code, account.name)
+  const exists = await checkAccountNameExists(account.country_code.toUpperCase(), account.name)
   if (exists) {
+    console.log("[createAccount] Duplicate name found")
     throw new Error("DUPLICATE_NAME")
   }
 
+  const insertData = { 
+    ...account, 
+    country_code: account.country_code.toUpperCase(),
+    last_touch: new Date().toISOString() 
+  }
+  console.log("[createAccount] Inserting:", JSON.stringify(insertData))
+
   const { data, error } = await supabase
     .from("accounts")
-    .insert({ ...account, last_touch: new Date().toISOString() })
+    .insert(insertData)
     .select()
     .single()
 
-  if (error) throw error
+  if (error) {
+    console.error("[createAccount] Insert error:", error)
+    throw error
+  }
+  
+  console.log("[createAccount] Created account:", data.id)
 
   try {
     await createActivity({
       account_id: data.id,
-      country_code: account.country_code,
+      country_code: account.country_code.toUpperCase(),
       type: "account_created",
       owner_id: account.owner_id,
       summary: `Universidad "${account.name}" creada como ${account.stage?.toUpperCase() || "Lead"}`,
