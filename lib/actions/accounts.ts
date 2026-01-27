@@ -141,6 +141,67 @@ export async function updateAccount(update: AccountUpdate) {
   return data
 }
 
+// Upsert: create if not exists, update if exists (for CSV import)
+export async function upsertAccount(account: AccountInsert): Promise<{ created: boolean; data: any }> {
+  const supabase = createAdminClient()
+
+  // Check if exists
+  const { data: existing } = await supabase
+    .from("accounts")
+    .select("id")
+    .eq("country_code", account.country_code)
+    .ilike("name", account.name.trim())
+    .limit(1)
+    .single()
+
+  if (existing) {
+    // Update existing
+    const { data, error } = await supabase
+      .from("accounts")
+      .update({
+        city: account.city,
+        type: account.type,
+        size: account.size,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", existing.id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return { created: false, data }
+  } else {
+    // Create new
+    const { data, error } = await supabase
+      .from("accounts")
+      .insert({ ...account, last_touch: new Date().toISOString() })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    try {
+      await createActivity({
+        account_id: data.id,
+        country_code: account.country_code,
+        type: "account_created",
+        owner_id: account.owner_id,
+        summary: `Universidad "${account.name}" importada como ${account.stage?.toUpperCase() || "Lead"}`,
+        date_time: new Date().toISOString(),
+        details: {
+          stage: account.stage,
+          city: account.city,
+          source: "csv_import",
+        },
+      })
+    } catch (e) {
+      console.error("Error creating activity for account:", e)
+    }
+
+    return { created: true, data }
+  }
+}
+
 export async function deleteAccount(id: string) {
   const supabase = await createClient()
 

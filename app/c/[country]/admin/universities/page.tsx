@@ -22,10 +22,9 @@ import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { EntitySheet } from "@/components/crm/entity-sheet"
 import { Search, Filter, SortAsc, Building2, Plus, Upload, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
-import { getAccounts, createAccount, updateAccount } from "@/lib/actions/accounts"
+import { getAccounts, createAccount, updateAccount, upsertAccount } from "@/lib/actions/accounts"
 import { getContacts } from "@/lib/actions/contacts"
 import { getTeamMembers } from "@/lib/actions/team"
-import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
 interface Account {
@@ -320,42 +319,27 @@ export default function UniversitiesPage() {
     if (!csvPreview || csvPreview.valid.length === 0) return
 
     startTransition(async () => {
-      const supabase = createClient()
       let created = 0
       let updated = 0
       const importErrors: { row: number; name: string; message: string }[] = [...csvPreview.errors]
 
       for (const uni of csvPreview.valid) {
         try {
-          // Check if university already exists in this country
-          const { data: existing } = await supabase
-            .from("accounts")
-            .select("id")
-            .eq("country_code", country.toUpperCase())
-            .ilike("name", uni.name)
-            .single()
-
-          if (existing) {
-            // Update existing
-            await updateAccount({
-              id: existing.id,
-              city: uni.city || undefined,
-              type: uni.type,
-              size: uni.size,
-            })
-            updated++
-          } else {
-            // Create new
-            await createAccount({
-              country_code: country.toUpperCase(),
-              name: uni.name,
-              city: uni.city || undefined,
-              type: uni.type,
-              size: uni.size,
-              stage: "lead",
-              fit_comercial: "medio",
-            })
+          // Use upsertAccount which handles create/update logic server-side
+          const result = await upsertAccount({
+            country_code: country.toUpperCase(),
+            name: uni.name,
+            city: uni.city || undefined,
+            type: uni.type,
+            size: uni.size,
+            stage: "lead",
+            fit_comercial: "medio",
+          })
+          
+          if (result.created) {
             created++
+          } else {
+            updated++
           }
         } catch (error: any) {
           importErrors.push({
