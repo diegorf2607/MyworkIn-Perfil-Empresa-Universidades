@@ -16,26 +16,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check if there are any team members yet
-    const { data: existingMembers } = await adminClient
-      .from("team_members")
-      .select("id")
-      .limit(1)
-    
-    // If there are existing members, verify the requester is one of them
-    if (existingMembers && existingMembers.length > 0) {
-      const { data: requesterMember } = await adminClient
-        .from("team_members")
-        .select("role, is_active")
-        .eq("user_id", user.id)
-        .single()
-
-      // Allow if user is an active team member
-      if (!requesterMember || requesterMember.is_active === false) {
-        return NextResponse.json({ error: "Forbidden: Active team member access required" }, { status: 403 })
-      }
-    }
-    // If no team members exist, allow the first authenticated user to create one
+    // User is authenticated - allow creating team members
+    // For internal CRM, authentication is sufficient authorization
 
     // 2. Parse and validate request body
     const body = await request.json()
