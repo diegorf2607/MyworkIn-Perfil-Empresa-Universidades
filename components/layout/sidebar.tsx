@@ -14,7 +14,6 @@ import {
   Calendar,
   Mail,
   Building2,
-  UserCog,
   ChevronLeft,
   ChevronRight,
   Globe,
@@ -60,7 +59,6 @@ export function Sidebar({ countryCode }: SidebarProps) {
       title: "Administración",
       items: [
         { label: "Base de Universidades", icon: Building2, href: `/c/${countryCode}/admin/universities` },
-        { label: "Equipo Comercial", icon: UserCog, href: `/c/${countryCode}/admin/team` },
       ],
     },
   ]
