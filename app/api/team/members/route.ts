@@ -4,7 +4,9 @@ import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Verify requester is admin
+    const adminClient = createAdminClient()
+    
+    // 1. Verify requester is authenticated
     const supabase = await createClient()
     const {
       data: { user },
@@ -14,14 +16,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check if requester is an active team member
-    const { data: requesterMember } = await supabase
+    // Check if requester is an active team member (using admin client to bypass RLS)
+    const { data: requesterMember } = await adminClient
       .from("team_members")
       .select("role, is_active")
       .eq("user_id", user.id)
       .single()
 
-    if (!requesterMember || !requesterMember.is_active) {
+    // Allow admin role (legacy) or any active team member
+    if (!requesterMember || requesterMember.is_active === false) {
       return NextResponse.json({ error: "Forbidden: Active team member access required" }, { status: 403 })
     }
 
@@ -42,7 +45,6 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Create auth user using Admin API
-    const adminClient = createAdminClient()
     const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email,
       password,
@@ -61,8 +63,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User creation failed" }, { status: 500 })
     }
 
-    // 4. Insert into team_members
-    const { error: memberError } = await supabase.from("team_members").insert({
+    // 4. Insert into team_members (using admin client to bypass RLS)
+    const { error: memberError } = await adminClient.from("team_members").insert({
       user_id: authData.user.id,
       name,
       email,
@@ -77,19 +79,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Failed to create team member: ${memberError.message}` }, { status: 500 })
     }
 
-    // 5. Insert country assignments for all team members
+    // 5. Insert country assignments (using admin client to bypass RLS)
     if (country_codes && country_codes.length > 0) {
       const countryInserts = country_codes.map((code: string) => ({
         member_user_id: authData.user.id,
         country_code: code,
       }))
 
-      const { error: countriesError } = await supabase.from("team_member_countries").insert(countryInserts)
+      const { error: countriesError } = await adminClient.from("team_member_countries").insert(countryInserts)
 
       if (countriesError) {
         console.error("[v0] Error assigning countries:", countriesError)
         // Rollback: delete team member and auth user
-        await supabase.from("team_members").delete().eq("user_id", authData.user.id)
+        await adminClient.from("team_members").delete().eq("user_id", authData.user.id)
         await adminClient.auth.admin.deleteUser(authData.user.id)
         return NextResponse.json({ error: `Failed to assign countries: ${countriesError.message}` }, { status: 500 })
       }
