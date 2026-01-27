@@ -38,7 +38,9 @@ export async function getAccounts(countryCode?: string) {
   
   // Use admin client to bypass RLS for read operations
   const supabase = createAdminClient()
-  let query = supabase.from("accounts").select("*, contacts(*), opportunities(*)")
+  
+  // Simple query without joins to avoid potential relationship issues
+  let query = supabase.from("accounts").select("*")
 
   if (countryCode) {
     // Normalize to uppercase for consistent matching
@@ -47,22 +49,30 @@ export async function getAccounts(countryCode?: string) {
 
   const { data, error } = await query.order("created_at", { ascending: false })
 
-  if (error) throw error
-  return data
+  if (error) {
+    console.error("Error in getAccounts:", error)
+    throw error
+  }
+  return data || []
 }
 
 export async function getAccountsByStage(countryCode: string, stage: string) {
   noStore()
   const supabase = createAdminClient()
+  
+  // Simple query without joins to avoid potential relationship issues
   const { data, error } = await supabase
     .from("accounts")
-    .select("*, contacts(*), opportunities(*)")
+    .select("*")
     .eq("country_code", countryCode.toUpperCase())
     .eq("stage", stage)
     .order("created_at", { ascending: false })
 
-  if (error) throw error
-  return data
+  if (error) {
+    console.error("Error in getAccountsByStage:", error)
+    throw error
+  }
+  return data || []
 }
 
 export async function getAccountById(id: string) {
