@@ -38,6 +38,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { updateAccount, deleteAccount } from "@/lib/actions/accounts"
+import { updateOpportunity, getOpportunitiesByAccount } from "@/lib/actions/opportunities"
 import { createContact, updateContact, deleteContact, getContactsByAccount } from "@/lib/actions/contacts"
 import { getOpportunitiesByAccount } from "@/lib/actions/opportunities"
 import { createActivity, getActivitiesByAccount, deleteActivity } from "@/lib/actions/activities"
@@ -255,6 +256,22 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
           website: editedAccount.website,
           notes: editedAccount.notes,
         })
+        
+        // Sync MRR with all opportunities for this account
+        if (editedAccount.mrr !== undefined) {
+          try {
+            const opps = await getOpportunitiesByAccount(editedAccount.id)
+            for (const opp of opps) {
+              await updateOpportunity({
+                id: opp.id,
+                mrr: editedAccount.mrr,
+              })
+            }
+          } catch (e) {
+            console.error("Error syncing MRR to opportunities:", e)
+          }
+        }
+        
         toast.success("Guardado correctamente")
         onRefresh?.()
       } catch (error) {
