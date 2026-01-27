@@ -185,7 +185,7 @@ export default function SQLsPage() {
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm text-muted-foreground">MRR Potencial</p>
+                <p className="text-sm text-muted-foreground">MRR Estimado</p>
                 <p className="text-lg font-bold">${totalMrr.toLocaleString()}</p>
               </div>
             </div>

@@ -323,7 +323,7 @@ export default function ClosedPage() {
                     <TableHead>Universidad</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Owner</TableHead>
-                    <TableHead>MRR Potencial</TableHead>
+                    <TableHead>MRR Estimado</TableHead>
                     <TableHead>Razón</TableHead>
                   </TableRow>
                 </TableHeader>
