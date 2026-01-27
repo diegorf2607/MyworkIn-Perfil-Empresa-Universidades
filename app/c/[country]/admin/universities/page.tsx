@@ -25,7 +25,7 @@ import { Search, Filter, SortAsc, Building2, Plus, Upload, Loader2, AlertCircle,
 import { getAccounts, createAccount, updateAccount } from "@/lib/actions/accounts"
 import { getContacts } from "@/lib/actions/contacts"
 import { getTeamMembers } from "@/lib/actions/team"
-import { createBrowserClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
 interface Account {
@@ -320,7 +320,7 @@ export default function UniversitiesPage() {
     if (!csvPreview || csvPreview.valid.length === 0) return
 
     startTransition(async () => {
-      const supabase = createBrowserClient()
+      const supabase = createClient()
       let created = 0
       let updated = 0
       const importErrors: { row: number; name: string; message: string }[] = [...csvPreview.errors]
