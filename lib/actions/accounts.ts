@@ -41,7 +41,8 @@ export async function getAccounts(countryCode?: string) {
   let query = supabase.from("accounts").select("*, contacts(*), opportunities(*)")
 
   if (countryCode) {
-    query = query.eq("country_code", countryCode)
+    // Normalize to uppercase for consistent matching
+    query = query.eq("country_code", countryCode.toUpperCase())
   }
 
   const { data, error } = await query.order("created_at", { ascending: false })
@@ -51,11 +52,12 @@ export async function getAccounts(countryCode?: string) {
 }
 
 export async function getAccountsByStage(countryCode: string, stage: string) {
-  const supabase = await createClient()
+  noStore()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("accounts")
     .select("*, contacts(*), opportunities(*)")
-    .eq("country_code", countryCode)
+    .eq("country_code", countryCode.toUpperCase())
     .eq("stage", stage)
     .order("created_at", { ascending: false })
 
@@ -288,11 +290,12 @@ export async function updateFollowUp(
 }
 
 export async function getAccountsWithFollowUp(countryCode: string) {
-  const supabase = await createClient()
+  noStore()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("accounts")
     .select("*, contacts(*), opportunities(*)")
-    .eq("country_code", countryCode)
+    .eq("country_code", countryCode.toUpperCase())
     .order("next_follow_up_at", { ascending: true, nullsFirst: false })
 
   if (error) throw error
