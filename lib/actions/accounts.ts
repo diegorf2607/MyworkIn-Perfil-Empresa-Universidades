@@ -76,7 +76,7 @@ export async function getAccountById(id: string) {
 }
 
 export async function checkAccountNameExists(countryCode: string, name: string): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("accounts")
     .select("id")
@@ -89,7 +89,7 @@ export async function checkAccountNameExists(countryCode: string, name: string):
 }
 
 export async function createAccount(account: AccountInsert) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const exists = await checkAccountNameExists(account.country_code, account.name)
   if (exists) {
@@ -127,7 +127,7 @@ export async function createAccount(account: AccountInsert) {
 }
 
 export async function updateAccount(update: AccountUpdate) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { id, ...updates } = update
   const { data, error } = await supabase
     .from("accounts")

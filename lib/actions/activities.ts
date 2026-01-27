@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
 export type ActivityInsert = {
@@ -55,7 +56,7 @@ export async function getActivitiesByCountry(countryCode: string) {
 }
 
 export async function createActivity(activity: ActivityInsert) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const activityDateTime = activity.date_time || new Date().toISOString()
 
   const { data, error } = await supabase
