@@ -21,14 +21,18 @@ export async function POST(request: NextRequest) {
 
     // 2. Parse and validate request body
     const body = await request.json()
-    const { name, email, password, role, country_codes, is_active } = body
+    const { name, email, password, role, sales_role, country_codes, is_active } = body
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Name, email, and password are required" }, { status: 400 })
     }
 
-    if (!role || !["SDR", "AE"].includes(role)) {
-      return NextResponse.json({ error: "Invalid role. Must be SDR or AE" }, { status: 400 })
+    if (!role || !["admin", "user"].includes(role)) {
+      return NextResponse.json({ error: "Invalid role. Must be admin or user" }, { status: 400 })
+    }
+
+    if (!sales_role || !["SDR", "AE"].includes(sales_role)) {
+      return NextResponse.json({ error: "Invalid sales role. Must be SDR or AE" }, { status: 400 })
     }
 
     if (!country_codes || country_codes.length === 0) {
@@ -82,7 +86,7 @@ export async function POST(request: NextRequest) {
       // Update existing team member
       const { error: updateError } = await adminClient
         .from("team_members")
-        .update({ name, role, is_active: is_active ?? true })
+        .update({ name, role, sales_role, is_active: is_active ?? true })
         .eq("user_id", authUserId)
 
       if (updateError) {
@@ -95,6 +99,7 @@ export async function POST(request: NextRequest) {
         name,
         email,
         role,
+        sales_role,
         is_active: is_active ?? true,
       })
 

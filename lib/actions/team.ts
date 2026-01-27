@@ -8,14 +8,16 @@ import { unstable_noStore as noStore } from "next/cache"
 export type TeamMemberInsert = {
   name: string
   email: string
-  role: "SDR" | "AE"
+  role: "admin" | "user"
+  sales_role?: "SDR" | "AE"
   country_codes?: string[]
   is_active?: boolean
 }
 
 export type TeamMemberUpdate = Partial<Omit<TeamMemberInsert, "email">> & {
   id: string
-  role?: "SDR" | "AE"
+  role?: "admin" | "user"
+  sales_role?: "SDR" | "AE"
   country_codes?: string[]
 }
 
@@ -87,7 +89,7 @@ export async function createTeamMember(member: TeamMemberInsert) {
 }
 
 export async function updateTeamMember(update: TeamMemberUpdate) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { id, country_codes, ...updates } = update
 
   const { data, error } = await supabase.from("team_members").update(updates).eq("id", id).select("*").single()
@@ -97,8 +99,8 @@ export async function updateTeamMember(update: TeamMemberUpdate) {
   if (country_codes !== undefined && data.user_id) {
     await supabase.from("team_member_countries").delete().eq("member_user_id", data.user_id)
 
-    // Insert new assignments if role is user
-    if (data.role === "user" && country_codes.length > 0) {
+    // Insert new country assignments
+    if (country_codes.length > 0) {
       const countryAssignments = country_codes.map((code) => ({
         member_user_id: data.user_id,
         country_code: code,

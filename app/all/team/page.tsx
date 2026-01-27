@@ -48,7 +48,8 @@ export default function GlobalTeamPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "SDR",
+    role: "user" as "admin" | "user",
+    sales_role: "SDR" as "SDR" | "AE",
     country_codes: [] as string[],
     is_active: true,
     password: "",
@@ -87,7 +88,8 @@ export default function GlobalTeamPage() {
     setFormData({
       name: "",
       email: "",
-      role: "SDR",
+      role: "user",
+      sales_role: "SDR",
       country_codes: [],
       is_active: true,
       password: "",
@@ -100,7 +102,8 @@ export default function GlobalTeamPage() {
     setFormData({
       name: member.name,
       email: member.email,
-      role: member.role,
+      role: member.role || "user",
+      sales_role: member.sales_role || "SDR",
       country_codes: member.country_codes || [],
       is_active: member.is_active !== false,
       password: "",
@@ -131,7 +134,8 @@ export default function GlobalTeamPage() {
           id: editingMember.id,
           name: formData.name,
           email: formData.email,
-          role: formData.role as "SDR" | "AE",
+          role: formData.role as "admin" | "user",
+          sales_role: formData.sales_role as "SDR" | "AE",
           country_codes: formData.country_codes,
           is_active: formData.is_active,
         })
@@ -141,6 +145,7 @@ export default function GlobalTeamPage() {
           name: formData.name,
           email: formData.email,
           role: formData.role,
+          sales_role: formData.sales_role,
           country_codes: formData.country_codes,
         })
         
@@ -152,6 +157,7 @@ export default function GlobalTeamPage() {
             email: formData.email,
             password: formData.password,
             role: formData.role,
+            sales_role: formData.sales_role,
             country_codes: formData.country_codes,
             is_active: formData.is_active,
           }),
@@ -258,8 +264,25 @@ export default function GlobalTeamPage() {
                   </div>
                 )}
                 <div className="space-y-2">
-                  <Label>Rol *</Label>
-                  <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+                  <Label>Tipo de acceso *</Label>
+                  <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value as "admin" | "user" })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="user">Usuario</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.role === "admin"
+                      ? "Acceso completo al sistema"
+                      : "Acceso limitado a países asignados"}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Rol comercial *</Label>
+                  <Select value={formData.sales_role} onValueChange={(value) => setFormData({ ...formData, sales_role: value as "SDR" | "AE" })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -269,12 +292,12 @@ export default function GlobalTeamPage() {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    {formData.role === "SDR"
+                    {formData.sales_role === "SDR"
                       ? "Sales Development Representative - Prospección y calificación"
                       : "Account Executive - Cierre de ventas"}
                   </p>
                 </div>
-                {(formData.role === "SDR" || formData.role === "AE") && (
+                {formData.role === "user" && (
                   <div className="space-y-2">
                     <Label>Países asignados *</Label>
                     <div className="grid grid-cols-2 gap-2 p-3 border rounded-md min-h-[60px]">
@@ -390,6 +413,7 @@ export default function GlobalTeamPage() {
                   <TableRow>
                     <TableHead className="py-4 text-base">Nombre</TableHead>
                     <TableHead className="py-4 text-base">Email</TableHead>
+                    <TableHead className="py-4 text-base">Acceso</TableHead>
                     <TableHead className="py-4 text-base">Rol</TableHead>
                     <TableHead className="py-4 text-base">Países</TableHead>
                     <TableHead className="py-4 text-base">Estado</TableHead>
@@ -404,9 +428,17 @@ export default function GlobalTeamPage() {
                       <TableCell className="py-4">
                         <Badge 
                           variant="outline" 
-                          className={`text-sm py-1 px-3 ${member.role === "SDR" ? "bg-blue-50 text-blue-700 border-blue-200" : member.role === "AE" ? "bg-purple-50 text-purple-700 border-purple-200" : ""}`}
+                          className={`text-sm py-1 px-3 ${member.role === "admin" ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-slate-50 text-slate-700 border-slate-200"}`}
                         >
-                          {member.role === "SDR" ? "SDR" : member.role === "AE" ? "AE" : member.role}
+                          {member.role === "admin" ? "Admin" : "Usuario"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-sm py-1 px-3 ${member.sales_role === "SDR" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-purple-50 text-purple-700 border-purple-200"}`}
+                        >
+                          {member.sales_role || "—"}
                         </Badge>
                       </TableCell>
                       <TableCell className="py-4">
