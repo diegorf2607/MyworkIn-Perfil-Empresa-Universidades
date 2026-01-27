@@ -40,7 +40,6 @@ import { toast } from "sonner"
 import { updateAccount, deleteAccount } from "@/lib/actions/accounts"
 import { updateOpportunity, getOpportunitiesByAccount } from "@/lib/actions/opportunities"
 import { createContact, updateContact, deleteContact, getContactsByAccount } from "@/lib/actions/contacts"
-import { getOpportunitiesByAccount } from "@/lib/actions/opportunities"
 import { createActivity, getActivitiesByAccount, deleteActivity } from "@/lib/actions/activities"
 import { createMeeting, getMeetingsByAccount, deleteMeeting } from "@/lib/actions/meetings"
 
