@@ -8,13 +8,14 @@ import { unstable_noStore as noStore } from "next/cache"
 export type TeamMemberInsert = {
   name: string
   email: string
-  role: "admin" | "user"
+  role: "SDR" | "AE"
   country_codes?: string[]
   is_active?: boolean
 }
 
 export type TeamMemberUpdate = Partial<Omit<TeamMemberInsert, "email">> & {
   id: string
+  role?: "SDR" | "AE"
   country_codes?: string[]
 }
 

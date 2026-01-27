@@ -126,7 +126,7 @@ export interface TeamMember {
   user_id?: string // References auth.users
   name: string
   email: string
-  role: "admin" | "user" // Changed from SDR/AE to admin/user
+  role: "SDR" | "AE" // Sales roles
   country_codes?: string[] // Array of assigned countries
   is_active?: boolean
   created_at?: string

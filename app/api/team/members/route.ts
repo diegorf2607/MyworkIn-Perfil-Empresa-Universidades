@@ -14,15 +14,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check if requester is admin
+    // Check if requester is an active team member
     const { data: requesterMember } = await supabase
       .from("team_members")
       .select("role, is_active")
       .eq("user_id", user.id)
       .single()
 
-    if (!requesterMember || requesterMember.role !== "admin" || !requesterMember.is_active) {
-      return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
+    if (!requesterMember || !requesterMember.is_active) {
+      return NextResponse.json({ error: "Forbidden: Active team member access required" }, { status: 403 })
     }
 
     // 2. Parse and validate request body
@@ -33,12 +33,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Name, email, and password are required" }, { status: 400 })
     }
 
-    if (!role || !["admin", "user"].includes(role)) {
-      return NextResponse.json({ error: "Invalid role" }, { status: 400 })
+    if (!role || !["SDR", "AE"].includes(role)) {
+      return NextResponse.json({ error: "Invalid role. Must be SDR or AE" }, { status: 400 })
     }
 
-    if (role === "user" && (!country_codes || country_codes.length === 0)) {
-      return NextResponse.json({ error: "User role requires at least one country assignment" }, { status: 400 })
+    if (!country_codes || country_codes.length === 0) {
+      return NextResponse.json({ error: "At least one country assignment is required" }, { status: 400 })
     }
 
     // 3. Create auth user using Admin API
@@ -77,8 +77,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Failed to create team member: ${memberError.message}` }, { status: 500 })
     }
 
-    // 5. Insert country assignments if role is user
-    if (role === "user" && country_codes && country_codes.length > 0) {
+    // 5. Insert country assignments for all team members
+    if (country_codes && country_codes.length > 0) {
       const countryInserts = country_codes.map((code: string) => ({
         member_user_id: authData.user.id,
         country_code: code,

@@ -47,7 +47,7 @@ export default function GlobalTeamPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "admin",
+    role: "SDR",
     country_codes: [] as string[],
     is_active: true,
     password: "",
@@ -86,7 +86,7 @@ export default function GlobalTeamPage() {
     setFormData({
       name: "",
       email: "",
-      role: "admin",
+      role: "SDR",
       country_codes: [],
       is_active: true,
       password: "",
@@ -118,8 +118,8 @@ export default function GlobalTeamPage() {
       return
     }
 
-    if (formData.role === "user" && formData.country_codes.length === 0) {
-      toast.error("Usuarios deben tener al menos un país asignado")
+    if (formData.country_codes.length === 0) {
+      toast.error("Debes asignar al menos un país")
       return
     }
 
@@ -129,7 +129,7 @@ export default function GlobalTeamPage() {
           id: editingMember.id,
           name: formData.name,
           email: formData.email,
-          role: formData.role,
+          role: formData.role as "SDR" | "AE",
           country_codes: formData.country_codes,
           is_active: formData.is_active,
         })
@@ -143,7 +143,7 @@ export default function GlobalTeamPage() {
             email: formData.email,
             password: formData.password,
             role: formData.role,
-            country_codes: formData.role === "user" ? formData.country_codes : [],
+            country_codes: formData.country_codes,
             is_active: formData.is_active,
           }),
         })
@@ -250,17 +250,17 @@ export default function GlobalTeamPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="user">Usuario</SelectItem>
+                      <SelectItem value="SDR">SDR</SelectItem>
+                      <SelectItem value="AE">AE</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    {formData.role === "admin"
-                      ? "Acceso completo a todos los países"
-                      : "Solo ve datos de países asignados"}
+                    {formData.role === "SDR"
+                      ? "Sales Development Representative - Prospección y calificación"
+                      : "Account Executive - Cierre de ventas"}
                   </p>
                 </div>
-                {formData.role === "user" && (
+                {(formData.role === "SDR" || formData.role === "AE") && (
                   <div className="space-y-2">
                     <Label>Países asignados *</Label>
                     <div className="grid grid-cols-2 gap-2 p-3 border rounded-md min-h-[60px]">
@@ -388,7 +388,12 @@ export default function GlobalTeamPage() {
                       <TableCell className="py-4 font-medium text-base">{member.name}</TableCell>
                       <TableCell className="py-4 text-base">{member.email}</TableCell>
                       <TableCell className="py-4">
-                        <Badge variant="outline" className="text-sm py-1 px-3">{member.role === "admin" ? "Admin" : "Usuario"}</Badge>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-sm py-1 px-3 ${member.role === "SDR" ? "bg-blue-50 text-blue-700 border-blue-200" : member.role === "AE" ? "bg-purple-50 text-purple-700 border-purple-200" : ""}`}
+                        >
+                          {member.role === "SDR" ? "SDR" : member.role === "AE" ? "AE" : member.role}
+                        </Badge>
                       </TableCell>
                       <TableCell className="py-4">
                         <div className="flex flex-wrap gap-1.5">
