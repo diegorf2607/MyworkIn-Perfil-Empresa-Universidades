@@ -35,7 +35,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "At least one country assignment is required" }, { status: 400 })
     }
 
-    // 3. Create auth user using Admin API
+    // 3. Create auth user using Admin API (or get existing)
+    let authUserId: string
+    
     const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email,
       password,
@@ -46,34 +48,68 @@ export async function POST(request: NextRequest) {
     })
 
     if (authError) {
-      console.error("[v0] Error creating auth user:", authError)
-      return NextResponse.json({ error: `Failed to create user: ${authError.message}` }, { status: 500 })
-    }
-
-    if (!authData.user) {
+      // Check if user already exists
+      if (authError.message.includes("already been registered")) {
+        // Get the existing user
+        const { data: existingUsers } = await adminClient.auth.admin.listUsers()
+        const existingUser = existingUsers?.users?.find(u => u.email === email)
+        
+        if (existingUser) {
+          authUserId = existingUser.id
+          // Update password for existing user
+          await adminClient.auth.admin.updateUserById(existingUser.id, { password })
+        } else {
+          return NextResponse.json({ error: "User exists but could not be found" }, { status: 500 })
+        }
+      } else {
+        console.error("[v0] Error creating auth user:", authError)
+        return NextResponse.json({ error: `Failed to create user: ${authError.message}` }, { status: 500 })
+      }
+    } else if (!authData.user) {
       return NextResponse.json({ error: "User creation failed" }, { status: 500 })
+    } else {
+      authUserId = authData.user.id
     }
 
-    // 4. Insert into team_members (using admin client to bypass RLS)
-    const { error: memberError } = await adminClient.from("team_members").insert({
-      user_id: authData.user.id,
-      name,
-      email,
-      role,
-      is_active: is_active ?? true,
-    })
+    // 4. Check if team member already exists
+    const { data: existingMember } = await adminClient
+      .from("team_members")
+      .select("id")
+      .eq("user_id", authUserId)
+      .single()
 
-    if (memberError) {
-      console.error("[v0] Error creating team member:", memberError)
-      // Rollback: delete auth user
-      await adminClient.auth.admin.deleteUser(authData.user.id)
-      return NextResponse.json({ error: `Failed to create team member: ${memberError.message}` }, { status: 500 })
+    if (existingMember) {
+      // Update existing team member
+      const { error: updateError } = await adminClient
+        .from("team_members")
+        .update({ name, role, is_active: is_active ?? true })
+        .eq("user_id", authUserId)
+
+      if (updateError) {
+        return NextResponse.json({ error: `Failed to update team member: ${updateError.message}` }, { status: 500 })
+      }
+    } else {
+      // Insert new team member
+      const { error: memberError } = await adminClient.from("team_members").insert({
+        user_id: authUserId,
+        name,
+        email,
+        role,
+        is_active: is_active ?? true,
+      })
+
+      if (memberError) {
+        console.error("[v0] Error creating team member:", memberError)
+        return NextResponse.json({ error: `Failed to create team member: ${memberError.message}` }, { status: 500 })
+      }
     }
 
-    // 5. Insert country assignments (using admin client to bypass RLS)
+    // 5. Update country assignments (delete old and insert new)
+    await adminClient.from("team_member_countries").delete().eq("member_user_id", authUserId)
+    
     if (country_codes && country_codes.length > 0) {
       const countryInserts = country_codes.map((code: string) => ({
-        member_user_id: authData.user.id,
+        member_user_id: authUserId,
         country_code: code,
       }))
 
@@ -81,9 +117,6 @@ export async function POST(request: NextRequest) {
 
       if (countriesError) {
         console.error("[v0] Error assigning countries:", countriesError)
-        // Rollback: delete team member and auth user
-        await adminClient.from("team_members").delete().eq("user_id", authData.user.id)
-        await adminClient.auth.admin.deleteUser(authData.user.id)
         return NextResponse.json({ error: `Failed to assign countries: ${countriesError.message}` }, { status: 500 })
       }
     }
@@ -91,8 +124,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       user: {
-        id: authData.user.id,
-        email: authData.user.email,
+        id: authUserId,
+        email,
       },
     })
   } catch (error) {
