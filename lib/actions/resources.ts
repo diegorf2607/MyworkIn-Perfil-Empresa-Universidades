@@ -1,7 +1,9 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
+import { unstable_noStore as noStore } from "next/cache"
 
 export type ResourceCategory = {
   id: string
@@ -64,11 +66,12 @@ export async function deleteResourceCategory(id: string) {
 }
 
 export async function getResources(countryCode?: string) {
-  const supabase = await createClient()
-  let query = supabase.from("resources").select("*, team_members(name)")
+  noStore()
+  const supabase = createAdminClient()
+  let query = supabase.from("resources").select("*")
 
   if (countryCode) {
-    query = query.eq("country_code", countryCode)
+    query = query.eq("country_code", countryCode.toUpperCase())
   }
 
   const { data, error } = await query.order("category").order("title")

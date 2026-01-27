@@ -60,10 +60,11 @@ export async function getMeetings(countryCode?: string) {
 }
 
 export async function getMeetingsByAccount(accountId: string) {
-  const supabase = await createClient()
+  noStore()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("meetings")
-    .select("*, team_members(name)")
+    .select("*")
     .eq("account_id", accountId)
     .order("date_time", { ascending: false })
 

@@ -62,8 +62,10 @@ export default function GlobalTeamPage() {
     try {
       const [membersData, countriesData] = await Promise.all([getTeamMembers(), getCountries()])
       setTeamMembers(membersData)
-      setCountries(countriesData.filter((c: Country) => c.is_active))
+      // Filter by 'active' field (not 'is_active')
+      setCountries(countriesData.filter((c: Country) => c.active))
     } catch (error) {
+      console.error("Error loading data:", error)
       toast.error("Error al cargar datos")
     } finally {
       setLoading(false)

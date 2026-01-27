@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
+import { unstable_noStore as noStore } from "next/cache"
 
 export type ActivityInsert = {
   country_code: string
@@ -32,10 +33,11 @@ export type ActivityInsert = {
 export type ActivityUpdate = Partial<ActivityInsert> & { id: string }
 
 export async function getActivitiesByAccount(accountId: string) {
-  const supabase = await createClient()
+  noStore()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("activities")
-    .select("*, team_members(name)")
+    .select("*")
     .eq("account_id", accountId)
     .order("date_time", { ascending: false })
 
@@ -44,11 +46,12 @@ export async function getActivitiesByAccount(accountId: string) {
 }
 
 export async function getActivitiesByCountry(countryCode: string) {
-  const supabase = await createClient()
+  noStore()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("activities")
-    .select("*, accounts(name), team_members(name)")
-    .eq("country_code", countryCode)
+    .select("*, accounts(name)")
+    .eq("country_code", countryCode.toUpperCase())
     .order("date_time", { ascending: false })
 
   if (error) throw error
