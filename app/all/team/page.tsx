@@ -39,6 +39,7 @@ export default function GlobalTeamPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [countries, setCountries] = useState<Country[]>([])
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState("")
   const [filterCountry, setFilterCountry] = useState<string>("all")
   const [showInactive, setShowInactive] = useState(false)
@@ -123,6 +124,7 @@ export default function GlobalTeamPage() {
       return
     }
 
+    setSaving(true)
     try {
       if (editingMember) {
         await updateTeamMember({
@@ -135,6 +137,13 @@ export default function GlobalTeamPage() {
         })
         toast.success("Miembro actualizado")
       } else {
+        console.log("Creating member with data:", {
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          country_codes: formData.country_codes,
+        })
+        
         const response = await fetch("/api/team/members", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -148,7 +157,9 @@ export default function GlobalTeamPage() {
           }),
         })
 
+        console.log("Response status:", response.status)
         const data = await response.json()
+        console.log("Response data:", data)
 
         if (!response.ok) {
           throw new Error(data.error || "Error al crear miembro")
@@ -159,7 +170,10 @@ export default function GlobalTeamPage() {
       setIsDialogOpen(false)
       loadData()
     } catch (error) {
+      console.error("Error creating member:", error)
       toast.error(error instanceof Error ? error.message : "Error al guardar")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -299,11 +313,11 @@ export default function GlobalTeamPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={saving}>
                   Cancelar
                 </Button>
-                <Button onClick={handleSave} className="bg-primary hover:bg-primary/90">
-                  {editingMember ? "Guardar" : "Crear"}
+                <Button onClick={handleSave} className="bg-primary hover:bg-primary/90" disabled={saving}>
+                  {saving ? "Guardando..." : (editingMember ? "Guardar" : "Crear")}
                 </Button>
               </DialogFooter>
             </DialogContent>
