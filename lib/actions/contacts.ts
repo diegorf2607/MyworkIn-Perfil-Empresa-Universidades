@@ -1,7 +1,9 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
+import { unstable_noStore as noStore } from "next/cache"
 
 export type ContactInsert = {
   account_id: string
@@ -15,27 +17,35 @@ export type ContactInsert = {
 export type ContactUpdate = Partial<ContactInsert> & { id: string }
 
 export async function getContacts() {
-  const supabase = await createClient()
+  noStore()
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("contacts").select("*").order("created_at", { ascending: false })
 
-  if (error) throw error
-  return data
+  if (error) {
+    console.error("Error in getContacts:", error)
+    return []
+  }
+  return data || []
 }
 
 export async function getContactsByAccount(accountId: string) {
-  const supabase = await createClient()
+  noStore()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("contacts")
     .select("*")
     .eq("account_id", accountId)
     .order("created_at", { ascending: false })
 
-  if (error) throw error
-  return data
+  if (error) {
+    console.error("Error in getContactsByAccount:", error)
+    return []
+  }
+  return data || []
 }
 
 export async function createContact(contact: ContactInsert) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("contacts").insert(contact).select().single()
 
   if (error) throw error
@@ -44,7 +54,7 @@ export async function createContact(contact: ContactInsert) {
 }
 
 export async function updateContact(update: ContactUpdate) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { id, ...updates } = update
   const { data, error } = await supabase.from("contacts").update(updates).eq("id", id).select().single()
 
@@ -54,7 +64,7 @@ export async function updateContact(update: ContactUpdate) {
 }
 
 export async function deleteContact(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("contacts").delete().eq("id", id)
 
   if (error) throw error

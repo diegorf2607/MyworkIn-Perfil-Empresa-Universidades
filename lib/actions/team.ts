@@ -1,7 +1,9 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
+import { unstable_noStore as noStore } from "next/cache"
 
 export type TeamMemberInsert = {
   name: string
@@ -17,11 +19,15 @@ export type TeamMemberUpdate = Partial<Omit<TeamMemberInsert, "email">> & {
 }
 
 export async function getTeamMembers(countryCode?: string) {
-  const supabase = await createClient()
+  noStore()
+  const supabase = createAdminClient()
 
   const { data: members, error: membersError } = await supabase.from("team_members").select("*").order("name")
 
-  if (membersError) throw membersError
+  if (membersError) {
+    console.error("Error in getTeamMembers:", membersError)
+    return []
+  }
 
   const { data: assignments, error: assignmentsError } = await supabase
     .from("team_member_countries")
