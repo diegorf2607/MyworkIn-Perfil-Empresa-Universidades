@@ -22,7 +22,7 @@ import { Switch } from "@/components/ui/switch"
 import { Plus, Search, Pencil, Trash2, Users } from "lucide-react"
 import { toast } from "sonner"
 import { getTeamMembers, updateTeamMember, deleteTeamMember } from "@/lib/actions/team"
-import { getCountries } from "@/lib/actions/countries"
+import { getActiveCountries } from "@/lib/actions/countries"
 import type { TeamMember, Country } from "@/lib/types"
 
 const COUNTRY_FLAGS: Record<string, string> = {
@@ -60,10 +60,9 @@ export default function GlobalTeamPage() {
   async function loadData() {
     setLoading(true)
     try {
-      const [membersData, countriesData] = await Promise.all([getTeamMembers(), getCountries()])
+      const [membersData, countriesData] = await Promise.all([getTeamMembers(), getActiveCountries()])
       setTeamMembers(membersData)
-      // Filter by 'active' field (not 'is_active')
-      setCountries(countriesData.filter((c: Country) => c.active))
+      setCountries(countriesData || [])
     } catch (error) {
       console.error("Error loading data:", error)
       toast.error("Error al cargar datos")
@@ -264,22 +263,28 @@ export default function GlobalTeamPage() {
                 {formData.role === "user" && (
                   <div className="space-y-2">
                     <Label>Países asignados *</Label>
-                    <div className="grid grid-cols-2 gap-2 p-3 border rounded-md">
-                      {countries.map((country) => (
-                        <div key={country.code} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={country.code}
-                            checked={formData.country_codes.includes(country.code)}
-                            onCheckedChange={() => toggleCountry(country.code)}
-                          />
-                          <label htmlFor={country.code} className="text-sm cursor-pointer flex items-center gap-1">
-                            <span>{COUNTRY_FLAGS[country.code] || "🌐"}</span>
-                            {country.name}
-                          </label>
-                        </div>
-                      ))}
+                    <div className="grid grid-cols-2 gap-2 p-3 border rounded-md min-h-[60px]">
+                      {countries.length === 0 ? (
+                        <p className="text-sm text-muted-foreground col-span-2 text-center py-2">
+                          No hay países activos. Crea un país primero desde "Todos los países".
+                        </p>
+                      ) : (
+                        countries.map((country) => (
+                          <div key={country.code} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={country.code}
+                              checked={formData.country_codes.includes(country.code)}
+                              onCheckedChange={() => toggleCountry(country.code)}
+                            />
+                            <label htmlFor={country.code} className="text-sm cursor-pointer flex items-center gap-1">
+                              <span>{COUNTRY_FLAGS[country.code] || "🌐"}</span>
+                              {country.name}
+                            </label>
+                          </div>
+                        ))
+                      )}
                     </div>
-                    {formData.country_codes.length === 0 && (
+                    {formData.country_codes.length === 0 && countries.length > 0 && (
                       <p className="text-xs text-destructive">Selecciona al menos un país</p>
                     )}
                   </div>

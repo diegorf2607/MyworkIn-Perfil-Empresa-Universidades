@@ -168,9 +168,8 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
 
   const adminItems = [
     { title: "Base de Universidades", href: `${basePath}/admin/universities`, icon: Building2 },
-    { title: "Equipo Comercial", href: `${basePath}/admin/team`, icon: Users },
     { title: "KDM", href: `${basePath}/kdm`, icon: UserCircle },
-    // "Glosario Comercial" removido - ahora está en Global
+    // "Equipo Comercial" y "Glosario Comercial" removidos - ahora están en Global
   ]
 
   return (
