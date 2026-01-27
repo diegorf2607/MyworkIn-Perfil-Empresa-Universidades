@@ -395,51 +395,51 @@ export default function CountriesPage() {
                   </DropdownMenu>
                 </div>
 
-                <CardHeader className="pb-3">
+                <CardHeader className="p-6 pb-4">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-xl font-bold text-slate-900">{country.name}</CardTitle>
-                    <Badge variant="secondary" className="text-xs font-semibold bg-slate-100 text-slate-700">
+                    <Badge variant="secondary" className="text-sm font-semibold bg-slate-100 text-slate-700 px-3 py-1">
                       {country.code}
                     </Badge>
                   </div>
-                  <CardDescription className="text-slate-600 mt-1">Ver dashboard del país</CardDescription>
+                  <CardDescription className="text-slate-600 mt-2 text-sm">Ver dashboard del país</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-6 pt-2">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-50/50">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#005691]/10 to-[#005691]/20">
-                        <Building2 className="h-4 w-4 text-[#005691]" />
+                    <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50/80 border border-slate-100">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#005691]/10 to-[#005691]/20">
+                        <Building2 className="h-5 w-5 text-[#005691]" />
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-slate-900">{countryStats.totalAccounts}</p>
-                        <p className="text-xs text-slate-600 font-medium">Universidades</p>
+                        <p className="text-xl font-bold text-slate-900">{countryStats.totalAccounts}</p>
+                        <p className="text-sm text-slate-600 font-medium">Universidades</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg bg-blue-50/50">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-blue-200">
-                        <TrendingUp className="h-4 w-4 text-blue-600" />
+                    <div className="flex items-center gap-4 p-4 rounded-xl bg-blue-50/80 border border-blue-100">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-200">
+                        <TrendingUp className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-slate-900">{countryStats.activeOpps}</p>
-                        <p className="text-xs text-slate-600 font-medium">Opps activas</p>
+                        <p className="text-xl font-bold text-slate-900">{countryStats.activeOpps}</p>
+                        <p className="text-sm text-slate-600 font-medium">Opps activas</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg bg-orange-50/50">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-100 to-orange-200">
-                        <Calendar className="h-4 w-4 text-orange-600" />
+                    <div className="flex items-center gap-4 p-4 rounded-xl bg-orange-50/80 border border-orange-100">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-orange-200">
+                        <Calendar className="h-5 w-5 text-orange-600" />
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-slate-900">{countryStats.pendingMeetings}</p>
-                        <p className="text-xs text-slate-600 font-medium">Reuniones</p>
+                        <p className="text-xl font-bold text-slate-900">{countryStats.pendingMeetings}</p>
+                        <p className="text-sm text-slate-600 font-medium">Reuniones</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg bg-green-50/50">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-green-100 to-green-200">
-                        <DollarSign className="h-4 w-4 text-green-600" />
+                    <div className="flex items-center gap-4 p-4 rounded-xl bg-green-50/80 border border-green-100">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-green-100 to-green-200">
+                        <DollarSign className="h-5 w-5 text-green-600" />
                       </div>
                       <div>
-                        <p className="text-lg font-bold text-slate-900">${countryStats.totalMrr.toLocaleString()}</p>
-                        <p className="text-xs text-slate-600 font-medium">MRR Won</p>
+                        <p className="text-xl font-bold text-slate-900">${countryStats.totalMrr.toLocaleString()}</p>
+                        <p className="text-sm text-slate-600 font-medium">MRR Won</p>
                       </div>
                     </div>
                   </div>
