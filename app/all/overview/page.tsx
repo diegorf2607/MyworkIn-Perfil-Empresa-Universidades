@@ -1,15 +1,73 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Building2, Users, TrendingUp, Trophy, XCircle, DollarSign, Calendar, Target, Globe } from "lucide-react"
+import { Building2, Users, TrendingUp, Trophy, XCircle, DollarSign, Calendar, Target, Globe, Loader2 } from "lucide-react"
 import { getDashboardMetrics } from "@/lib/actions/dashboard"
 import { getCountries } from "@/lib/actions/countries"
 
-export default async function GlobalOverviewPage() {
-  const [metrics, countries] = await Promise.all([getDashboardMetrics("ALL"), getCountries()])
+interface Metrics {
+  totalAccounts: number
+  leads: number
+  sqls: number
+  oppsActive: number
+  won: number
+  lost: number
+  winRate: number
+  mrrPipeline: number
+  mrrWon: number
+  upcomingMeetings: number
+  byCountry?: Record<string, { accounts: number; sqls: number; mrr: number }>
+}
 
-  const activeCountries = countries?.filter((c) => c.active) || []
+interface Country {
+  code: string
+  name: string
+  active: boolean
+}
 
-  // Agrupar KPIs para mejor estructura visual
+export default function GlobalOverviewPage() {
+  const [metrics, setMetrics] = useState<Metrics | null>(null)
+  const [countries, setCountries] = useState<Country[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [metricsData, countriesData] = await Promise.all([
+          getDashboardMetrics("ALL"),
+          getCountries()
+        ])
+        setMetrics(metricsData)
+        setCountries(countriesData || [])
+      } catch (error) {
+        console.error("Error loading overview data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#005691]" />
+      </div>
+    )
+  }
+
+  if (!metrics) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Error al cargar datos</p>
+      </div>
+    )
+  }
+
+  const activeCountries = countries.filter((c) => c.active)
+
   const mainKpis = [
     { label: "Total Universidades", value: metrics.totalAccounts, icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
     { label: "Leads Activos", value: metrics.leads, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
@@ -44,7 +102,7 @@ export default async function GlobalOverviewPage() {
           </div>
         </div>
 
-        {/* Main KPIs - Destacados */}
+        {/* Main KPIs */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {mainKpis.map((kpi) => (
             <Card key={kpi.label} className="border-none shadow-md hover:shadow-lg transition-all duration-200">
@@ -63,7 +121,7 @@ export default async function GlobalOverviewPage() {
           ))}
         </div>
 
-        {/* Secondary KPIs - Grid más compacto */}
+        {/* Secondary KPIs */}
         <div>
           <h3 className="text-lg font-semibold text-slate-900 mb-4 px-1">Métricas de Rendimiento</h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -83,7 +141,7 @@ export default async function GlobalOverviewPage() {
           </div>
         </div>
 
-        {/* Country Breakdown - Lista limpia */}
+        {/* Country Breakdown */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-slate-900 px-1">Desglose por País</h3>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
