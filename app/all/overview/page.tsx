@@ -34,33 +34,18 @@ export default function GlobalOverviewPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        // Use API endpoint instead of server action
-        const response = await fetch("/api/test-dashboard")
+        const response = await fetch("/api/dashboard?country=ALL")
         const data = await response.json()
         
         if (!data.success) {
           throw new Error(data.error || "Failed to load data")
         }
         
-        const results = data.results
-        
-        // Build metrics from API response
-        const metricsData: Metrics = {
-          totalAccounts: results.accounts?.count || 0,
-          leads: 0,
-          sqls: 0,
-          oppsActive: results.opportunities?.count || 0,
-          won: 0,
-          lost: 0,
-          winRate: 0,
-          mrrPipeline: 0,
-          mrrWon: 0,
-          upcomingMeetings: 0,
-          byCountry: {}
-        }
-        
-        setMetrics(metricsData)
-        setCountries(results.countries?.data || [])
+        setMetrics({
+          ...data.metrics,
+          byCountry: data.byCountry
+        })
+        setCountries(data.countries || [])
       } catch (err: any) {
         console.error("[Overview] Error:", err)
         setError(err.message)
