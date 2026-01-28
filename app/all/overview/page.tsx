@@ -78,7 +78,7 @@ export default function GlobalOverviewPage() {
     { label: "Total Universidades", value: metrics.totalAccounts, icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
     { label: "Leads Activos", value: metrics.leads, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
     { label: "Oportunidades", value: metrics.oppsActive, icon: TrendingUp, color: "text-orange-600", bg: "bg-orange-50" },
-    { label: "MRR Pipeline", value: `$${metrics.mrrPipeline.toLocaleString()}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { label: "MRR Won", value: `$${metrics.mrrWon.toLocaleString()}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
   ]
 
   const secondaryKpis = [
@@ -86,7 +86,7 @@ export default function GlobalOverviewPage() {
     { label: "Won", value: metrics.won, icon: Trophy, color: "text-green-600" },
     { label: "Win Rate", value: `${metrics.winRate}%`, icon: Trophy, color: "text-emerald-600" },
     { label: "Lost", value: metrics.lost, icon: XCircle, color: "text-red-600" },
-    { label: "MRR Won", value: `$${metrics.mrrWon.toLocaleString()}`, icon: DollarSign, color: "text-green-600" },
+    { label: "MRR Pipeline", value: `$${metrics.mrrPipeline.toLocaleString()}`, icon: DollarSign, color: "text-blue-600" },
     { label: "Reuniones (7 días)", value: metrics.upcomingMeetings, icon: Calendar, color: "text-blue-600" },
   ]
 
@@ -177,16 +177,16 @@ export default function GlobalOverviewPage() {
                         <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">SQLs</p>
                       </div>
                       <div className="text-center border-l border-slate-100">
-                        <p className="text-xl font-bold text-blue-600">
-                          ${(countryMetrics?.mrr || 0).toLocaleString()}
-                        </p>
-                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">Pipeline</p>
-                      </div>
-                      <div className="text-center border-l border-slate-100">
                         <p className="text-xl font-bold text-emerald-600">
                           ${(countryMetrics?.mrrWon || 0).toLocaleString()}
                         </p>
                         <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">Won</p>
+                      </div>
+                      <div className="text-center border-l border-slate-100">
+                        <p className="text-xl font-bold text-blue-600">
+                          ${(countryMetrics?.mrr || 0).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">Pipeline</p>
                       </div>
                     </div>
                   </CardContent>

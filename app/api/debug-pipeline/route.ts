@@ -5,36 +5,46 @@ export async function GET() {
   try {
     const supabase = createAdminClient()
     
-    // 1. Obtener oportunidades directamente
-    const { data: opportunities, error: oppsError } = await supabase
-      .from("opportunities")
-      .select("id, stage, mrr, country_code, account_id, owner_id")
-    
-    // 2. Obtener cuentas
+    // Obtener todas las cuentas con su stage y mrr
     const { data: accounts, error: accError } = await supabase
       .from("accounts")
       .select("id, name, stage, country_code, mrr")
     
-    // 3. Ver qué stages hay
-    const stageCount: Record<string, number> = {}
-    opportunities?.forEach(opp => {
-      const stage = opp.stage || "null"
-      stageCount[stage] = (stageCount[stage] || 0) + 1
+    // Contar por stage
+    const stageCount: Record<string, { count: number; totalMrr: number }> = {}
+    accounts?.forEach(acc => {
+      const stage = acc.stage || "null"
+      if (!stageCount[stage]) {
+        stageCount[stage] = { count: 0, totalMrr: 0 }
+      }
+      stageCount[stage].count++
+      stageCount[stage].totalMrr += Number(acc.mrr || 0)
     })
+    
+    // Cuentas con MRR > 0
+    const accountsWithMrr = accounts?.filter(a => Number(a.mrr) > 0) || []
+    
+    // Cuentas won
+    const wonAccounts = accounts?.filter(a => a.stage === "won") || []
     
     return NextResponse.json({ 
       success: true,
-      opportunities: {
-        total: opportunities?.length || 0,
-        byStage: stageCount,
-        sample: opportunities?.slice(0, 5),
-        error: oppsError?.message
-      },
-      accounts: {
+      summary: {
         total: accounts?.length || 0,
-        sample: accounts?.slice(0, 5),
-        error: accError?.message
-      }
+        byStage: stageCount,
+      },
+      accountsWithMrr: accountsWithMrr.map(a => ({
+        name: a.name,
+        stage: a.stage,
+        mrr: a.mrr,
+        country: a.country_code
+      })),
+      wonAccounts: wonAccounts.map(a => ({
+        name: a.name,
+        mrr: a.mrr,
+        country: a.country_code
+      })),
+      error: accError?.message
     })
   } catch (error: any) {
     return NextResponse.json({ 
