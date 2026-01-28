@@ -16,7 +16,7 @@ interface Metrics {
   mrrPipeline: number
   mrrWon: number
   upcomingMeetings: number
-  byCountry?: Record<string, { accounts: number; sqls: number; mrr: number }>
+  byCountry?: Record<string, { accounts: number; sqls: number; mrr: number; mrrWon: number; opps: number }>
 }
 
 interface Country {
@@ -167,20 +167,26 @@ export default function GlobalOverviewPage() {
                       <Globe className="h-5 w-5 text-slate-300 group-hover:text-[#005691] transition-colors" />
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-4 border-t border-slate-50 pt-4">
+                    <div className="grid grid-cols-4 gap-3 border-t border-slate-50 pt-4">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-slate-900">{countryMetrics?.accounts || 0}</p>
+                        <p className="text-xl font-bold text-slate-900">{countryMetrics?.accounts || 0}</p>
                         <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">Unis</p>
                       </div>
                       <div className="text-center border-l border-slate-100">
-                        <p className="text-2xl font-bold text-slate-900">{countryMetrics?.sqls || 0}</p>
+                        <p className="text-xl font-bold text-slate-900">{countryMetrics?.sqls || 0}</p>
                         <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">SQLs</p>
                       </div>
                       <div className="text-center border-l border-slate-100">
-                        <p className="text-2xl font-bold text-emerald-600">
+                        <p className="text-xl font-bold text-blue-600">
                           ${(countryMetrics?.mrr || 0).toLocaleString()}
                         </p>
-                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">MRR</p>
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">Pipeline</p>
+                      </div>
+                      <div className="text-center border-l border-slate-100">
+                        <p className="text-xl font-bold text-emerald-600">
+                          ${(countryMetrics?.mrrWon || 0).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">Won</p>
                       </div>
                     </div>
                   </CardContent>
