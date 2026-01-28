@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { unstable_noStore as noStore } from "next/cache"
 import type { OpportunityStage } from "./opportunities"
 
 export interface PipelineDeal {
@@ -88,6 +89,7 @@ function getStatusFromStage(stage: OpportunityStage): "activo" | "won" | "lost" 
 
 // Obtener todos los deals para el Pipeline
 export async function getPipelineDeals(): Promise<PipelineDeal[]> {
+  noStore()
   const supabase = createAdminClient()
   
   // Obtener oportunidades con info de cuenta y owner

@@ -1,10 +1,12 @@
 "use server"
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { unstable_noStore as noStore } from "next/cache"
 import type { DateRange } from "@/lib/utils/date-range"
 
 // Get team members with their assigned countries
 export async function getTeamMembersWithCountries() {
+  noStore()
   const supabase = createAdminClient()
 
   const { data: members, error } = await supabase

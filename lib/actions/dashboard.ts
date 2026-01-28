@@ -1,8 +1,10 @@
 "use server"
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { unstable_noStore as noStore } from "next/cache"
 
 export async function getDashboardMetrics(countryCode?: string | "ALL") {
+  noStore()
   const supabase = createAdminClient()
 
   const isGlobal = !countryCode || countryCode === "ALL"
