@@ -35,14 +35,19 @@ export default function GlobalOverviewPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [metricsData, countriesData] = await Promise.all([
-          getDashboardMetrics("ALL"),
-          getCountries()
-        ])
+        console.log("[Overview] Loading metrics...")
+        const metricsData = await getDashboardMetrics("ALL")
+        console.log("[Overview] Metrics loaded:", metricsData)
+        
+        console.log("[Overview] Loading countries...")
+        const countriesData = await getCountries()
+        console.log("[Overview] Countries loaded:", countriesData)
+        
         setMetrics(metricsData)
         setCountries(countriesData || [])
-      } catch (error) {
-        console.error("Error loading overview data:", error)
+      } catch (error: any) {
+        console.error("[Overview] Error loading data:", error?.message || error)
+        console.error("[Overview] Full error:", error)
       } finally {
         setLoading(false)
       }
