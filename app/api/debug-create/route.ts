@@ -43,47 +43,34 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    
-    // Check env vars first
-    if (!supabaseUrl || !serviceKey) {
-      return NextResponse.json({ 
-        success: false, 
-        error: "Missing environment variables",
-        env: {
-          hasSupabaseUrl: !!supabaseUrl,
-          supabaseUrlPrefix: supabaseUrl?.substring(0, 30) + "...",
-          hasServiceKey: !!serviceKey,
-          serviceKeyPrefix: serviceKey ? serviceKey.substring(0, 10) + "..." : null,
-        }
-      }, { status: 500 })
-    }
-    
     const supabase = createAdminClient()
     
-    // Test connection
-    const { data, error } = await supabase.from("accounts").select("id, name").limit(3)
+    // Obtener oportunidades para ver qué stages tienen
+    const { data: opportunities, error: oppsError } = await supabase
+      .from("opportunities")
+      .select("id, stage, mrr, country_code, account_id, accounts(name)")
     
-    if (error) {
-      return NextResponse.json({ 
-        success: false, 
-        error: error.message,
-        errorDetails: error,
-        env: {
-          hasSupabaseUrl: true,
-          hasServiceKey: true,
-        }
-      }, { status: 500 })
-    }
+    // Obtener cuentas para ver qué stages tienen
+    const { data: accounts, error: accError } = await supabase
+      .from("accounts")
+      .select("id, name, stage, country_code, mrr")
+      .limit(10)
     
     return NextResponse.json({ 
-      success: true, 
-      message: "Connection OK",
-      sample: data,
+      success: true,
+      opportunities: {
+        count: opportunities?.length || 0,
+        data: opportunities,
+        error: oppsError?.message
+      },
+      accounts: {
+        count: accounts?.length || 0,
+        data: accounts,
+        error: accError?.message
+      },
       env: {
-        hasSupabaseUrl: true,
-        hasServiceKey: true,
+        hasSupabaseUrl: !!(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL),
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       }
     })
   } catch (error: any) {
