@@ -88,17 +88,17 @@ function getStatusFromStage(stage: OpportunityStage): "activo" | "won" | "lost" 
 }
 
 // Obtener todos los deals para el Pipeline
+// NOTA: Usa la tabla accounts con stage "opp", "won", "lost" ya que la tabla opportunities está vacía
 export async function getPipelineDeals(): Promise<PipelineDeal[]> {
   noStore()
   const supabase = createAdminClient()
   
-  // Obtener oportunidades con info de cuenta
-  const { data: opportunities, error } = await supabase
-    .from("opportunities")
-    .select(`
-      *,
-      accounts(id, name, city, country_code, icp_fit, owner_id, source, next_action, next_action_date)
-    `)
+  // Obtener cuentas en etapas avanzadas (opp, won, lost)
+  // También incluir SQLs para mostrar el flujo completo
+  const { data: accounts, error } = await supabase
+    .from("accounts")
+    .select("*")
+    .in("stage", ["sql", "opp", "won", "lost"])
     .order("updated_at", { ascending: false })
 
   if (error) {
@@ -137,29 +137,35 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
     }
   }
 
-  // Transformar oportunidades a PipelineDeal
-  const deals: PipelineDeal[] = (opportunities || []).map((opp: any) => {
-    const account = opp.accounts
-    const owner = opp.owner_id ? teamMap.get(opp.owner_id) : null
-    const stage = mapLegacyStage(opp.stage)
+  // Mapear stage de account a stage de pipeline
+  function mapAccountStageToPipeline(accountStage: string): OpportunityStage {
+    switch (accountStage) {
+      case "sql":
+        return "primera_reunion_programada"
+      case "opp":
+        return "primera_reunion_realizada"
+      case "won":
+        return "won"
+      case "lost":
+        return "lost"
+      default:
+        return "primera_reunion_programada"
+    }
+  }
+
+  // Transformar cuentas a PipelineDeal
+  const deals: PipelineDeal[] = (accounts || []).map((account: any) => {
+    const owner = account.owner_id ? teamMap.get(account.owner_id) : null
+    const stage = mapAccountStageToPipeline(account.stage)
     
     // Determinar next action
     let nextAction = null
-    if (opp.next_step && opp.next_step_date) {
+    if (account.next_action && account.next_action_date) {
       nextAction = {
-        type: opp.next_step.includes("reunion") || opp.next_step.includes("Reunion") ? "reunion" :
-              opp.next_step.includes("demo") || opp.next_step.includes("Demo") ? "demo" :
-              opp.next_step.includes("llamada") || opp.next_step.includes("Llamada") ? "llamada" :
-              opp.next_step.includes("propuesta") || opp.next_step.includes("Propuesta") ? "propuesta" :
-              "seguimiento",
-        date: opp.next_step_date,
-        description: opp.next_step
-      }
-    } else if (account?.next_action && account?.next_action_date) {
-      nextAction = {
-        type: account.next_action.includes("reunion") || account.next_action.includes("Reunion") ? "reunion" :
-              account.next_action.includes("demo") || account.next_action.includes("Demo") ? "demo" :
-              account.next_action.includes("llamada") || account.next_action.includes("Llamada") ? "llamada" :
+        type: account.next_action.toLowerCase().includes("reunion") ? "reunion" :
+              account.next_action.toLowerCase().includes("demo") ? "demo" :
+              account.next_action.toLowerCase().includes("llamada") ? "llamada" :
+              account.next_action.toLowerCase().includes("propuesta") ? "propuesta" :
               "seguimiento",
         date: account.next_action_date,
         description: account.next_action
@@ -167,32 +173,32 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
     }
 
     // Obtener última actividad
-    const lastActivity = lastActivityMap.get(opp.account_id) || null
+    const lastActivity = lastActivityMap.get(account.id) || null
 
     return {
-      id: opp.id,
-      accountId: opp.account_id,
-      accountName: account?.name || "Sin nombre",
-      accountCity: account?.city || null,
-      country: opp.country_code,
+      id: account.id,
+      accountId: account.id,
+      accountName: account.name || "Sin nombre",
+      accountCity: account.city || null,
+      country: account.country_code,
       stage,
-      ownerId: opp.owner_id || account?.owner_id || null,
+      ownerId: account.owner_id || null,
       ownerName: owner?.name || null,
-      ownerRole: owner?.role === "SDR" || owner?.role === "AE" ? owner.role : null,
-      mrr: opp.mrr || 0,
+      ownerRole: owner?.sales_role === "SDR" || owner?.sales_role === "AE" ? owner.sales_role : null,
+      mrr: account.mrr || 0,
       currency: "USD" as const,
-      icpTier: (opp.icp_tier || account?.icp_fit === 5 ? "A" : account?.icp_fit >= 3 ? "B" : "C") as "A" | "B" | "C",
+      icpTier: (account.fit_comercial === "alto" ? "A" : account.fit_comercial === "medio" ? "B" : "C") as "A" | "B" | "C",
       nextAction,
       lastActivity,
-      createdAt: opp.created_at,
-      updatedAt: opp.updated_at || opp.created_at,
-      expectedCloseDate: opp.expected_close_date || null,
-      probability: opp.probability || 0,
+      createdAt: account.created_at,
+      updatedAt: account.updated_at || account.created_at,
+      expectedCloseDate: null,
+      probability: account.probability || 0,
       status: getStatusFromStage(stage),
-      lostReason: opp.lost_reason || undefined,
-      source: (opp.source || account?.source || "outbound") as "inbound" | "outbound" | "referido",
-      stuckDays: calculateStuckDays(opp.updated_at || opp.created_at),
-      product: opp.product || null
+      lostReason: undefined,
+      source: (account.source || "outbound") as "inbound" | "outbound" | "referido",
+      stuckDays: calculateStuckDays(account.updated_at || account.created_at),
+      product: null
     }
   })
 

@@ -29,46 +29,43 @@ export async function GET(request: Request) {
       })
     }
 
-    // Build queries
+    // Build queries - usando accounts para todo ya que opportunities está vacía
     let accountsQuery = supabase.from("accounts").select("*")
-    let oppsQuery = supabase.from("opportunities").select("*")
     let meetingsQuery = supabase.from("meetings").select("*")
 
     if (!isGlobal) {
       accountsQuery = accountsQuery.eq("country_code", countryCode.toUpperCase())
-      oppsQuery = oppsQuery.eq("country_code", countryCode.toUpperCase())
       meetingsQuery = meetingsQuery.eq("country_code", countryCode.toUpperCase())
     } else if (activeCodes.length > 0) {
       accountsQuery = accountsQuery.in("country_code", activeCodes)
-      oppsQuery = oppsQuery.in("country_code", activeCodes)
       meetingsQuery = meetingsQuery.in("country_code", activeCodes)
     }
 
     const [
       { data: accounts },
-      { data: opportunities },
       { data: meetings }
     ] = await Promise.all([
       accountsQuery,
-      oppsQuery,
       meetingsQuery,
     ])
 
-    // Calculate metrics
+    // Calculate metrics - usando accounts para MRR ya que opportunities está vacía
     const totalAccounts = accounts?.length || 0
     const leads = accounts?.filter((a) => a.stage === "lead").length || 0
     const sqls = accounts?.filter((a) => a.stage === "sql").length || 0
     const oppsActive = accounts?.filter((a) => a.stage === "opp").length || 0
-    const won = opportunities?.filter((o) => o.stage === "won").length || 0
-    const lost = opportunities?.filter((o) => o.stage === "lost").length || 0
+    const won = accounts?.filter((a) => a.stage === "won").length || 0
+    const lost = accounts?.filter((a) => a.stage === "lost").length || 0
 
-    const mrrPipeline = opportunities
-      ?.filter((o) => !["won", "lost"].includes(o.stage || ""))
-      .reduce((sum, o) => sum + Number(o.mrr || 0), 0) || 0
+    // MRR Pipeline = suma de MRR de cuentas en stage sql u opp
+    const mrrPipeline = accounts
+      ?.filter((a) => ["sql", "opp"].includes(a.stage || ""))
+      .reduce((sum, a) => sum + Number(a.mrr || 0), 0) || 0
 
-    const mrrWon = opportunities
-      ?.filter((o) => o.stage === "won")
-      .reduce((sum, o) => sum + Number(o.mrr || 0), 0) || 0
+    // MRR Won = suma de MRR de cuentas en stage won
+    const mrrWon = accounts
+      ?.filter((a) => a.stage === "won")
+      .reduce((sum, a) => sum + Number(a.mrr || 0), 0) || 0
 
     // Meetings in next 7 days
     const now = new Date()
@@ -80,23 +77,24 @@ export async function GET(request: Request) {
 
     const winRate = won + lost > 0 ? Math.round((won / (won + lost)) * 100) : 0
 
-    // Calculate by country
+    // Calculate by country - usando accounts para MRR
     const byCountry: Record<string, { accounts: number; sqls: number; mrr: number; mrrWon: number; opps: number }> = {}
     
     for (const country of (countries || [])) {
       const countryAccounts = accounts?.filter(a => a.country_code === country.code) || []
-      const countryOpps = opportunities?.filter(o => o.country_code === country.code) || []
       
       byCountry[country.code] = {
         accounts: countryAccounts.length,
         sqls: countryAccounts.filter(a => a.stage === "sql").length,
-        opps: countryOpps.filter(o => !["won", "lost"].includes(o.stage || "")).length,
-        mrr: countryOpps
-          .filter(o => !["won", "lost"].includes(o.stage || ""))
-          .reduce((sum, o) => sum + Number(o.mrr || 0), 0),
-        mrrWon: countryOpps
-          .filter(o => o.stage === "won")
-          .reduce((sum, o) => sum + Number(o.mrr || 0), 0)
+        opps: countryAccounts.filter(a => a.stage === "opp").length,
+        // MRR Pipeline = cuentas en sql u opp
+        mrr: countryAccounts
+          .filter(a => ["sql", "opp"].includes(a.stage || ""))
+          .reduce((sum, a) => sum + Number(a.mrr || 0), 0),
+        // MRR Won = cuentas en won
+        mrrWon: countryAccounts
+          .filter(a => a.stage === "won")
+          .reduce((sum, a) => sum + Number(a.mrr || 0), 0)
       }
     }
 
