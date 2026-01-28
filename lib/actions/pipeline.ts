@@ -92,13 +92,12 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
   noStore()
   const supabase = createAdminClient()
   
-  // Obtener oportunidades con info de cuenta y owner
+  // Obtener oportunidades con info de cuenta
   const { data: opportunities, error } = await supabase
     .from("opportunities")
     .select(`
       *,
-      accounts(id, name, city, country_code, icp_fit, owner_id, source, next_action, next_action_date),
-      team_members:owner_id(id, name, role)
+      accounts(id, name, city, country_code, icp_fit, owner_id, source, next_action, next_action_date)
     `)
     .order("updated_at", { ascending: false })
 
@@ -106,6 +105,17 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
     console.error("Error fetching pipeline deals:", error)
     throw error
   }
+  
+  // Obtener team members separadamente
+  const { data: teamMembers } = await supabase
+    .from("team_members")
+    .select("id, user_id, name, role, sales_role")
+  
+  const teamMap = new Map<string, any>()
+  teamMembers?.forEach(tm => {
+    teamMap.set(tm.id, tm)
+    if (tm.user_id) teamMap.set(tm.user_id, tm)
+  })
 
   // Obtener la última actividad de cada cuenta
   const { data: activities } = await supabase
@@ -130,7 +140,7 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
   // Transformar oportunidades a PipelineDeal
   const deals: PipelineDeal[] = (opportunities || []).map((opp: any) => {
     const account = opp.accounts
-    const owner = opp.team_members
+    const owner = opp.owner_id ? teamMap.get(opp.owner_id) : null
     const stage = mapLegacyStage(opp.stage)
     
     // Determinar next action

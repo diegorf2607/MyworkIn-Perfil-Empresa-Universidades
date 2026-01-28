@@ -81,7 +81,7 @@ export async function GET(request: Request) {
     const winRate = won + lost > 0 ? Math.round((won / (won + lost)) * 100) : 0
 
     // Calculate by country
-    const byCountry: Record<string, { accounts: number; sqls: number; mrr: number }> = {}
+    const byCountry: Record<string, { accounts: number; sqls: number; mrr: number; mrrWon: number; opps: number }> = {}
     
     for (const country of (countries || [])) {
       const countryAccounts = accounts?.filter(a => a.country_code === country.code) || []
@@ -90,8 +90,12 @@ export async function GET(request: Request) {
       byCountry[country.code] = {
         accounts: countryAccounts.length,
         sqls: countryAccounts.filter(a => a.stage === "sql").length,
+        opps: countryOpps.filter(o => !["won", "lost"].includes(o.stage || "")).length,
         mrr: countryOpps
           .filter(o => !["won", "lost"].includes(o.stage || ""))
+          .reduce((sum, o) => sum + Number(o.mrr || 0), 0),
+        mrrWon: countryOpps
+          .filter(o => o.stage === "won")
           .reduce((sum, o) => sum + Number(o.mrr || 0), 0)
       }
     }
