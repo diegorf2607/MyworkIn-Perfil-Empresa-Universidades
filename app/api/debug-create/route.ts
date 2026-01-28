@@ -43,13 +43,38 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    // Check env vars first
+    if (!supabaseUrl || !serviceKey) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Missing environment variables",
+        env: {
+          hasSupabaseUrl: !!supabaseUrl,
+          supabaseUrlPrefix: supabaseUrl?.substring(0, 30) + "...",
+          hasServiceKey: !!serviceKey,
+          serviceKeyPrefix: serviceKey ? serviceKey.substring(0, 10) + "..." : null,
+        }
+      }, { status: 500 })
+    }
+    
     const supabase = createAdminClient()
     
     // Test connection
     const { data, error } = await supabase.from("accounts").select("id, name").limit(3)
     
     if (error) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      return NextResponse.json({ 
+        success: false, 
+        error: error.message,
+        errorDetails: error,
+        env: {
+          hasSupabaseUrl: true,
+          hasServiceKey: true,
+        }
+      }, { status: 500 })
     }
     
     return NextResponse.json({ 
@@ -57,11 +82,15 @@ export async function GET() {
       message: "Connection OK",
       sample: data,
       env: {
-        hasSupabaseUrl: !!process.env.SUPABASE_URL || !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        hasSupabaseUrl: true,
+        hasServiceKey: true,
       }
     })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ 
+      success: false, 
+      error: error.message,
+      stack: error.stack?.substring(0, 500)
+    }, { status: 500 })
   }
 }
