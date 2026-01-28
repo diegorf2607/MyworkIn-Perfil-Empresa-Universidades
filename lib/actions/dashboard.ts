@@ -1,9 +1,9 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function getDashboardMetrics(countryCode?: string | "ALL") {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const isGlobal = !countryCode || countryCode === "ALL"
 

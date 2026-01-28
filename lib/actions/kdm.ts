@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { createActivity } from "./activities"
 
@@ -38,7 +38,7 @@ export interface KDMContactUpdate extends Partial<KDMContactInsert> {
 }
 
 export async function getKDMContacts(countryCode?: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Get all KDM contacts
   const { data: contacts, error: contactsError } = await supabase.from("kdm_contacts").select("*").order("last_name")
@@ -85,7 +85,7 @@ export async function getKDMContacts(countryCode?: string) {
 }
 
 export async function getKDMContactsByAccount(accountId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Get links for this account
   const { data: links, error: linksError } = await supabase
@@ -120,7 +120,7 @@ export async function getKDMContactsByAccount(accountId: string) {
 }
 
 export async function createKDMContact(contact: KDMContactInsert, accountId?: string, countryCode?: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data, error } = await supabase
     .from("kdm_contacts")
@@ -165,7 +165,7 @@ export async function createKDMContact(contact: KDMContactInsert, accountId?: st
 }
 
 export async function updateKDMContact(update: KDMContactUpdate) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { id, ...updates } = update
 
   const { data, error } = await supabase
@@ -181,7 +181,7 @@ export async function updateKDMContact(update: KDMContactUpdate) {
 }
 
 export async function deleteKDMContact(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Links will be deleted via CASCADE
   const { error } = await supabase.from("kdm_contacts").delete().eq("id", id)
@@ -196,7 +196,7 @@ export async function linkKDMToAccount(
   countryCode: string,
   isPrimary = false,
 ) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // If setting as primary, unset other primaries for this account
   if (isPrimary) {
@@ -244,7 +244,7 @@ export async function linkKDMToAccount(
 }
 
 export async function unlinkKDMFromAccount(kdmContactId: string, accountId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from("account_kdm_contacts")
@@ -270,7 +270,7 @@ export async function importKDMFromCSV(
     notes?: string
   }[],
 ) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const results = {
     created: 0,

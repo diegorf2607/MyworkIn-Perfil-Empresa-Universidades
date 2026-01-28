@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
 export type GlossaryTermInsert = {
@@ -12,7 +12,7 @@ export type GlossaryTermInsert = {
 export type GlossaryTermUpdate = Partial<GlossaryTermInsert> & { id: string }
 
 export async function getGlossaryTerms() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("glossary_terms").select("*").order("category").order("term")
 
   if (error) throw error
@@ -20,7 +20,7 @@ export async function getGlossaryTerms() {
 }
 
 export async function createGlossaryTerm(term: GlossaryTermInsert) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("glossary_terms").insert(term).select().single()
 
   if (error) throw error
@@ -29,7 +29,7 @@ export async function createGlossaryTerm(term: GlossaryTermInsert) {
 }
 
 export async function updateGlossaryTerm(update: GlossaryTermUpdate) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { id, ...updates } = update
   const { data, error } = await supabase.from("glossary_terms").update(updates).eq("id", id).select().single()
 
@@ -39,7 +39,7 @@ export async function updateGlossaryTerm(update: GlossaryTermUpdate) {
 }
 
 export async function deleteGlossaryTerm(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("glossary_terms").delete().eq("id", id)
 
   if (error) throw error

@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
 export type QuickLinkInsert = {
@@ -12,7 +12,7 @@ export type QuickLinkInsert = {
 export type QuickLinkUpdate = Partial<QuickLinkInsert> & { id: string }
 
 export async function getQuickLinks() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("quick_links").select("*").order("category").order("title")
 
   if (error) throw error
@@ -20,7 +20,7 @@ export async function getQuickLinks() {
 }
 
 export async function createQuickLink(link: QuickLinkInsert) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("quick_links").insert(link).select().single()
 
   if (error) throw error
@@ -29,7 +29,7 @@ export async function createQuickLink(link: QuickLinkInsert) {
 }
 
 export async function updateQuickLink(update: QuickLinkUpdate) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { id, ...updates } = update
   const { data, error } = await supabase.from("quick_links").update(updates).eq("id", id).select().single()
 
@@ -39,7 +39,7 @@ export async function updateQuickLink(update: QuickLinkUpdate) {
 }
 
 export async function deleteQuickLink(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("quick_links").delete().eq("id", id)
 
   if (error) throw error

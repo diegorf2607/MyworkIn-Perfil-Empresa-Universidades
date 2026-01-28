@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
 export type ScorecardInsert = {
@@ -17,7 +17,7 @@ export type ScorecardInsert = {
 export type ScorecardUpdate = Partial<ScorecardInsert> & { id: string }
 
 export async function getScorecards(countryCode: string, startDate?: string, endDate?: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   let query = supabase.from("scorecards").select("*").eq("country_code", countryCode)
 
   if (startDate) {
@@ -34,7 +34,7 @@ export async function getScorecards(countryCode: string, startDate?: string, end
 }
 
 export async function upsertScorecard(scorecard: ScorecardInsert) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("scorecards")
     .upsert(scorecard, { onConflict: "country_code,date" })
@@ -47,7 +47,7 @@ export async function upsertScorecard(scorecard: ScorecardInsert) {
 }
 
 export async function updateScorecard(update: ScorecardUpdate) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { id, ...updates } = update
   const { data, error } = await supabase.from("scorecards").update(updates).eq("id", id).select().single()
 

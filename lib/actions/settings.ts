@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 
 export type AppSettings = {
@@ -14,7 +14,7 @@ export type AppSettings = {
 }
 
 export async function getAppSettings() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("app_settings").select("*").eq("id", "main").single()
 
   if (error && error.code !== "PGRST116") throw error
@@ -22,7 +22,7 @@ export async function getAppSettings() {
 }
 
 export async function updateAppSettings(settings: Partial<AppSettings>) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("app_settings")
     .upsert({ id: "main", ...settings, updated_at: new Date().toISOString() })
@@ -36,7 +36,7 @@ export async function updateAppSettings(settings: Partial<AppSettings>) {
 }
 
 export async function initializeApp(settings: Omit<AppSettings, "initialized">) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("app_settings")
     .upsert({

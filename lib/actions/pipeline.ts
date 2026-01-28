@@ -216,7 +216,7 @@ export async function updateDealStage(
   newStage: OpportunityStage,
   lostReason?: string
 ): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   
   const updates: Record<string, any> = {
     stage: newStage,
@@ -248,7 +248,7 @@ export async function updateDealStage(
 
 // Marcar acción como completada
 export async function markActionComplete(dealId: string): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   
   const { error } = await supabase
     .from("opportunities")

@@ -26,7 +26,7 @@ export type ResourceInsert = {
 export type ResourceUpdate = Partial<ResourceInsert> & { id: string }
 
 export async function getResourceCategories(): Promise<ResourceCategory[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("resource_categories").select("*").order("sort_order")
 
   if (error) throw error
@@ -34,7 +34,7 @@ export async function getResourceCategories(): Promise<ResourceCategory[]> {
 }
 
 export async function createResourceCategory(category: { name: string; description?: string; icon?: string }) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Get max sort_order
   const { data: maxData } = await supabase
@@ -58,7 +58,7 @@ export async function createResourceCategory(category: { name: string; descripti
 }
 
 export async function deleteResourceCategory(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("resource_categories").delete().eq("id", id)
 
   if (error) throw error
@@ -81,7 +81,7 @@ export async function getResources(countryCode?: string) {
 }
 
 export async function createResource(resource: ResourceInsert) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("resources")
     .insert({ ...resource, updated_at: new Date().toISOString() })
@@ -94,7 +94,7 @@ export async function createResource(resource: ResourceInsert) {
 }
 
 export async function updateResource(update: ResourceUpdate) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { id, ...updates } = update
   const { data, error } = await supabase
     .from("resources")
@@ -109,7 +109,7 @@ export async function updateResource(update: ResourceUpdate) {
 }
 
 export async function deleteResource(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("resources").delete().eq("id", id)
 
   if (error) throw error

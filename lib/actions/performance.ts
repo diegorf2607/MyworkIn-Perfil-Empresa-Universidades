@@ -1,11 +1,11 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import type { DateRange } from "@/lib/utils/date-range"
 
 // Get team members with their assigned countries
 export async function getTeamMembersWithCountries() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: members, error } = await supabase
     .from("team_members")
@@ -28,7 +28,7 @@ export async function getTeamMembersWithCountries() {
 
 // Get activity metrics for a team member in a date range
 export async function getActivityMetrics(memberId: string, dateRange: DateRange, countryCode?: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Accounts created (universities/leads)
   let accountsQuery = supabase
@@ -92,7 +92,7 @@ export async function getActivityMetrics(memberId: string, dateRange: DateRange,
 
 // Get results metrics for a team member
 export async function getResultsMetrics(memberId: string, dateRange: DateRange, countryCode?: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // SQLs generated (accounts with stage = 'sql')
   let sqlsQuery = supabase
@@ -156,7 +156,7 @@ export async function getResultsMetrics(memberId: string, dateRange: DateRange, 
 
 // Get weekly summary for all team
 export async function getWeeklySummary(dateRange: DateRange, countryCode?: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   let accountsQuery = supabase
     .from("accounts")
@@ -230,7 +230,7 @@ export async function getActivityLog(
     search?: string
   },
 ) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   console.log("[v0] getActivityLog called with:", {
     dateRange: { from: dateRange.from.toISOString(), to: dateRange.to.toISOString() },
@@ -302,7 +302,7 @@ export async function getActivityLog(
 
 // Get funnel data
 export async function getFunnelData(dateRange: DateRange, countryCode?: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Get counts for each stage
   const stages = ["university", "lead", "sql", "opp", "won"]

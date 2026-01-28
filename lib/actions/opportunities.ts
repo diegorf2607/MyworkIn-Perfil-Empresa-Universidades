@@ -56,7 +56,7 @@ export async function getOpportunities(countryCode?: string) {
 }
 
 export async function getOpportunitiesByStage(countryCode: string, stages: string[]) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("opportunities")
     .select("*, accounts(name, city)")
@@ -69,7 +69,7 @@ export async function getOpportunitiesByStage(countryCode: string, stages: strin
 }
 
 export async function getOpportunitiesByAccount(accountId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("opportunities")
     .select("*")
@@ -81,7 +81,7 @@ export async function getOpportunitiesByAccount(accountId: string) {
 }
 
 export async function createOpportunity(opportunity: OpportunityInsert) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase.from("opportunities").insert(opportunity).select().single()
 
   if (error) throw error
@@ -90,7 +90,7 @@ export async function createOpportunity(opportunity: OpportunityInsert) {
 }
 
 export async function updateOpportunity(update: OpportunityUpdate) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { id, ...updates } = update
 
   // If closing opportunity, set closed_at
@@ -106,7 +106,7 @@ export async function updateOpportunity(update: OpportunityUpdate) {
 }
 
 export async function deleteOpportunity(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("opportunities").delete().eq("id", id)
 
   if (error) throw error
