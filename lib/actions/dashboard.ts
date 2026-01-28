@@ -14,6 +14,14 @@ export async function getDashboardMetrics(countryCode?: string | "ALL") {
 
   const activeCodes = countries?.map((c) => c.code) || []
 
+  // If no active countries, return empty metrics
+  if (isGlobal && activeCodes.length === 0) {
+    return {
+      totalAccounts: 0, leads: 0, sqls: 0, oppsActive: 0, won: 0, lost: 0,
+      mrrPipeline: 0, mrrWon: 0, upcomingMeetings: 0, winRate: 0, byCountry: {}
+    }
+  }
+
   // Build queries with optional country filter
   let accountsQuery = supabase.from("accounts").select("*")
   let oppsQuery = supabase.from("opportunities").select("*")
@@ -25,7 +33,7 @@ export async function getDashboardMetrics(countryCode?: string | "ALL") {
     oppsQuery = oppsQuery.eq("country_code", countryCode)
     meetingsQuery = meetingsQuery.eq("country_code", countryCode)
     scorecardsQuery = scorecardsQuery.eq("country_code", countryCode)
-  } else {
+  } else if (activeCodes.length > 0) {
     // Filter by active countries only
     accountsQuery = accountsQuery.in("country_code", activeCodes)
     oppsQuery = oppsQuery.in("country_code", activeCodes)
@@ -33,12 +41,18 @@ export async function getDashboardMetrics(countryCode?: string | "ALL") {
     scorecardsQuery = scorecardsQuery.in("country_code", activeCodes)
   }
 
-  const [{ data: accounts }, { data: opportunities }, { data: meetings }, { data: scorecards }] = await Promise.all([
+  const [{ data: accounts, error: accErr }, { data: opportunities, error: oppErr }, { data: meetings, error: meetErr }, { data: scorecards, error: scoreErr }] = await Promise.all([
     accountsQuery,
     oppsQuery,
     meetingsQuery,
     scorecardsQuery,
   ])
+
+  // Log any errors
+  if (accErr) console.error("[Dashboard] Accounts error:", accErr.message)
+  if (oppErr) console.error("[Dashboard] Opportunities error:", oppErr.message)
+  if (meetErr) console.error("[Dashboard] Meetings error:", meetErr.message)
+  if (scoreErr) console.error("[Dashboard] Scorecards error:", scoreErr.message)
 
   // Calculate metrics
   const totalAccounts = accounts?.length || 0
