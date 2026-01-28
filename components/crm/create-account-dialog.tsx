@@ -55,21 +55,36 @@ export function CreateAccountDialog({
 
     startTransition(async () => {
       try {
-        await createAccount({
-          country_code: countryCode,
-          name: formData.name,
-          city: formData.city || undefined,
-          type: formData.type,
-          size: formData.size,
-          website: formData.website || undefined,
-          fit_comercial: formData.fit_comercial,
-          stage: defaultStage,
-          source: formData.source,
-          notes: formData.notes || undefined,
-          status: "activo",
-          mrr: 0,
-          probability: defaultStage === "sql" ? 20 : 10,
+        // Use API route instead of server action for better error handling
+        const response = await fetch("/api/debug-create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            country_code: countryCode,
+            name: formData.name,
+            city: formData.city || null,
+            type: formData.type,
+            size: formData.size,
+            website: formData.website || null,
+            fit_comercial: formData.fit_comercial,
+            stage: defaultStage,
+            source: formData.source,
+            notes: formData.notes || null,
+          }),
         })
+
+        const result = await response.json()
+        
+        if (!response.ok || !result.success) {
+          if (result.error?.includes("duplicate") || result.error?.includes("unique")) {
+            toast.error("Ya existe una universidad con ese nombre en este país")
+          } else {
+            toast.error(result.error || "Error al crear universidad")
+          }
+          console.error("Create error:", result)
+          return
+        }
+
         toast.success(`Universidad creada como ${defaultStage.toUpperCase()}`)
         onOpenChange(false)
         setFormData({
@@ -85,11 +100,7 @@ export function CreateAccountDialog({
         router.refresh()
         onSuccess?.()
       } catch (error: any) {
-        if (error?.message === "DUPLICATE_NAME") {
-          toast.error("Ya existe una universidad con ese nombre en este país")
-        } else {
-          toast.error("Error al crear universidad")
-        }
+        toast.error("Error al crear universidad")
         console.error(error)
       }
     })
