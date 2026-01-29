@@ -206,13 +206,20 @@ export default function UniversitiesPage() {
   }
 
   const normalizeType = (value: string): string | null => {
-    const normalized = value
+    const trimmed = value.trim()
+    
+    // For MKN: accept any industry value from CSV (no validation)
+    if (workspace === "mkn") {
+      return trimmed || null
+    }
+    
+    // For MyWorkIn: validate against predefined options
+    const normalized = trimmed
       .toLowerCase()
-      .trim()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "") // Remove accents
 
-    // Check if input matches any valid type option for current workspace
+    // Check if input matches any valid type option
     const matchedOption = config.terminology.typeOptions.find(opt => 
       opt.value.toLowerCase() === normalized || 
       opt.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized
@@ -220,10 +227,8 @@ export default function UniversitiesPage() {
     if (matchedOption) return matchedOption.value
 
     // MyWorkIn legacy support
-    if (workspace === "myworkin") {
-      if (normalized === "privada" || normalized === "private") return "privada"
-      if (normalized === "publica" || normalized === "public" || normalized === "pública") return "pública"
-    }
+    if (normalized === "privada" || normalized === "private") return "privada"
+    if (normalized === "publica" || normalized === "public" || normalized === "pública") return "pública"
     
     return null
   }
@@ -652,12 +657,18 @@ export default function UniversitiesPage() {
                 )}
               </code>
               <div className="mt-2 text-xs text-muted-foreground">
-                <p>
-                  <strong>{config.terminology.typeLabel}:</strong> {config.terminology.typeOptions.map(o => o.label).join(" | ")}
-                </p>
-                <p>
-                  <strong>{config.terminology.sizeLabel}:</strong> {config.terminology.sizeOptions.map(o => o.label).join(" | ")}
-                </p>
+                {workspace === "mkn" ? (
+                  <>
+                    <p><strong>Industria:</strong> Cualquier valor (ej: Tecnología, Educación, Salud...)</p>
+                    <p><strong>Tamaño:</strong> Pequeña | Mediana | Grande</p>
+                    <p><strong>Website:</strong> Opcional</p>
+                  </>
+                ) : (
+                  <>
+                    <p><strong>{config.terminology.typeLabel}:</strong> {config.terminology.typeOptions.map(o => o.label).join(" | ")}</p>
+                    <p><strong>{config.terminology.sizeLabel}:</strong> {config.terminology.sizeOptions.map(o => o.label).join(" | ")}</p>
+                  </>
+                )}
               </div>
             </div>
 
