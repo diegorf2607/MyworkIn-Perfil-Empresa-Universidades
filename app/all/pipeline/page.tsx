@@ -9,12 +9,14 @@ import { PipelineKanban } from "@/components/pipeline/pipeline-kanban"
 import { PipelineSummary } from "@/components/pipeline/pipeline-summary"
 import { DealDrawer } from "@/components/pipeline/deal-drawer"
 import { LostReasonDialog } from "@/components/pipeline/lost-reason-dialog"
+import { FollowUpDialog, type FollowUpData } from "@/components/pipeline/followup-dialog"
 import { toast } from "sonner"
 import { 
   getPipelineDeals, 
   getPipelineTeamMembers, 
   getPipelineCountries,
   updateDealStage,
+  updateDealStageWithFollowUp,
   markActionComplete,
   type PipelineDeal,
   type PipelineTeamMember
@@ -36,8 +38,10 @@ export default function PipelinePage() {
   const [selectedDeal, setSelectedDeal] = useState<PipelineDeal | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [lostDialogOpen, setLostDialogOpen] = useState(false)
+  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false)
   const [pendingStageChange, setPendingStageChange] = useState<{
     dealId: string
+    dealName: string
     newStage: OpportunityStage
   } | null>(null)
   
@@ -120,37 +124,39 @@ export default function PipelinePage() {
   }
 
   const handleStageChange = async (dealId: string, newStage: OpportunityStage) => {
+    // Buscar el deal para obtener el nombre
+    const deal = deals.find(d => d.id === dealId)
+    const dealName = deal?.accountName || "Universidad"
+
     // Si se mueve a Lost, mostrar diálogo para razón
     if (newStage === "lost") {
-      setPendingStageChange({ dealId, newStage })
+      setPendingStageChange({ dealId, dealName, newStage })
       setLostDialogOpen(true)
       return
     }
-    
-    try {
-      // Actualizar en la base de datos
-      await updateDealStage(dealId, newStage)
-      
-      // Actualizar estado local optimistamente
-      setDeals(prev => prev.map(d => 
-        d.id === dealId 
-          ? { 
-              ...d, 
-              stage: newStage, 
-              status: newStage === "won" ? "won" : newStage === "nurture" ? "nurture" : d.status,
-              updatedAt: new Date().toISOString(),
-              stuckDays: 0
-            }
-          : d
-      ))
-      
-      toast.success("Etapa actualizada")
-    } catch (error) {
-      console.error("Error updating stage:", error)
-      toast.error("Error al actualizar etapa")
-      // Recargar datos para sincronizar
-      loadData()
+
+    // Si se mueve a Won, actualizar directamente
+    if (newStage === "won") {
+      try {
+        await updateDealStage(dealId, newStage)
+        setDeals(prev => prev.map(d => 
+          d.id === dealId 
+            ? { ...d, stage: newStage, status: "won" as const, updatedAt: new Date().toISOString(), stuckDays: 0 }
+            : d
+        ))
+        toast.success("¡Oportunidad ganada!")
+        return
+      } catch (error) {
+        console.error("Error updating stage:", error)
+        toast.error("Error al actualizar etapa")
+        loadData()
+        return
+      }
     }
+    
+    // Para otras etapas, mostrar diálogo de seguimiento
+    setPendingStageChange({ dealId, dealName, newStage })
+    setFollowUpDialogOpen(true)
   }
 
   const handleLostConfirm = async (reason: string) => {
@@ -185,6 +191,50 @@ export default function PipelinePage() {
   const handleLostCancel = () => {
     setPendingStageChange(null)
     setLostDialogOpen(false)
+  }
+
+  const handleFollowUpConfirm = async (followUpData: FollowUpData) => {
+    if (pendingStageChange) {
+      try {
+        // Actualizar etapa y seguimiento
+        await updateDealStageWithFollowUp(
+          pendingStageChange.dealId, 
+          pendingStageChange.newStage,
+          followUpData
+        )
+        
+        setDeals(prev => prev.map(d => 
+          d.id === pendingStageChange.dealId 
+            ? { 
+                ...d, 
+                stage: pendingStageChange.newStage, 
+                status: pendingStageChange.newStage === "nurture" ? "nurture" as const : d.status,
+                nextAction: {
+                  type: followUpData.type,
+                  date: followUpData.date,
+                  description: followUpData.description
+                },
+                updatedAt: new Date().toISOString(),
+                stuckDays: 0
+              }
+            : d
+        ))
+        
+        toast.success("Etapa y seguimiento actualizados")
+      } catch (error) {
+        console.error("Error updating stage with followup:", error)
+        toast.error("Error al actualizar")
+        loadData()
+      }
+      
+      setPendingStageChange(null)
+    }
+    setFollowUpDialogOpen(false)
+  }
+
+  const handleFollowUpCancel = () => {
+    setPendingStageChange(null)
+    setFollowUpDialogOpen(false)
   }
 
   const handleMarkActionDone = async (dealId: string) => {
@@ -315,6 +365,15 @@ export default function PipelinePage() {
         open={lostDialogOpen}
         onConfirm={handleLostConfirm}
         onCancel={handleLostCancel}
+      />
+
+      {/* Dialog para seguimiento */}
+      <FollowUpDialog
+        open={followUpDialogOpen}
+        dealName={pendingStageChange?.dealName || ""}
+        targetStage={pendingStageChange?.newStage || ""}
+        onConfirm={handleFollowUpConfirm}
+        onCancel={handleFollowUpCancel}
       />
     </div>
   )

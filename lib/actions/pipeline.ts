@@ -386,6 +386,61 @@ export async function updateDealStage(
   revalidatePath("/all/pipeline")
 }
 
+// Actualizar stage de un deal CON seguimiento
+export async function updateDealStageWithFollowUp(
+  dealId: string, 
+  newStage: OpportunityStage,
+  followUp: { type: string; date: string; description: string }
+): Promise<void> {
+  const supabase = createAdminClient()
+  
+  // Determinar si es account o opportunity por el prefijo
+  const isAccount = dealId.startsWith("acc_")
+  const realId = dealId.replace(/^(acc_|opp_)/, "")
+
+  if (isAccount) {
+    // Actualizar account con stage y seguimiento
+    const accountStage = mapPipelineStageToAccount(newStage)
+    
+    const updates: Record<string, any> = {
+      stage: accountStage,
+      next_action: followUp.description || followUp.type,
+      next_action_date: followUp.date,
+      updated_at: new Date().toISOString()
+    }
+
+    const { error } = await supabase
+      .from("accounts")
+      .update(updates)
+      .eq("id", realId)
+
+    if (error) {
+      console.error("Error updating account with followup:", error)
+      throw error
+    }
+  } else {
+    // Actualizar opportunity con stage y seguimiento
+    const updates: Record<string, any> = {
+      stage: newStage,
+      next_step: followUp.description || followUp.type,
+      next_step_date: followUp.date,
+      updated_at: new Date().toISOString()
+    }
+
+    const { error } = await supabase
+      .from("opportunities")
+      .update(updates)
+      .eq("id", realId)
+
+    if (error) {
+      console.error("Error updating opportunity with followup:", error)
+      throw error
+    }
+  }
+
+  revalidatePath("/all/pipeline")
+}
+
 // Marcar acción como completada
 export async function markActionComplete(dealId: string): Promise<void> {
   const supabase = createAdminClient()
