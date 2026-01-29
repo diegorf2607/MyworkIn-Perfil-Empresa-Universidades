@@ -1,46 +1,35 @@
 -- ============================================
--- MIGRATION: Add workspace_id support to countries table
--- Purpose: Allow same country code in different workspaces
+-- MIGRATION: Add workspace support for countries via intermediate table
+-- Purpose: Allow same country code to be used in different workspaces
+-- WITHOUT breaking existing foreign key constraints
 -- ============================================
 
--- 1. Add workspace_id column to countries table (if not exists)
-ALTER TABLE public.countries
-ADD COLUMN IF NOT EXISTS workspace_id workspace_app;
+-- 1. Create workspace_countries table to track which countries are enabled per workspace
+CREATE TABLE IF NOT EXISTS public.workspace_countries (
+  workspace_id workspace_app NOT NULL,
+  country_code text NOT NULL REFERENCES public.countries(code) ON DELETE CASCADE,
+  active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (workspace_id, country_code)
+);
 
--- 2. Set default workspace_id for existing countries without one
-UPDATE public.countries 
-SET workspace_id = 'myworkin' 
-WHERE workspace_id IS NULL;
+-- 2. Migrate existing countries to workspace_countries for 'myworkin' workspace
+-- This preserves all existing country activations
+INSERT INTO public.workspace_countries (workspace_id, country_code, active)
+SELECT 'myworkin'::workspace_app, code, COALESCE(active, true)
+FROM public.countries
+ON CONFLICT (workspace_id, country_code) DO NOTHING;
 
--- 3. Drop the existing primary key constraint on code (if it's the only PK)
--- First, we need to check if there's a composite key or just code
-DO $$
-DECLARE
-  constraint_name text;
-BEGIN
-  -- Find the primary key constraint name
-  SELECT tc.constraint_name INTO constraint_name
-  FROM information_schema.table_constraints tc
-  WHERE tc.table_name = 'countries' 
-    AND tc.constraint_type = 'PRIMARY KEY'
-    AND tc.table_schema = 'public';
-  
-  IF constraint_name IS NOT NULL THEN
-    -- Drop the old primary key
-    EXECUTE format('ALTER TABLE public.countries DROP CONSTRAINT %I', constraint_name);
-  END IF;
-END$$;
+-- 3. Create index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_workspace_countries_workspace 
+ON public.workspace_countries(workspace_id);
 
--- 4. Add the new composite primary key (code + workspace_id)
-ALTER TABLE public.countries
-ADD CONSTRAINT countries_pkey PRIMARY KEY (code, workspace_id);
+CREATE INDEX IF NOT EXISTS idx_workspace_countries_active 
+ON public.workspace_countries(workspace_id, active) WHERE active = true;
 
--- 5. Create index for workspace filtering
-CREATE INDEX IF NOT EXISTS idx_countries_workspace_id ON public.countries(workspace_id);
-
--- 6. Create unique index for country code per workspace
-CREATE UNIQUE INDEX IF NOT EXISTS idx_countries_code_workspace 
-ON public.countries(code, workspace_id);
+-- 4. Grant permissions
+GRANT ALL ON public.workspace_countries TO authenticated;
+GRANT ALL ON public.workspace_countries TO service_role;
 
 -- ============================================
 -- END OF MIGRATION
