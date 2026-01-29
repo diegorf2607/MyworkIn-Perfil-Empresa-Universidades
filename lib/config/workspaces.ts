@@ -116,10 +116,10 @@ export const MKN_CONFIG: WorkspaceConfig = {
     logoWhite: "/images/myworkin-icon-white.png", // Usando logo blanco existente
   },
   terminology: {
-    entity: "Cuenta",
-    entities: "Cuentas",
-    entityShort: "Cuentas",
-    databaseTitle: "Base de Cuentas",
+    entity: "Empresa",
+    entities: "Empresas",
+    entityShort: "Empresas",
+    databaseTitle: "Base de Empresas",
     leadsTitle: "Leads",
     leadsSubtitle: "Cuentas que encajan con nuestro cliente ideal",
     searchPlaceholder: "Buscar cuentas, contactos...",

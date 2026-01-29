@@ -52,7 +52,7 @@ interface Contact {
 
 export default function UniversitiesPage() {
   const { country } = useParams<{ country: string }>()
-  const { workspace } = useWorkspace()
+  const { workspace, config } = useWorkspace()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -426,12 +426,13 @@ export default function UniversitiesPage() {
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-[150px]">
               <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Tipo" />
+              <SelectValue placeholder={config.terminology.typeLabel} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="privada">Privada</SelectItem>
-              <SelectItem value="pública">Pública</SelectItem>
+              {config.terminology.typeOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={filterStage} onValueChange={setFilterStage}>
@@ -464,17 +465,17 @@ export default function UniversitiesPage() {
       {/* Table */}
       <Card>
         <CardHeader className="p-8 pb-0">
-          <CardTitle>Todas las Universidades</CardTitle>
-          <CardDescription>{countryAccounts.length} universidades</CardDescription>
+          <CardTitle>Todas las {config.terminology.entities}</CardTitle>
+          <CardDescription>{countryAccounts.length} {config.terminology.entities.toLowerCase()}</CardDescription>
         </CardHeader>
         <CardContent className="p-8 pt-8">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Universidad</TableHead>
+                <TableHead>{config.terminology.entity}</TableHead>
                 <TableHead>Ciudad</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Tamaño</TableHead>
+                <TableHead>{config.terminology.typeLabel}</TableHead>
+                <TableHead>{config.terminology.sizeLabel}</TableHead>
                 <TableHead>Etapa</TableHead>
                 <TableHead>Fit Comercial</TableHead>
                 <TableHead>Contactos</TableHead>
@@ -492,9 +493,13 @@ export default function UniversitiesPage() {
                   </TableCell>
                   <TableCell>{acc.city || "-"}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{acc.type || "privada"}</Badge>
+                    <Badge variant="outline">
+                      {config.terminology.typeOptions.find(o => o.value === acc.type)?.label || acc.type || config.terminology.typeOptions[0]?.label}
+                    </Badge>
                   </TableCell>
-                  <TableCell>{acc.size || "mediana"}</TableCell>
+                  <TableCell>
+                    {config.terminology.sizeOptions.find(o => o.value === acc.size)?.label || acc.size || config.terminology.sizeOptions[1]?.label}
+                  </TableCell>
                   <TableCell>{getStageBadge(acc.stage)}</TableCell>
                   <TableCell>{getFitBadge(acc.fit_comercial)}</TableCell>
                   <TableCell>
@@ -543,35 +548,34 @@ export default function UniversitiesPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Tipo</Label>
+                <Label>{config.terminology.typeLabel}</Label>
                 <Select
                   value={newUniversity.type}
-                  onValueChange={(v) => setNewUniversity({ ...newUniversity, type: v as "privada" | "pública" })}
+                  onValueChange={(v) => setNewUniversity({ ...newUniversity, type: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="privada">Privada</SelectItem>
-                    <SelectItem value="pública">Pública</SelectItem>
+                    {config.terminology.typeOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Tamaño</Label>
+                <Label>{config.terminology.sizeLabel}</Label>
                 <Select
                   value={newUniversity.size}
-                  onValueChange={(v) =>
-                    setNewUniversity({ ...newUniversity, size: v as "pequeña" | "mediana" | "grande" })
-                  }
+                  onValueChange={(v) => setNewUniversity({ ...newUniversity, size: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pequeña">Pequeña</SelectItem>
-                    <SelectItem value="mediana">Mediana</SelectItem>
-                    <SelectItem value="grande">Grande</SelectItem>
+                    {config.terminology.sizeOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
