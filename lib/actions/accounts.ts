@@ -42,15 +42,14 @@ export async function getAccounts(countryCode?: string, workspaceId: WorkspaceId
   const supabase = createAdminClient()
   
   // Simple query without joins to avoid potential relationship issues
-  // For myworkin: include data with workspace_id = 'myworkin' OR NULL (legacy data)
-  // For mkn: only include data with workspace_id = 'mkn'
+  // For mkn: only include data explicitly marked with workspace_id = 'mkn'
+  // For myworkin: include ALL data (legacy data doesn't have workspace_id column)
   let query = supabase.from("accounts").select("*")
   
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
-  } else {
-    query = query.or("workspace_id.eq.myworkin,workspace_id.is.null")
   }
+  // No filter for myworkin - includes all existing/legacy data
 
   if (countryCode) {
     // Normalize to uppercase for consistent matching
@@ -71,8 +70,8 @@ export async function getAccountsByStage(countryCode: string, stage: string, wor
   const supabase = createAdminClient()
   
   // Simple query without joins to avoid potential relationship issues
-  // For myworkin: include data with workspace_id = 'myworkin' OR NULL (legacy data)
-  // For mkn: only include data with workspace_id = 'mkn'
+  // For mkn: only include data explicitly marked with workspace_id = 'mkn'
+  // For myworkin: include ALL data (legacy data doesn't have workspace_id column)
   let query = supabase
     .from("accounts")
     .select("*")
@@ -81,9 +80,8 @@ export async function getAccountsByStage(countryCode: string, stage: string, wor
   
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
-  } else {
-    query = query.or("workspace_id.eq.myworkin,workspace_id.is.null")
   }
+  // No filter for myworkin - includes all existing/legacy data
 
   const { data, error } = await query.order("created_at", { ascending: false })
 

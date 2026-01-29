@@ -14,13 +14,12 @@ export async function getCountries(workspaceId: WorkspaceId = DEFAULT_WORKSPACE)
     const supabase = createAdminClient()
     let query = supabase.from("countries").select("*")
     
-    // For myworkin: include data with workspace_id = 'myworkin' OR NULL (legacy data)
-    // For mkn: only include data with workspace_id = 'mkn'
+    // For mkn: only include data explicitly marked with workspace_id = 'mkn'
+    // For myworkin: include ALL data (legacy data doesn't have workspace_id column)
     if (workspaceId === "mkn") {
       query = query.eq("workspace_id", "mkn")
-    } else {
-      query = query.or("workspace_id.eq.myworkin,workspace_id.is.null")
     }
+    // No filter for myworkin - includes all existing/legacy data
 
     const { data, error } = await query.order("name")
 
@@ -44,8 +43,8 @@ export async function getActiveCountries(workspaceId: WorkspaceId = DEFAULT_WORK
   const supabase = createAdminClient()
   
   // Get countries where active is true or not set (default to active)
-  // For myworkin: include data with workspace_id = 'myworkin' OR NULL (legacy data)
-  // For mkn: only include data with workspace_id = 'mkn'
+  // For mkn: only include data explicitly marked with workspace_id = 'mkn'
+  // For myworkin: include ALL data (legacy data doesn't have workspace_id column)
   let query = supabase
     .from("countries")
     .select("*")
@@ -53,9 +52,8 @@ export async function getActiveCountries(workspaceId: WorkspaceId = DEFAULT_WORK
   
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
-  } else {
-    query = query.or("workspace_id.eq.myworkin,workspace_id.is.null")
   }
+  // No filter for myworkin - includes all existing/legacy data
 
   const { data, error } = await query.order("name")
 
@@ -73,13 +71,12 @@ export async function getCountryByCode(code: string, workspaceId: WorkspaceId = 
   
   let query = supabase.from("countries").select("*").eq("code", code.toUpperCase())
   
-  // For myworkin: include data with workspace_id = 'myworkin' OR NULL (legacy data)
-  // For mkn: only include data with workspace_id = 'mkn'
+  // For mkn: only include data explicitly marked with workspace_id = 'mkn'
+  // For myworkin: include ALL data (legacy data doesn't have workspace_id column)
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
-  } else {
-    query = query.or("workspace_id.eq.myworkin,workspace_id.is.null")
   }
+  // No filter for myworkin - includes all existing/legacy data
 
   const { data, error } = await query.single()
 
