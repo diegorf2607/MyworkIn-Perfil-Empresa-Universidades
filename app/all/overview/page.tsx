@@ -99,8 +99,8 @@ export default function GlobalOverviewPage() {
     { label: "Won", value: metrics.won, icon: Trophy, color: "text-green-600" },
     { label: "Win Rate", value: `${metrics.winRate}%`, icon: Trophy, color: "text-emerald-600" },
     { label: "Lost", value: metrics.lost, icon: XCircle, color: "text-red-600" },
-    { label: "MRR Pipeline", value: `$${metrics.mrrPipeline.toLocaleString()}`, icon: DollarSign, color: "text-blue-600" },
-    { label: "Reuniones (7 días)", value: metrics.upcomingMeetings, icon: Calendar, color: "text-blue-600" },
+    { label: "MRR Pipeline", value: `$${metrics.mrrPipeline.toLocaleString()}`, icon: DollarSign, color: isMKN ? "text-slate-900" : "text-blue-600" },
+    { label: "Reuniones (7 días)", value: metrics.upcomingMeetings, icon: Calendar, color: isMKN ? "text-slate-700" : "text-blue-600" },
   ]
 
   return (
