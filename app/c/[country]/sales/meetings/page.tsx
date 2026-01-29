@@ -79,13 +79,13 @@ const nextStepTypeLabels: Record<string, string> = {
   waiting_response: "Esperando respuesta",
   new_meeting: "Nueva reunión",
   send_proposal: "Envío de propuesta",
-  internal_review: "Revisión interna universidad",
+  internal_review: "Revisión interna",
   general_follow_up: "Seguimiento general",
 }
 
 export default function MeetingsPage() {
   const { country } = useParams<{ country: string }>()
-  const { workspace } = useWorkspace()
+  const { workspace, config } = useWorkspace()
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -312,7 +312,7 @@ export default function MeetingsPage() {
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Buscar por universidad..."
+              placeholder={config.terminology.searchEntityPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -356,7 +356,7 @@ export default function MeetingsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Fecha/Hora</TableHead>
-                <TableHead>Universidad</TableHead>
+                <TableHead>{config.terminology.entity}</TableHead>
                 <TableHead>Contacto</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Responsable</TableHead>
@@ -529,7 +529,7 @@ export default function MeetingsPage() {
                         type="email"
                         value={selectedMeeting.contact_email || ""}
                         onChange={(e) => setSelectedMeeting({ ...selectedMeeting, contact_email: e.target.value })}
-                        placeholder="correo@universidad.edu"
+                        placeholder="correo@ejemplo.com"
                       />
                     </div>
                   </div>
@@ -617,8 +617,8 @@ export default function MeetingsPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="myworkin">MyWorkIn</SelectItem>
-                          <SelectItem value="university">Universidad</SelectItem>
+                          <SelectItem value="myworkin">{config.shortName}</SelectItem>
+                          <SelectItem value="university">{config.terminology.entity}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

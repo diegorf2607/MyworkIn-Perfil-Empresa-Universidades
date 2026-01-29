@@ -21,6 +21,7 @@ import { updateAccount, getAccounts } from "@/lib/actions/accounts"
 import { toast } from "sonner"
 import { Loader2, ChevronsUpDown, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Account {
   id: string
@@ -38,6 +39,7 @@ interface CreateOpportunityDialogProps {
 
 export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuccess }: CreateOpportunityDialogProps) {
   const router = useRouter()
+  const { config } = useWorkspace()
   const [isPending, startTransition] = useTransition()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [accountOpen, setAccountOpen] = useState(false)
@@ -70,7 +72,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
 
   const handleSubmit = () => {
     if (!formData.account_id) {
-      toast.error("Selecciona una universidad")
+      toast.error(`Selecciona una ${config.terminology.entity.toLowerCase()}`)
       return
     }
 
@@ -116,12 +118,12 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Crear Oportunidad</DialogTitle>
-          <DialogDescription>Crea una nueva oportunidad para una universidad existente</DialogDescription>
+          <DialogDescription>Crea una nueva oportunidad para una {config.terminology.entity.toLowerCase()} existente</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <Label>Universidad *</Label>
+            <Label>{config.terminology.entity} *</Label>
             <Popover open={accountOpen} onOpenChange={setAccountOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -130,15 +132,15 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
                   aria-expanded={accountOpen}
                   className="w-full justify-between bg-transparent"
                 >
-                  {selectedAccount ? selectedAccount.name : "Selecciona universidad..."}
+                  {selectedAccount ? selectedAccount.name : config.terminology.selectEntityPlaceholder}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[400px] p-0">
                 <Command>
-                  <CommandInput placeholder="Buscar universidad..." />
+                  <CommandInput placeholder={config.terminology.searchEntityPlaceholder} />
                   <CommandList>
-                    <CommandEmpty>No se encontraron universidades</CommandEmpty>
+                    <CommandEmpty>No se encontraron {config.terminology.entities.toLowerCase()}</CommandEmpty>
                     <CommandGroup>
                       {accounts.map((account) => (
                         <CommandItem

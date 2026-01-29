@@ -25,6 +25,7 @@ import { getCountries } from "@/lib/actions/countries"
 import { toast } from "sonner"
 import { Loader2, ChevronsUpDown, Check, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Account {
   id: string
@@ -54,6 +55,7 @@ interface CreateMeetingDialogProps {
 
 export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess }: CreateMeetingDialogProps) {
   const router = useRouter()
+  const { config } = useWorkspace()
   const [isPending, startTransition] = useTransition()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -144,7 +146,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
       return
     }
     if (!formData.account_id) {
-      toast.error("Selecciona una universidad")
+      toast.error(`Selecciona una ${config.terminology.entity.toLowerCase()}`)
       return
     }
     if (!formData.date_time) {
@@ -209,7 +211,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
     waiting_response: "Esperando respuesta",
     new_meeting: "Nueva reunión",
     send_proposal: "Envío de propuesta",
-    internal_review: "Revisión interna universidad",
+    internal_review: "Revisión interna",
     general_follow_up: "Seguimiento general",
   }
 
@@ -218,7 +220,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Agendar Reunión</DialogTitle>
-          <DialogDescription>Programa una reunión con una universidad</DialogDescription>
+          <DialogDescription>Programa una reunión con una {config.terminology.entity.toLowerCase()}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
@@ -246,7 +248,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
           )}
 
           <div className="space-y-2">
-            <Label>Universidad *</Label>
+            <Label>{config.terminology.entity} *</Label>
             <Popover open={accountOpen} onOpenChange={setAccountOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -256,15 +258,15 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
                   className="w-full justify-between bg-transparent"
                   disabled={isGlobalView && !formData.selected_country}
                 >
-                  {selectedAccount ? selectedAccount.name : "Selecciona universidad..."}
+                  {selectedAccount ? selectedAccount.name : config.terminology.selectEntityPlaceholder}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[400px] p-0">
                 <Command>
-                  <CommandInput placeholder="Buscar universidad..." />
+                  <CommandInput placeholder={config.terminology.searchEntityPlaceholder} />
                   <CommandList>
-                    <CommandEmpty>No se encontraron universidades</CommandEmpty>
+                    <CommandEmpty>No se encontraron {config.terminology.entities.toLowerCase()}</CommandEmpty>
                     <CommandGroup>
                       {filteredAccounts.map((account) => (
                         <CommandItem
@@ -313,7 +315,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
                   type="email"
                   value={formData.contact_email}
                   onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                  placeholder="juan@universidad.edu"
+                  placeholder="correo@ejemplo.com"
                 />
               </div>
             </div>
@@ -415,8 +417,8 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="myworkin">MyWorkIn</SelectItem>
-                    <SelectItem value="university">Universidad</SelectItem>
+                    <SelectItem value="myworkin">{config.shortName}</SelectItem>
+                    <SelectItem value="university">{config.terminology.entity}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

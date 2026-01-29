@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Ban,
 } from "lucide-react"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface SegmentedControlProps {
   value: string
@@ -171,6 +172,7 @@ function MetricItem({
 }
 
 export function PerformanceTilesGrid({ data, showComparison = false }: PerformanceTilesGridProps) {
+  const { config } = useWorkspace()
   const [viewMode, setViewMode] = useState<string>("actividad")
   const [selectedPerson, setSelectedPerson] = useState<PersonPerformance | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -187,7 +189,7 @@ export function PerformanceTilesGrid({ data, showComparison = false }: Performan
         return (
           <div className="space-y-0.5">
             <MetricItem
-              label="Universidades"
+              label={config.terminology.entities}
               value={person.activity.universidadesCreadas}
               previousValue={person.previousPeriod?.activity.universidadesCreadas}
               showComparison={showComparison}

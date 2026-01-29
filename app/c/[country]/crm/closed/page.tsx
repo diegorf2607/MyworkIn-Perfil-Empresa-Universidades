@@ -61,7 +61,7 @@ const LOST_REASONS = [
 
 export default function ClosedPage() {
   const { country } = useParams<{ country: string }>()
-  const { workspace } = useWorkspace()
+  const { workspace, config } = useWorkspace()
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -271,8 +271,8 @@ export default function ClosedPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Universidad</TableHead>
-                    <TableHead>Tipo</TableHead>
+                    <TableHead>{config.terminology.entity}</TableHead>
+                    <TableHead>{config.terminology.typeLabel}</TableHead>
                     <TableHead>Owner</TableHead>
                     <TableHead>MRR</TableHead>
                     <TableHead>Fecha cierre</TableHead>
@@ -322,8 +322,8 @@ export default function ClosedPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Universidad</TableHead>
-                    <TableHead>Tipo</TableHead>
+                    <TableHead>{config.terminology.entity}</TableHead>
+                    <TableHead>{config.terminology.typeLabel}</TableHead>
                     <TableHead>Owner</TableHead>
                     <TableHead>MRR Estimado</TableHead>
                     <TableHead>Razón</TableHead>
@@ -372,24 +372,24 @@ export default function ClosedPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className={registerType === "won" ? "text-green-700" : "text-red-700"}>
-              {registerType === "won" ? "Registrar Universidad Ganada" : "Registrar Universidad Perdida"}
+              {registerType === "won" ? `Registrar ${config.terminology.entity} Ganada` : `Registrar ${config.terminology.entity} Perdida`}
             </DialogTitle>
             <DialogDescription>
-              Selecciona una universidad existente para marcarla como {registerType === "won" ? "ganada" : "perdida"}
+              Selecciona una {config.terminology.entity.toLowerCase()} existente para marcarla como {registerType === "won" ? "ganada" : "perdida"}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Universidad *</Label>
+              <Label>{config.terminology.entity} *</Label>
               <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona universidad..." />
+                  <SelectValue placeholder={config.terminology.selectEntityPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableAccounts.length === 0 ? (
                     <SelectItem value="_none" disabled>
-                      No hay universidades disponibles
+                      No hay {config.terminology.entities.toLowerCase()} disponibles
                     </SelectItem>
                   ) : (
                     availableAccounts.map((account) => (

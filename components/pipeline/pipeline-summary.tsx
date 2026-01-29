@@ -27,6 +27,7 @@ import {
   COUNTRY_NAMES,
   calculateColumnStats,
 } from "@/lib/mock-data/deals"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface PipelineSummaryProps {
   deals: Deal[]
@@ -34,6 +35,7 @@ interface PipelineSummaryProps {
 }
 
 export function PipelineSummary({ deals, allDeals }: PipelineSummaryProps) {
+  const { config } = useWorkspace()
   // Calcular métricas generales
   const activeDeals = deals.filter(d => d.status === "activo")
   const totalPipelineMrr = activeDeals.reduce((sum, d) => sum + d.mrr, 0)
@@ -313,7 +315,7 @@ export function PipelineSummary({ deals, allDeals }: PipelineSummaryProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Universidad</TableHead>
+                  <TableHead>{config.terminology.entity}</TableHead>
                   <TableHead>País</TableHead>
                   <TableHead>Etapa</TableHead>
                   <TableHead>Owner</TableHead>

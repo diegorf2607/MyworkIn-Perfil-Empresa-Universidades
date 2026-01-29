@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Search, ExternalLink, Clock, FileText, Download } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 export interface ActivityLogItem {
   id: string
@@ -39,6 +40,7 @@ interface TablaActividadComercialProps {
 
 const ENTITY_TYPE_COLORS: Record<string, string> = {
   universidad: "bg-blue-100 text-blue-800",
+  empresa: "bg-blue-100 text-blue-800",
   lead: "bg-emerald-100 text-emerald-800",
   sql: "bg-amber-100 text-amber-800",
   oportunidad: "bg-purple-100 text-purple-800",
@@ -47,20 +49,21 @@ const ENTITY_TYPE_COLORS: Record<string, string> = {
   otro: "bg-gray-100 text-gray-800",
 }
 
-const ACTION_TYPE_LABELS: Record<string, string> = {
+// Function to get action labels based on entity terminology
+const getActionTypeLabels = (entityLabel: string): Record<string, string> => ({
   correo_enviado: "Correo enviado",
   respuesta_recibida: "Respuesta",
   llamada: "Llamada",
   reunion_agendada: "Reunión agendada",
   reunion_completada: "Reunión completada",
-  crear_universidad: "Nueva universidad",
+  crear_universidad: `Nueva ${entityLabel.toLowerCase()}`,
   crear_lead: "Nuevo lead",
   crear_kdm: "Nuevo KDM",
   deal_creado: "Deal creado",
   deal_ganado: "Deal ganado",
   follow_up: "Follow-up",
   nota: "Nota",
-}
+})
 
 const ACTION_TYPE_COLORS: Record<string, string> = {
   correo_enviado: "bg-blue-100 text-blue-800",
@@ -81,8 +84,10 @@ export function TablaActividadComercial({
   data,
   loading = false,
   teamMembers = [],
+  // Workspace context for dynamic labels
   onExportCSV,
 }: TablaActividadComercialProps) {
+  const { config } = useWorkspace()
   const [search, setSearch] = useState("")
   const [filterUsuario, setFilterUsuario] = useState<string>("todos")
   const [filterRol, setFilterRol] = useState<string>("todos")
@@ -90,6 +95,8 @@ export function TablaActividadComercial({
   const [selectedActivity, setSelectedActivity] = useState<ActivityLogItem | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
+  // Get labels based on workspace terminology
+  const ACTION_TYPE_LABELS = getActionTypeLabels(config.terminology.entity)
   const tiposAccion = Object.entries(ACTION_TYPE_LABELS).map(([value, label]) => ({ value, label }))
 
   const filteredData = data.filter((item) => {

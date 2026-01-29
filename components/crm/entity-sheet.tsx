@@ -37,6 +37,7 @@ import {
   UserCheck,
 } from "lucide-react"
 import { toast } from "sonner"
+import { useWorkspace } from "@/lib/context/workspace-context"
 import { updateAccount, deleteAccount } from "@/lib/actions/accounts"
 import { updateOpportunity, getOpportunitiesByAccount } from "@/lib/actions/opportunities"
 import { createContact, updateContact, deleteContact, getContactsByAccount } from "@/lib/actions/contacts"
@@ -1168,7 +1169,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Vincular KDM existente</DialogTitle>
-            <DialogDescription>Selecciona un KDM para vincular a esta universidad</DialogDescription>
+            <DialogDescription>Selecciona un KDM para vincular a esta cuenta</DialogDescription>
           </DialogHeader>
           <div className="max-h-[300px] overflow-y-auto space-y-2 py-4">
             {allKdmContacts
@@ -1208,7 +1209,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Crear y vincular KDM</DialogTitle>
-            <DialogDescription>El nuevo KDM quedará vinculado a esta universidad</DialogDescription>
+            <DialogDescription>El nuevo KDM quedará vinculado a esta cuenta</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -1451,7 +1452,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cambiar Fit Comercial</DialogTitle>
-            <DialogDescription>Selecciona el nivel de fit comercial para esta universidad</DialogDescription>
+            <DialogDescription>Selecciona el nivel de fit comercial para esta cuenta</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-3 gap-4 py-6">
             <Button

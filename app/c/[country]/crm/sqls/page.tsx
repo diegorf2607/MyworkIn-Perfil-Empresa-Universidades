@@ -48,7 +48,7 @@ interface TeamMember {
 
 export default function SQLsPage() {
   const { country } = useParams<{ country: string }>()
-  const { workspace } = useWorkspace()
+  const { workspace, config } = useWorkspace()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -247,8 +247,8 @@ export default function SQLsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Universidad</TableHead>
-                <TableHead>Tipo</TableHead>
+                <TableHead>{config.terminology.entity}</TableHead>
+                <TableHead>{config.terminology.typeLabel}</TableHead>
                 <TableHead>ICP Fit</TableHead>
                 <TableHead>Owner</TableHead>
                 <TableHead>Probabilidad</TableHead>

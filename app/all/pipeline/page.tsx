@@ -22,6 +22,7 @@ import {
   type PipelineTeamMember
 } from "@/lib/actions/pipeline"
 import type { OpportunityStage } from "@/lib/actions/opportunities"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 // Función para verificar si una acción está vencida
 function isActionOverdue(date: string): boolean {
@@ -29,6 +30,7 @@ function isActionOverdue(date: string): boolean {
 }
 
 export default function PipelinePage() {
+  const { config } = useWorkspace()
   const [view, setView] = useState<"kanban" | "pipeline">("kanban")
   const [deals, setDeals] = useState<PipelineDeal[]>([])
   const [teamMembers, setTeamMembers] = useState<PipelineTeamMember[]>([])
@@ -126,7 +128,7 @@ export default function PipelinePage() {
   const handleStageChange = async (dealId: string, newStage: OpportunityStage) => {
     // Buscar el deal para obtener el nombre
     const deal = deals.find(d => d.id === dealId)
-    const dealName = deal?.accountName || "Universidad"
+    const dealName = deal?.accountName || config.terminology.entity
 
     // Si se mueve a Lost, mostrar diálogo para razón
     if (newStage === "lost") {

@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getActiveCountries } from "@/lib/actions/countries"
 import { logout } from "@/lib/actions/auth"
 import { createClient } from "@/lib/supabase/client"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Country {
   code: string
@@ -32,6 +33,7 @@ interface TopbarProps {
 
 export function Topbar({ countryCode, hideFilters = false, hideSearch = false }: TopbarProps) {
   const router = useRouter()
+  const { config } = useWorkspace()
   const [searchQuery, setSearchQuery] = useState("")
   const [dateRange, setDateRange] = useState<"14d" | "30d">("14d")
   const [countries, setCountries] = useState<Country[]>([])
@@ -79,7 +81,7 @@ export function Topbar({ countryCode, hideFilters = false, hideSearch = false }:
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             type="search"
-            placeholder="Buscar universidades, contactos..."
+            placeholder={config.terminology.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 bg-slate-50 text-slate-900 placeholder:text-slate-400 border-slate-200 focus-visible:ring-primary/20"

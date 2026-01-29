@@ -16,6 +16,7 @@ import {
   Trophy,
   DollarSign,
 } from "lucide-react"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 export interface WeeklySummaryData {
   universidadesCreadas: number
@@ -58,6 +59,8 @@ export function ResumenSemanalBlock({
   showComparison = true,
   loading = false,
 }: ResumenSemanalProps) {
+  const { config } = useWorkspace()
+  
   if (loading || !data) {
     return (
       <Card>
@@ -77,7 +80,7 @@ export function ResumenSemanalBlock({
 
   const metricas = [
     {
-      label: "Universidades",
+      label: config.terminology.entities,
       actual: data.universidadesCreadas,
       anterior: previousData?.universidadesCreadas || 0,
       icon: Building2,

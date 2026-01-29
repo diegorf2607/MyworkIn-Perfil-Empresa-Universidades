@@ -52,7 +52,7 @@ interface TeamMember {
 
 export default function OppsPage() {
   const { country } = useParams<{ country: string }>()
-  const { workspace } = useWorkspace()
+  const { workspace, config } = useWorkspace()
   const [isPending, startTransition] = useTransition()
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
@@ -289,7 +289,7 @@ export default function OppsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Universidad</TableHead>
+                  <TableHead>{config.terminology.entity}</TableHead>
                   <TableHead>Producto</TableHead>
                   <TableHead>Etapa</TableHead>
                   <TableHead>Owner</TableHead>

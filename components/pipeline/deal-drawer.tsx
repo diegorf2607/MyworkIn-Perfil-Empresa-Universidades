@@ -55,7 +55,7 @@ const mockTimeline = [
 const mockKdm = {
   name: "Dr. Roberto Fernández",
   title: "Director de Empleabilidad",
-  email: "rfernandez@universidad.edu",
+  email: "rfernandez@empresa.com",
   linkedin: "https://linkedin.com/in/rfernandez",
 }
 

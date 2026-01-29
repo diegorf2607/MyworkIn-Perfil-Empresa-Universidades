@@ -60,7 +60,7 @@ const getFitBadge = (fit: string | null) => {
 
 export default function LeadsPage() {
   const { country } = useParams<{ country: string }>()
-  const { workspace } = useWorkspace()
+  const { workspace, config } = useWorkspace()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -144,12 +144,12 @@ export default function LeadsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Leads (ICP)</h1>
-          <p className="text-muted-foreground">Universidades que encajan con nuestro cliente ideal</p>
+          <h1 className="text-2xl font-bold">{config.terminology.leadsTitle}</h1>
+          <p className="text-muted-foreground">{config.terminology.leadsSubtitle}</p>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
-          Agregar Lead ICP
+          Agregar Lead
         </Button>
       </div>
 
@@ -158,7 +158,7 @@ export default function LeadsPage() {
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Buscar universidad..."
+              placeholder={config.terminology.searchEntityPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -213,8 +213,8 @@ export default function LeadsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Universidad</TableHead>
-                <TableHead>Tipo</TableHead>
+                <TableHead>{config.terminology.entity}</TableHead>
+                <TableHead>{config.terminology.typeLabel}</TableHead>
                 <TableHead>Fit Comercial</TableHead>
                 <TableHead>Owner</TableHead>
                 <TableHead>Fuente</TableHead>

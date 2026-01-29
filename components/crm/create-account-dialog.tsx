@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createAccount } from "@/lib/actions/accounts"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface CreateAccountDialogProps {
   open: boolean
@@ -35,6 +36,7 @@ export function CreateAccountDialog({
   onSuccess,
 }: CreateAccountDialogProps) {
   const router = useRouter()
+  const { config } = useWorkspace()
   const [isPending, startTransition] = useTransition()
   const [formData, setFormData] = useState({
     name: "",
@@ -77,15 +79,15 @@ export function CreateAccountDialog({
         
         if (!response.ok || !result.success) {
           if (result.error?.includes("duplicate") || result.error?.includes("unique")) {
-            toast.error("Ya existe una universidad con ese nombre en este país")
+            toast.error(`Ya existe una ${config.terminology.entity.toLowerCase()} con ese nombre en este país`)
           } else {
-            toast.error(result.error || "Error al crear universidad")
+            toast.error(result.error || `Error al crear ${config.terminology.entity.toLowerCase()}`)
           }
           console.error("Create error:", result)
           return
         }
 
-        toast.success(`Universidad creada como ${defaultStage.toUpperCase()}`)
+        toast.success(`${config.terminology.entity} creada como ${defaultStage.toUpperCase()}`)
         onOpenChange(false)
         setFormData({
           name: "",
@@ -100,7 +102,7 @@ export function CreateAccountDialog({
         router.refresh()
         onSuccess?.()
       } catch (error: any) {
-        toast.error("Error al crear universidad")
+        toast.error(`Error al crear ${config.terminology.entity.toLowerCase()}`)
         console.error(error)
       }
     })
@@ -110,8 +112,8 @@ export function CreateAccountDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Crear Universidad ({defaultStage === "lead" ? "Lead" : "SQL"})</DialogTitle>
-          <DialogDescription>Agrega una nueva universidad al pipeline de {countryCode}</DialogDescription>
+          <DialogTitle>Crear {config.terminology.entity} ({defaultStage === "lead" ? "Lead" : "SQL"})</DialogTitle>
+          <DialogDescription>Agrega una nueva {config.terminology.entity.toLowerCase()} al pipeline de {countryCode}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
@@ -122,7 +124,7 @@ export function CreateAccountDialog({
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Universidad Nacional..."
+                placeholder={`${config.terminology.entity}...`}
               />
             </div>
             <div className="space-y-2">

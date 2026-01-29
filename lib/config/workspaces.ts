@@ -51,12 +51,12 @@ export interface WorkspaceConfig {
 
 export interface WorkspaceTerminology {
   // Entidad principal
-  entity: string // "Universidad" | "Cuenta"
-  entities: string // "Universidades" | "Cuentas"
-  entityShort: string // "UNIS" | "Cuentas"
+  entity: string // "Universidad" | "Empresa"
+  entities: string // "Universidades" | "Empresas"
+  entityShort: string // "Unis" | "Empresas"
   
   // Base de datos
-  databaseTitle: string // "Base de Universidades" | "Base de Cuentas"
+  databaseTitle: string // "Base de Universidades" | "Base de Empresas"
   
   // Leads
   leadsTitle: string // "Leads (ICP)" | "Leads"
@@ -64,10 +64,14 @@ export interface WorkspaceTerminology {
   
   // Búsqueda
   searchPlaceholder: string
+  searchEntityPlaceholder: string // "Buscar universidad..." | "Buscar empresa..."
+  selectEntityPlaceholder: string // "Seleccionar universidad" | "Seleccionar empresa"
   
   // Cerradas
-  closedTitle: string
-  wonLabel: string
+  closedTitle: string // "Universidades Cerradas" | "Cuentas Cerradas"
+  wonLabel: string // "Unis Won" | "Empresas Won"
+  entitiesWon: string // "Universidades Won" | "Empresas Won"
+  entitiesClosed: string // "Universidades Cerradas" | "Empresas Cerradas"
   
   // Tipo (pública/privada vs Industria)
   typeLabel: string
@@ -80,6 +84,9 @@ export interface WorkspaceTerminology {
   // Sidebar labels
   funnelLeads: string // "Leads (ICP)" | "Leads"
   funnelWon: string // "Cerradas Won" | "Clientes"
+  
+  // Reuniones
+  meetingWith: string // "Reunión con universidad" | "Reunión con empresa"
 }
 
 // Configuración de MyWorkIn (CRM Universidades)
@@ -102,13 +109,17 @@ export const MYWORKIN_CONFIG: WorkspaceConfig = {
   terminology: {
     entity: "Universidad",
     entities: "Universidades",
-    entityShort: "UNIS",
+    entityShort: "Unis",
     databaseTitle: "Base de Universidades",
     leadsTitle: "Leads (ICP)",
     leadsSubtitle: "Universidades que encajan con nuestro cliente ideal",
     searchPlaceholder: "Buscar universidades, contactos...",
+    searchEntityPlaceholder: "Buscar universidad...",
+    selectEntityPlaceholder: "Seleccionar universidad",
     closedTitle: "Universidades Cerradas",
     wonLabel: "Unis Won",
+    entitiesWon: "Universidades Won",
+    entitiesClosed: "Universidades Cerradas",
     typeLabel: "Tipo",
     typeOptions: [
       { value: "privada", label: "Privada" },
@@ -122,6 +133,7 @@ export const MYWORKIN_CONFIG: WorkspaceConfig = {
     ],
     funnelLeads: "Leads (ICP)",
     funnelWon: "Cerradas Won",
+    meetingWith: "Reunión con universidad",
   },
   overview: {
     banner: {
@@ -186,10 +198,14 @@ export const MKN_CONFIG: WorkspaceConfig = {
     entityShort: "Empresas",
     databaseTitle: "Base de Empresas",
     leadsTitle: "Leads",
-    leadsSubtitle: "Cuentas que encajan con nuestro cliente ideal",
-    searchPlaceholder: "Buscar cuentas, contactos...",
-    closedTitle: "Cuentas Cerradas",
-    wonLabel: "Cuentas ganadas",
+    leadsSubtitle: "Empresas que encajan con nuestro cliente ideal",
+    searchPlaceholder: "Buscar empresas, contactos...",
+    searchEntityPlaceholder: "Buscar empresa...",
+    selectEntityPlaceholder: "Seleccionar empresa",
+    closedTitle: "Empresas Cerradas",
+    wonLabel: "Empresas Won",
+    entitiesWon: "Empresas Won",
+    entitiesClosed: "Empresas Cerradas",
     typeLabel: "Industria",
     typeOptions: [
       { value: "tecnologia", label: "Tecnología" },
@@ -208,6 +224,7 @@ export const MKN_CONFIG: WorkspaceConfig = {
     ],
     funnelLeads: "Leads",
     funnelWon: "Clientes",
+    meetingWith: "Reunión con empresa",
   },
   overview: {
     banner: {

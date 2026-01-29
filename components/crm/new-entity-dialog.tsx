@@ -16,6 +16,7 @@ import { createActivity } from "@/lib/actions/activities"
 import { createContact } from "@/lib/actions/contacts"
 import { createResource } from "@/lib/actions/resources"
 import { createSequence } from "@/lib/actions/sequences"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Country {
   code: string
@@ -40,8 +41,9 @@ interface NewEntityDialogProps {
 
 type EntityType = "universidad" | "oportunidad" | "reunion" | "actividad" | "contacto" | "recurso" | "secuencia"
 
-const entityTypes = [
-  { value: "universidad" as const, label: "Universidad", icon: Building2 },
+// Function to get entity types with dynamic labels
+const getEntityTypes = (entityLabel: string) => [
+  { value: "universidad" as const, label: entityLabel, icon: Building2 },
   { value: "oportunidad" as const, label: "Oportunidad", icon: Handshake },
   { value: "reunion" as const, label: "Reunión", icon: Calendar },
   { value: "actividad" as const, label: "Actividad", icon: FileText },
@@ -58,6 +60,7 @@ export function NewEntityDialog({
   accounts: initialAccounts = [],
   onRefresh,
 }: NewEntityDialogProps) {
+  const { config } = useWorkspace()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const activeCountries = countries.filter((c) => c.active)
@@ -293,7 +296,7 @@ export function NewEntityDialog({
           <div className="space-y-4">
             <Label>Tipo de entidad</Label>
             <div className="grid grid-cols-2 gap-3">
-              {entityTypes.map((type) => (
+              {getEntityTypes(config.terminology.entity).map((type) => (
                 <Button
                   key={type.value}
                   variant={selectedType === type.value ? "default" : "outline"}

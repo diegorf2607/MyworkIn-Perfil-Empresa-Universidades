@@ -198,7 +198,7 @@ export default function ScorecardsPage() {
       icon: TrendingUp,
       color: "text-blue-600",
     },
-    { label: "Universidades Cerradas", value: realTimeKpis.universitiesWon, icon: Building2, color: "text-primary" },
+    { label: config.terminology.entitiesClosed, value: realTimeKpis.universitiesWon, icon: Building2, color: "text-primary" },
     { label: "SQLs Nuevos", value: realTimeKpis.newSqls, icon: Users, color: "text-purple-600" },
     { label: "Reuniones Realizadas", value: realTimeKpis.meetingsDone, icon: Calendar, color: "text-orange-600" },
     { label: "Cuentas ICP Nuevas", value: realTimeKpis.newIcpAccounts, icon: Target, color: "text-cyan-600" },
@@ -247,7 +247,7 @@ export default function ScorecardsPage() {
                   <th className="px-3 py-2 text-left font-medium">Fecha</th>
                   <th className="px-3 py-2 text-right font-medium">Cash</th>
                   <th className="px-3 py-2 text-right font-medium">MRR</th>
-                  <th className="px-3 py-2 text-right font-medium">Unis Won</th>
+                  <th className="px-3 py-2 text-right font-medium">{config.terminology.wonLabel}</th>
                   <th className="px-3 py-2 text-right font-medium">SQLs</th>
                   <th className="px-3 py-2 text-right font-medium">Reuniones</th>
                   <th className="px-3 py-2 text-right font-medium">ICP Nuevas</th>
@@ -418,7 +418,7 @@ export default function ScorecardsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Universidades Won</label>
+              <label className="text-sm font-medium">{config.terminology.entitiesWon}</label>
               <Input
                 type="number"
                 value={editingEntry?.universities_won || 0}

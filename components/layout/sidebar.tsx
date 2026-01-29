@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface SidebarProps {
   countryCode: string
@@ -29,11 +30,12 @@ interface SidebarProps {
 
 export function Sidebar({ countryCode }: SidebarProps) {
   const pathname = usePathname()
+  const { config } = useWorkspace()
   const [collapsed, setCollapsed] = useState(false)
 
   const navSections = [
     {
-      title: "MyWorkIn",
+      title: config.shortName,
       items: [
         { label: "Overview", icon: LayoutDashboard, href: `/c/${countryCode}/overview` },
         { label: "Scorecards", icon: Target, href: `/c/${countryCode}/scorecards` },
@@ -42,10 +44,10 @@ export function Sidebar({ countryCode }: SidebarProps) {
     {
       title: "CRM",
       items: [
-        { label: "Leads (ICP)", icon: Users, href: `/c/${countryCode}/crm/leads` },
+        { label: config.terminology.leadsTitle, icon: Users, href: `/c/${countryCode}/crm/leads` },
         { label: "SQLs", icon: TrendingUp, href: `/c/${countryCode}/crm/sqls` },
         { label: "Oportunidades", icon: Handshake, href: `/c/${countryCode}/crm/opps` },
-        { label: "Cerradas", icon: CheckCircle2, href: `/c/${countryCode}/crm/closed` },
+        { label: config.terminology.closedTitle, icon: CheckCircle2, href: `/c/${countryCode}/crm/closed` },
       ],
     },
     {
@@ -58,7 +60,7 @@ export function Sidebar({ countryCode }: SidebarProps) {
     {
       title: "Administración",
       items: [
-        { label: "Base de Universidades", icon: Building2, href: `/c/${countryCode}/admin/universities` },
+        { label: config.terminology.databaseTitle, icon: Building2, href: `/c/${countryCode}/admin/universities` },
       ],
     },
   ]
