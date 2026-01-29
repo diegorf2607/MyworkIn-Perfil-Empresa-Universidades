@@ -37,6 +37,7 @@ import {
 import { getAccounts } from "@/lib/actions/accounts"
 import { getTeamMembers } from "@/lib/actions/team"
 import { toast } from "sonner"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Meeting {
   id: string
@@ -84,6 +85,7 @@ const nextStepTypeLabels: Record<string, string> = {
 
 export default function MeetingsPage() {
   const { country } = useParams<{ country: string }>()
+  const { workspace } = useWorkspace()
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -98,7 +100,11 @@ export default function MeetingsPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [meetingsData, accountsData, teamData] = await Promise.all([getMeetings(), getAccounts(), getTeamMembers()])
+      const [meetingsData, accountsData, teamData] = await Promise.all([
+        getMeetings(undefined, workspace), 
+        getAccounts(undefined, workspace), 
+        getTeamMembers()
+      ])
       const countryMeetings = (meetingsData || []).filter((m) => m.country_code === country)
       setMeetings(countryMeetings as Meeting[])
       setAccounts(accountsData || [])
@@ -108,7 +114,7 @@ export default function MeetingsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [country])
+  }, [country, workspace])
 
   useEffect(() => {
     loadData()

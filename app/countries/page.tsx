@@ -259,7 +259,11 @@ export default function CountriesPage() {
 
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="secondary" className="gap-2 bg-white/95 hover:bg-white text-[#005691] font-semibold shadow-md hover:shadow-lg transition-all border-0">
+                <Button 
+                  variant="secondary" 
+                  className="gap-2 bg-white/95 hover:bg-white font-semibold shadow-md hover:shadow-lg transition-all border-0"
+                  style={{ color: config.theme.primary }}
+                >
                   <Plus className="h-4 w-4" />
                   Agregar País
                 </Button>
@@ -309,13 +313,20 @@ export default function CountriesPage() {
       <main className="mx-auto max-w-7xl px-6 py-12">
         <div className="mb-8">
           <Card
-            className="cursor-pointer border-2 border-[#005691]/20 bg-gradient-to-br from-[#005691]/5 via-[#0078D4]/5 to-[#005691]/5 transition-all hover:border-[#0078D4]/40 hover:shadow-xl hover:shadow-[#0078D4]/10 group"
+            className="cursor-pointer border-2 transition-all hover:shadow-xl group"
+            style={{ 
+              borderColor: `${config.theme.primary}30`,
+              background: `linear-gradient(to bottom right, ${config.theme.primary}08, ${config.theme.primary}05, ${config.theme.primary}08)`
+            }}
             onClick={() => router.push("/all/overview")}
           >
             <CardHeader className="p-8 pb-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#005691] to-[#0078D4] text-white shadow-lg group-hover:scale-105 transition-transform">
+                  <div 
+                    className="flex h-16 w-16 items-center justify-center rounded-2xl text-white shadow-lg group-hover:scale-105 transition-transform"
+                    style={{ background: `linear-gradient(to bottom right, ${config.theme.primary}, ${config.theme.accent})` }}
+                  >
                     <Globe className="h-8 w-8" />
                   </div>
                   <div>
@@ -323,7 +334,10 @@ export default function CountriesPage() {
                     <CardDescription className="text-slate-600 mt-1.5 text-base">Ver métricas consolidadas de {activeCountries.length} países</CardDescription>
                   </div>
                 </div>
-                <Button className="bg-gradient-to-r from-[#005691] to-[#0078D4] hover:from-[#004578] hover:to-[#0066B3] text-white shadow-md hover:shadow-lg transition-all h-12 px-8 text-base rounded-xl">
+                <Button 
+                  className="text-white shadow-md hover:shadow-lg transition-all h-12 px-8 text-base rounded-xl"
+                  style={{ background: `linear-gradient(to right, ${config.theme.primary}, ${config.theme.accent})` }}
+                >
                   Ver dashboard global
                 </Button>
               </div>

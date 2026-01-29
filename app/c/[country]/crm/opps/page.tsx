@@ -25,6 +25,7 @@ import { getOpportunities, updateOpportunity } from "@/lib/actions/opportunities
 import { getAccounts, updateAccount } from "@/lib/actions/accounts"
 import { getTeamMembers } from "@/lib/actions/team"
 import { toast } from "sonner"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Opportunity {
   id: string
@@ -51,6 +52,7 @@ interface TeamMember {
 
 export default function OppsPage() {
   const { country } = useParams<{ country: string }>()
+  const { workspace } = useWorkspace()
   const [isPending, startTransition] = useTransition()
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
@@ -72,8 +74,8 @@ export default function OppsPage() {
   const loadData = useCallback(async () => {
     try {
       const [oppsData, accountsData, teamData] = await Promise.all([
-        getOpportunities(),
-        getAccounts(),
+        getOpportunities(undefined, workspace),
+        getAccounts(undefined, workspace),
         getTeamMembers(),
       ])
       const countryOpps = (oppsData || []).filter(
@@ -88,7 +90,7 @@ export default function OppsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [country])
+  }, [country, workspace])
 
   useEffect(() => {
     loadData()

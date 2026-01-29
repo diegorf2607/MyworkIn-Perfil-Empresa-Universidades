@@ -23,6 +23,7 @@ import { Search, Trophy, XCircle, Loader2 } from "lucide-react"
 import { getOpportunities, createOpportunity } from "@/lib/actions/opportunities"
 import { getAccounts, updateAccount } from "@/lib/actions/accounts"
 import { getTeamMembers } from "@/lib/actions/team"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Opportunity {
   id: string
@@ -60,6 +61,7 @@ const LOST_REASONS = [
 
 export default function ClosedPage() {
   const { country } = useParams<{ country: string }>()
+  const { workspace } = useWorkspace()
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -80,8 +82,8 @@ export default function ClosedPage() {
   const loadData = useCallback(async () => {
     try {
       const [oppsData, accountsData, teamData] = await Promise.all([
-        getOpportunities(country),
-        getAccounts(country),
+        getOpportunities(country, workspace),
+        getAccounts(country, workspace),
         getTeamMembers(),
       ])
 
@@ -95,7 +97,7 @@ export default function ClosedPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [country])
+  }, [country, workspace])
 
   useEffect(() => {
     loadData()

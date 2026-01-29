@@ -26,6 +26,7 @@ import { getAccounts, createAccount, updateAccount, upsertAccount } from "@/lib/
 import { getContacts } from "@/lib/actions/contacts"
 import { getTeamMembers } from "@/lib/actions/team"
 import { toast } from "sonner"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Account {
   id: string
@@ -51,6 +52,7 @@ interface Contact {
 
 export default function UniversitiesPage() {
   const { country } = useParams<{ country: string }>()
+  const { workspace } = useWorkspace()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -90,7 +92,7 @@ export default function UniversitiesPage() {
   const loadData = useCallback(async () => {
     try {
       const [accountsData, teamData, contactsData] = await Promise.all([
-        getAccounts(country),
+        getAccounts(country, workspace),
         getTeamMembers(),
         getContacts(),
       ])
@@ -102,7 +104,7 @@ export default function UniversitiesPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [country])
+  }, [country, workspace])
 
   useEffect(() => {
     loadData()

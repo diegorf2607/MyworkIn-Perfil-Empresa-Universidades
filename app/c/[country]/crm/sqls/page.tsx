@@ -26,6 +26,7 @@ import { getAccountsByStage, updateAccount } from "@/lib/actions/accounts"
 import { createOpportunity } from "@/lib/actions/opportunities"
 import { getTeamMembers } from "@/lib/actions/team"
 import { toast } from "sonner"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Account {
   id: string
@@ -47,6 +48,7 @@ interface TeamMember {
 
 export default function SQLsPage() {
   const { country } = useParams<{ country: string }>()
+  const { workspace } = useWorkspace()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -67,7 +69,7 @@ export default function SQLsPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [accountsData, teamData] = await Promise.all([getAccountsByStage(country, "sql"), getTeamMembers()])
+      const [accountsData, teamData] = await Promise.all([getAccountsByStage(country, "sql", workspace), getTeamMembers()])
       setAccounts((accountsData as Account[]) || [])
       setTeamMembers(teamData || [])
     } catch (error) {
@@ -75,7 +77,7 @@ export default function SQLsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [country])
+  }, [country, workspace])
 
   useEffect(() => {
     loadData()

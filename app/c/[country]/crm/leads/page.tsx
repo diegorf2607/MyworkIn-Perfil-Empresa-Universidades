@@ -13,6 +13,7 @@ import { CreateAccountDialog } from "@/components/crm/create-account-dialog"
 import { Search, Filter, SortAsc, Loader2, Plus } from "lucide-react"
 import { getAccountsByStage } from "@/lib/actions/accounts"
 import { getTeamMembers } from "@/lib/actions/team"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Account {
   id: string
@@ -59,6 +60,7 @@ const getFitBadge = (fit: string | null) => {
 
 export default function LeadsPage() {
   const { country } = useParams<{ country: string }>()
+  const { workspace } = useWorkspace()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -73,7 +75,7 @@ export default function LeadsPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [accountsData, teamData] = await Promise.all([getAccountsByStage(country, "lead"), getTeamMembers()])
+      const [accountsData, teamData] = await Promise.all([getAccountsByStage(country, "lead", workspace), getTeamMembers()])
       setAccounts((accountsData as Account[]) || [])
       setTeamMembers(teamData || [])
     } catch (error) {
@@ -81,7 +83,7 @@ export default function LeadsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [country])
+  }, [country, workspace])
 
   useEffect(() => {
     loadData()
