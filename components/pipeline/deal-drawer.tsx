@@ -34,6 +34,7 @@ import {
   isActionToday,
   getRelativeDate,
 } from "@/lib/mock-data/deals"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface DealDrawerProps {
   deal: Deal | null
@@ -65,6 +66,8 @@ export function DealDrawer({
   onOpenChange,
   onMarkActionDone,
 }: DealDrawerProps) {
+  const { config } = useWorkspace()
+  
   if (!deal) return null
 
   const isOverdue = deal.nextAction && isActionOverdue(deal.nextAction.date)
@@ -219,12 +222,18 @@ export function DealDrawer({
               <span className="text-xs text-emerald-600 ml-1">{deal.currency}</span>
             </div>
             
-            <div className="p-3 rounded-lg bg-blue-50 border border-blue-100">
-              <div className="flex items-center gap-1.5 text-blue-600 mb-1">
+            <div 
+              className="p-3 rounded-lg border"
+              style={{ 
+                backgroundColor: `${config.theme.primary}10`,
+                borderColor: `${config.theme.primary}20`
+              }}
+            >
+              <div className="flex items-center gap-1.5 mb-1" style={{ color: config.theme.primary }}>
                 <Target className="h-4 w-4" />
                 <span className="text-xs font-medium">Probabilidad</span>
               </div>
-              <span className="text-lg font-bold text-blue-700">
+              <span className="text-lg font-bold" style={{ color: config.theme.primary }}>
                 {deal.probability}%
               </span>
             </div>
