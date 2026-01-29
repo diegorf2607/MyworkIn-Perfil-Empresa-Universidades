@@ -189,26 +189,36 @@ export async function updateAccount(update: AccountUpdate) {
 // Upsert: create if not exists, update if exists (for CSV import)
 export async function upsertAccount(account: AccountInsert): Promise<{ created: boolean; data: any }> {
   const supabase = createAdminClient()
+  const workspaceId = account.workspace_id || DEFAULT_WORKSPACE
 
-  // Check if exists
-  const { data: existing } = await supabase
+  // Check if exists (within same workspace)
+  let query = supabase
     .from("accounts")
     .select("id")
     .eq("country_code", account.country_code)
     .ilike("name", account.name.trim())
     .limit(1)
-    .single()
+  
+  // Filter by workspace
+  if (workspaceId === "mkn") {
+    query = query.eq("workspace_id", "mkn")
+  }
+
+  const { data: existing } = await query.single()
 
   if (existing) {
     // Update existing
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    }
+    if (account.city !== undefined) updateData.city = account.city
+    if (account.type !== undefined) updateData.type = account.type
+    if (account.size !== undefined) updateData.size = account.size
+    if (account.website !== undefined) updateData.website = account.website
+
     const { data, error } = await supabase
       .from("accounts")
-      .update({
-        city: account.city,
-        type: account.type,
-        size: account.size,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", existing.id)
       .select()
       .single()
@@ -216,10 +226,16 @@ export async function upsertAccount(account: AccountInsert): Promise<{ created: 
     if (error) throw error
     return { created: false, data }
   } else {
-    // Create new
+    // Create new - ensure workspace_id is set
+    const insertData = {
+      ...account,
+      workspace_id: workspaceId,
+      last_touch: new Date().toISOString(),
+    }
+    
     const { data, error } = await supabase
       .from("accounts")
-      .insert({ ...account, last_touch: new Date().toISOString() })
+      .insert(insertData)
       .select()
       .single()
 
@@ -231,7 +247,7 @@ export async function upsertAccount(account: AccountInsert): Promise<{ created: 
         country_code: account.country_code,
         type: "account_created",
         owner_id: account.owner_id,
-        summary: `Universidad "${account.name}" importada como ${account.stage?.toUpperCase() || "Lead"}`,
+        summary: `${workspaceId === "mkn" ? "Empresa" : "Universidad"} "${account.name}" importada como ${account.stage?.toUpperCase() || "Lead"}`,
         date_time: new Date().toISOString(),
         details: {
           stage: account.stage,

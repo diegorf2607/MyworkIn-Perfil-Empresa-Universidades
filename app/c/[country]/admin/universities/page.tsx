@@ -193,6 +193,7 @@ export default function UniversitiesPage() {
           size: newUniversity.size || undefined,
           stage: "lead",
           fit_comercial: "medio",
+          workspace_id: workspace,
         })
         toast.success(`${config.terminology.entity} creada`)
         setCreateDialogOpen(false)
@@ -369,6 +370,7 @@ export default function UniversitiesPage() {
             website: uni.website || undefined,
             stage: "lead",
             fit_comercial: "medio",
+            workspace_id: workspace,
           })
           
           if (result.created) {
