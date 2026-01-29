@@ -88,25 +88,36 @@ function getStatusFromStage(stage: OpportunityStage): "activo" | "won" | "lost" 
 }
 
 // Obtener todos los deals para el Pipeline
-// NOTA: Usa la tabla accounts con stage "opp", "won", "lost" ya que la tabla opportunities está vacía
+// Combina accounts (sql, opp) + opportunities (won, lost con MRR)
 export async function getPipelineDeals(): Promise<PipelineDeal[]> {
   noStore()
   const supabase = createAdminClient()
   
-  // Obtener cuentas en etapas avanzadas (opp, won, lost)
-  // También incluir SQLs para mostrar el flujo completo
-  const { data: accounts, error } = await supabase
+  // 1. Obtener cuentas en etapas sql y opp
+  const { data: accounts, error: accError } = await supabase
     .from("accounts")
     .select("*")
-    .in("stage", ["sql", "opp", "won", "lost"])
+    .in("stage", ["sql", "opp"])
     .order("updated_at", { ascending: false })
 
-  if (error) {
-    console.error("Error fetching pipeline deals:", error)
-    throw error
+  if (accError) {
+    console.error("Error fetching accounts:", accError)
+    throw accError
+  }
+
+  // 2. Obtener opportunities won y lost (tienen MRR)
+  const { data: opportunities, error: oppsError } = await supabase
+    .from("opportunities")
+    .select("*, accounts(id, name, city, country_code, owner_id, source, fit_comercial)")
+    .in("stage", ["won", "lost"])
+    .order("updated_at", { ascending: false })
+
+  if (oppsError) {
+    console.error("Error fetching opportunities:", oppsError)
+    // No throw, just continue with accounts only
   }
   
-  // Obtener team members separadamente
+  // Obtener team members
   const { data: teamMembers } = await supabase
     .from("team_members")
     .select("id, user_id, name, role, sales_role")
@@ -123,7 +134,6 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
     .select("account_id, type, created_at, description")
     .order("created_at", { ascending: false })
 
-  // Crear mapa de última actividad por cuenta
   const lastActivityMap = new Map<string, { type: string; date: string; description: string }>()
   if (activities) {
     for (const activity of activities) {
@@ -144,21 +154,17 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
         return "primera_reunion_programada"
       case "opp":
         return "primera_reunion_realizada"
-      case "won":
-        return "won"
-      case "lost":
-        return "lost"
       default:
         return "primera_reunion_programada"
     }
   }
 
-  // Transformar cuentas a PipelineDeal
-  const deals: PipelineDeal[] = (accounts || []).map((account: any) => {
+  // Transformar ACCOUNTS a PipelineDeal (sql, opp)
+  const accountDeals: PipelineDeal[] = (accounts || []).map((account: any) => {
     const owner = account.owner_id ? teamMap.get(account.owner_id) : null
     const stage = mapAccountStageToPipeline(account.stage)
-    
-    // Determinar next action
+    const lastActivity = lastActivityMap.get(account.id) || null
+
     let nextAction = null
     if (account.next_action && account.next_action_date) {
       nextAction = {
@@ -172,11 +178,8 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
       }
     }
 
-    // Obtener última actividad
-    const lastActivity = lastActivityMap.get(account.id) || null
-
     return {
-      id: account.id,
+      id: `acc_${account.id}`, // Prefijo para identificar que es account
       accountId: account.id,
       accountName: account.name || "Sin nombre",
       accountCity: account.city || null,
@@ -202,7 +205,40 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
     }
   })
 
-  return deals
+  // Transformar OPPORTUNITIES a PipelineDeal (won, lost)
+  const oppDeals: PipelineDeal[] = (opportunities || []).map((opp: any) => {
+    const account = opp.accounts
+    const owner = account?.owner_id ? teamMap.get(account.owner_id) : null
+    const lastActivity = account ? lastActivityMap.get(account.id) : null
+
+    return {
+      id: `opp_${opp.id}`, // Prefijo para identificar que es opportunity
+      accountId: account?.id || opp.account_id,
+      accountName: account?.name || "Sin nombre",
+      accountCity: account?.city || null,
+      country: opp.country_code,
+      stage: opp.stage as OpportunityStage,
+      ownerId: account?.owner_id || null,
+      ownerName: owner?.name || null,
+      ownerRole: owner?.sales_role === "SDR" || owner?.sales_role === "AE" ? owner.sales_role : null,
+      mrr: opp.mrr || 0,
+      currency: "USD" as const,
+      icpTier: (account?.fit_comercial === "alto" ? "A" : account?.fit_comercial === "medio" ? "B" : "C") as "A" | "B" | "C",
+      nextAction: null,
+      lastActivity,
+      createdAt: opp.created_at,
+      updatedAt: opp.updated_at || opp.created_at,
+      expectedCloseDate: opp.expected_close_date || null,
+      probability: opp.probability || 0,
+      status: opp.stage === "won" ? "won" : "lost",
+      lostReason: opp.lost_reason || undefined,
+      source: (opp.source || account?.source || "outbound") as "inbound" | "outbound" | "referido",
+      stuckDays: 0,
+      product: opp.product || null
+    }
+  })
+
+  return [...accountDeals, ...oppDeals]
 }
 
 // Obtener miembros del equipo para filtros
@@ -228,6 +264,27 @@ export async function getPipelineTeamMembers(): Promise<PipelineTeamMember[]> {
   }))
 }
 
+// Mapear stage de pipeline a stage de account
+function mapPipelineStageToAccount(pipelineStage: OpportunityStage): string {
+  switch (pipelineStage) {
+    case "primera_reunion_programada":
+      return "sql"
+    case "primera_reunion_realizada":
+    case "demo_programada":
+    case "propuesta_enviada":
+    case "negociacion":
+      return "opp"
+    case "won":
+      return "won"
+    case "lost":
+      return "lost"
+    case "nurture":
+      return "sql" // nurture vuelve a sql
+    default:
+      return "sql"
+  }
+}
+
 // Actualizar stage de un deal
 export async function updateDealStage(
   dealId: string, 
@@ -236,29 +293,94 @@ export async function updateDealStage(
 ): Promise<void> {
   const supabase = createAdminClient()
   
-  const updates: Record<string, any> = {
-    stage: newStage,
-    updated_at: new Date().toISOString()
-  }
+  // Determinar si es account o opportunity por el prefijo
+  const isAccount = dealId.startsWith("acc_")
+  const isOpportunity = dealId.startsWith("opp_")
+  const realId = dealId.replace(/^(acc_|opp_)/, "")
 
-  // Si es won o lost, agregar closed_at
-  if (newStage === "won" || newStage === "lost") {
-    updates.closed_at = new Date().toISOString()
-  }
+  if (isAccount) {
+    // Actualizar account
+    const accountStage = mapPipelineStageToAccount(newStage)
+    
+    const updates: Record<string, any> = {
+      stage: accountStage,
+      updated_at: new Date().toISOString()
+    }
 
-  // Si es lost, agregar razón
-  if (newStage === "lost" && lostReason) {
-    updates.lost_reason = lostReason
-  }
+    const { error } = await supabase
+      .from("accounts")
+      .update(updates)
+      .eq("id", realId)
 
-  const { error } = await supabase
-    .from("opportunities")
-    .update(updates)
-    .eq("id", dealId)
+    if (error) {
+      console.error("Error updating account stage:", error)
+      throw error
+    }
 
-  if (error) {
-    console.error("Error updating deal stage:", error)
-    throw error
+    // Si es won o lost, crear una opportunity
+    if (newStage === "won" || newStage === "lost") {
+      // Obtener datos del account para crear opportunity
+      const { data: account } = await supabase
+        .from("accounts")
+        .select("*")
+        .eq("id", realId)
+        .single()
+
+      if (account) {
+        const oppData: Record<string, any> = {
+          account_id: realId,
+          country_code: account.country_code,
+          stage: newStage,
+          mrr: account.mrr || 0,
+          probability: newStage === "won" ? 100 : 0,
+          source: account.source || "outbound",
+          closed_at: new Date().toISOString()
+        }
+
+        if (newStage === "lost" && lostReason) {
+          oppData.lost_reason = lostReason
+        }
+
+        await supabase.from("opportunities").insert(oppData)
+      }
+    }
+  } else if (isOpportunity) {
+    // Actualizar opportunity existente
+    const updates: Record<string, any> = {
+      stage: newStage,
+      updated_at: new Date().toISOString()
+    }
+
+    if (newStage === "won" || newStage === "lost") {
+      updates.closed_at = new Date().toISOString()
+    }
+
+    if (newStage === "lost" && lostReason) {
+      updates.lost_reason = lostReason
+    }
+
+    const { error } = await supabase
+      .from("opportunities")
+      .update(updates)
+      .eq("id", realId)
+
+    if (error) {
+      console.error("Error updating opportunity stage:", error)
+      throw error
+    }
+  } else {
+    // Fallback: intentar como account sin prefijo
+    const accountStage = mapPipelineStageToAccount(newStage)
+    
+    const { error } = await supabase
+      .from("accounts")
+      .update({ stage: accountStage, updated_at: new Date().toISOString() })
+      .eq("id", dealId)
+
+    if (error) {
+      console.error("Error updating deal stage (fallback):", error)
+      throw error
+    }
   }
 
   revalidatePath("/all/pipeline")
@@ -268,18 +390,38 @@ export async function updateDealStage(
 export async function markActionComplete(dealId: string): Promise<void> {
   const supabase = createAdminClient()
   
-  const { error } = await supabase
-    .from("opportunities")
-    .update({
-      next_step: null,
-      next_step_date: null,
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", dealId)
+  // Determinar si es account o opportunity por el prefijo
+  const isAccount = dealId.startsWith("acc_")
+  const realId = dealId.replace(/^(acc_|opp_)/, "")
 
-  if (error) {
-    console.error("Error marking action complete:", error)
-    throw error
+  if (isAccount) {
+    const { error } = await supabase
+      .from("accounts")
+      .update({
+        next_action: null,
+        next_action_date: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", realId)
+
+    if (error) {
+      console.error("Error marking action complete:", error)
+      throw error
+    }
+  } else {
+    const { error } = await supabase
+      .from("opportunities")
+      .update({
+        next_step: null,
+        next_step_date: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", realId)
+
+    if (error) {
+      console.error("Error marking action complete:", error)
+      throw error
+    }
   }
 
   revalidatePath("/all/pipeline")
