@@ -402,7 +402,8 @@ export default function CountriesPage() {
             return (
               <Card
                 key={country.code}
-                className="group relative cursor-pointer transition-all hover:border-[#0078D4]/40 hover:shadow-xl hover:shadow-[#0078D4]/5 border-slate-200 bg-white"
+                className="group relative cursor-pointer transition-all hover:shadow-xl border-slate-200 bg-white"
+                style={{ "--hover-color": config.theme.primary } as React.CSSProperties}
                 onClick={() => router.push(`/c/${country.code}/scorecards`)}
               >
                 <div
