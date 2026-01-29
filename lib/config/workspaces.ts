@@ -3,6 +3,32 @@
 
 export type WorkspaceId = "myworkin" | "mkn"
 
+// Contenido del Overview por workspace
+export interface OverviewContent {
+  banner: {
+    title: string
+    subtitle: string
+    defaultSubtitle: string
+  }
+  summary: {
+    header: string
+    title: string
+    body: string
+  }
+  whatWeDo: {
+    title: string
+    cards: {
+      title: string
+      bullets: string[]
+    }[]
+  }
+  northStar: {
+    title: string
+    description: string
+    defaultText: string
+  }
+}
+
 export interface WorkspaceConfig {
   id: WorkspaceId
   displayName: string
@@ -20,6 +46,7 @@ export interface WorkspaceConfig {
     logoWhite: string
   }
   terminology: WorkspaceTerminology
+  overview: OverviewContent
 }
 
 export interface WorkspaceTerminology {
@@ -96,6 +123,44 @@ export const MYWORKIN_CONFIG: WorkspaceConfig = {
     funnelLeads: "Leads (ICP)",
     funnelWon: "Cerradas Won",
   },
+  overview: {
+    banner: {
+      title: "Somos el equipo de crecimiento de MyWorkIn",
+      subtitle: "Responsables de diseñar y ejecutar, con apoyo de inteligencia artificial, las palancas que harán crecer el negocio 30x.",
+      defaultSubtitle: "Impulsamos la empleabilidad universitaria en LATAM conectando estudiantes con oportunidades reales.",
+    },
+    summary: {
+      header: "Resumen Ejecutivo",
+      title: "Quiénes somos",
+      body: "MyWorkIn es una plataforma de empleabilidad para universidades. Ayudamos a conectar a sus estudiantes/egresados con oportunidades laborales y ofrecemos a las instituciones bolsas de trabajo, herramientas de IA y la automatización de procesos internos.",
+    },
+    whatWeDo: {
+      title: "Qué hacemos",
+      cards: [
+        {
+          title: "Para estudiantes y egresados",
+          bullets: [
+            "Bolsa de trabajo con match",
+            "Herramientas de IA (CV, Entrevistas, LinkedIn y Aprendizaje)",
+            "Solicitud de documentos / asesorías",
+          ],
+        },
+        {
+          title: "Para universidades",
+          bullets: [
+            "Procesos académicos y administrativos",
+            "Vínculo institucional y trazabilidad",
+            "Difusión de oportunidades y análisis de datos",
+          ],
+        },
+      ],
+    },
+    northStar: {
+      title: "North Star 2026",
+      description: "Nuestra visión y objetivos principales",
+      defaultText: "Ser la plataforma líder de empleabilidad universitaria en LATAM, conectando a 200+ universidades y alcanzando 1M+ estudiantes y egresados para transformar su futuro profesional.",
+    },
+  },
 }
 
 // Configuración de MKN Technologies (CRM Empresas/IA)
@@ -143,6 +208,44 @@ export const MKN_CONFIG: WorkspaceConfig = {
     ],
     funnelLeads: "Leads",
     funnelWon: "Clientes",
+  },
+  overview: {
+    banner: {
+      title: "Implementamos IA con impacto real",
+      subtitle: "MKN Technologies ayuda a equipos pequeños y empresas medianas a llevar IA a producción con claridad, velocidad y entrenamiento práctico.",
+      defaultSubtitle: "MKN Technologies ayuda a equipos pequeños y empresas medianas a llevar IA a producción con claridad, velocidad y entrenamiento práctico.",
+    },
+    summary: {
+      header: "Qué es MKN",
+      title: "Quiénes somos",
+      body: "MKN Technologies combina implementación de IA con capacitación para que tu equipo pueda operar, mejorar y escalar lo que construimos. Priorizamos soluciones productivas, iteración rápida y uso responsable de datos.",
+    },
+    whatWeDo: {
+      title: "Qué hacemos",
+      cards: [
+        {
+          title: "Implementación de IA",
+          bullets: [
+            "Diseño y despliegue de soluciones de IA integradas a tus herramientas y workflows",
+            "Automatización y optimización de procesos (menos trabajo manual, más velocidad)",
+            "Analítica e insights para mejorar decisiones (cuando aplique)",
+          ],
+        },
+        {
+          title: "Estrategia y habilitación",
+          bullets: [
+            "Roadmap y casos de uso de alto impacto con métricas claras",
+            "Workshops y training hands-on para adopción real",
+            "Acompañamiento para operación y mejora continua (no dependencia)",
+          ],
+        },
+      ],
+    },
+    northStar: {
+      title: "North Star 2026",
+      description: "Nuestra visión y objetivos principales",
+      defaultText: "Habilitar a 100+ organizaciones a implementar IA en producción y entrenar a sus equipos para operar y escalar soluciones de forma autónoma.",
+    },
   },
 }
 

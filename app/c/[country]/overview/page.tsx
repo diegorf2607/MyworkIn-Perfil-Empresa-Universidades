@@ -13,10 +13,10 @@ import { toast } from "sonner"
 import { getQuickLinks, createQuickLink, updateQuickLink, deleteQuickLink } from "@/lib/actions/quick-links"
 import { getCountryByCode } from "@/lib/actions/countries"
 import { getAppSettings, updateAppSettings } from "@/lib/actions/settings"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface QuickLink {
   id: string
-  country_code: string
   title: string
   url: string
   category: string
@@ -35,6 +35,7 @@ interface AppSettings {
 
 export default function OverviewPage() {
   const { country } = useParams<{ country: string }>()
+  const { workspace, config } = useWorkspace()
   const [isPending, startTransition] = useTransition()
   const [isLoading, setIsLoading] = useState(true)
 
@@ -51,30 +52,33 @@ export default function OverviewPage() {
   const [northStarText, setNorthStarText] = useState("")
   const [heroText, setHeroText] = useState("")
 
+  // Get overview content from workspace config
+  const overviewContent = config.overview
+
   const loadData = useCallback(async () => {
     try {
       const [linksData, countryData, settingsData] = await Promise.all([
-        getQuickLinks(country),
+        getQuickLinks(),
         getCountryByCode(country),
         getAppSettings(),
       ])
-      setQuickLinks((linksData as QuickLink[]) || [])
+      setQuickLinks((linksData || []) as QuickLink[])
       setCurrentCountry(countryData as Country | null)
-      setSettings(settingsData as AppSettings | null)
-      setNorthStarText(
-        settingsData?.north_star_text ||
-          "Ser la plataforma líder de empleabilidad universitaria en LATAM, conectando a 200+ universidades y alcanzando 1M+ estudiantes y egresados para transformar su futuro profesional.",
-      )
-      setHeroText(
-        settingsData?.hero_text ||
-          "Impulsamos la empleabilidad universitaria en LATAM conectando estudiantes con oportunidades reales.",
-      )
+      const appSettings = settingsData as AppSettings | null
+      if (appSettings) {
+        setSettings(appSettings)
+        setNorthStarText(appSettings.north_star_text || overviewContent.northStar.defaultText)
+        setHeroText(appSettings.hero_text || overviewContent.banner.defaultSubtitle)
+      } else {
+        setNorthStarText(overviewContent.northStar.defaultText)
+        setHeroText(overviewContent.banner.defaultSubtitle)
+      }
     } catch (error) {
       console.error("Error loading data:", error)
     } finally {
       setIsLoading(false)
     }
-  }, [country])
+  }, [country, overviewContent])
 
   useEffect(() => {
     loadData()
@@ -88,7 +92,6 @@ export default function OverviewPage() {
     startTransition(async () => {
       try {
         await createQuickLink({
-          country_code: country,
           title: newLink.title,
           url: newLink.url,
           category: newLink.category,
@@ -175,16 +178,23 @@ export default function OverviewPage() {
     )
   }
 
+  // Dynamic primary color based on workspace
+  const primaryColor = config.theme.primary
+  const isPrimaryDark = workspace === "mkn"
+
   return (
     <div className="space-y-6">
       {/* Hero Card */}
-      <Card className="border-none bg-primary text-white">
+      <Card 
+        className="border-none text-white"
+        style={{ backgroundColor: primaryColor }}
+      >
         <CardContent className="flex items-center gap-6 p-8">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white/20">
             <Rocket className="h-8 w-8" />
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold">Somos el equipo de crecimiento de MyWorkIn</h1>
+            <h1 className="text-2xl font-bold">{overviewContent.banner.title}</h1>
             {editingHero ? (
               <div className="mt-3 space-y-2">
                 <Textarea
@@ -222,60 +232,59 @@ export default function OverviewPage() {
       <Card>
         <CardHeader className="p-8 pb-0">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-emerald-500" />
-            <CardTitle className="text-lg">Resumen Ejecutivo</CardTitle>
+            <div 
+              className="h-3 w-3 rounded-full"
+              style={{ backgroundColor: isPrimaryDark ? "#000" : "#10b981" }}
+            />
+            <CardTitle className="text-lg">{overviewContent.summary.header}</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-8 pt-8 space-y-6">
           <div>
-            <h3 className="text-lg font-semibold text-primary mb-2">Quiénes somos</h3>
+            <h3 
+              className="text-lg font-semibold mb-2"
+              style={{ color: primaryColor }}
+            >
+              {overviewContent.summary.title}
+            </h3>
             <p className="text-muted-foreground leading-relaxed">
-              MyWorkIn es una plataforma de empleabilidad para universidades. Ayudamos a conectar a sus
-              estudiantes/egresados con oportunidades laborales y ofrecemos a las instituciones bolsas de trabajo,
-              herramientas de IA y la automatización de procesos internos.
+              {overviewContent.summary.body}
             </p>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-primary mb-4">Qué hacemos</h3>
+            <h3 
+              className="text-lg font-semibold mb-4"
+              style={{ color: primaryColor }}
+            >
+              {overviewContent.whatWeDo.title}
+            </h3>
             <div className="grid gap-4 md:grid-cols-2">
-              {/* Para estudiantes y egresados */}
-              <div className="rounded-xl border bg-slate-50 p-5">
-                <h4 className="font-semibold text-primary mb-3">Para estudiantes y egresados</h4>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <ChevronRight className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Bolsa de trabajo con match</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <ChevronRight className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Herramientas de IA (CV, Entrevistas, LinkedIn y Aprendizaje)</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <ChevronRight className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Solicitud de documentos / asesorías</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Para universidades */}
-              <div className="rounded-xl border bg-slate-50 p-5">
-                <h4 className="font-semibold text-primary mb-3">Para universidades</h4>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <ChevronRight className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Procesos académicos y administrativos</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <ChevronRight className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Vínculo institucional y trazabilidad</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <ChevronRight className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Difusión de oportunidades y análisis de datos</span>
-                  </li>
-                </ul>
-              </div>
+              {overviewContent.whatWeDo.cards.map((card, idx) => (
+                <div 
+                  key={idx} 
+                  className="rounded-xl border p-5"
+                  style={{ backgroundColor: isPrimaryDark ? "#f8f8f8" : "#f8fafc" }}
+                >
+                  <h4 
+                    className="font-semibold mb-3"
+                    style={{ color: primaryColor }}
+                  >
+                    {card.title}
+                  </h4>
+                  <ul className="space-y-2">
+                    {card.bullets.map((bullet, bulletIdx) => (
+                      <li key={bulletIdx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <ChevronRight 
+                          className="h-4 w-4 mt-0.5 shrink-0"
+                          style={{ color: primaryColor }}
+                        />
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           </div>
         </CardContent>
@@ -284,12 +293,15 @@ export default function OverviewPage() {
       {/* North Star Card */}
       <Card>
         <CardHeader className="p-8 pb-0 flex flex-row items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-            <Target className="h-6 w-6 text-primary" />
+          <div 
+            className="flex h-12 w-12 items-center justify-center rounded-lg"
+            style={{ backgroundColor: `${primaryColor}15` }}
+          >
+            <Target className="h-6 w-6" style={{ color: primaryColor }} />
           </div>
           <div>
-            <CardTitle>North Star 2026</CardTitle>
-            <CardDescription>Nuestra visión y objetivos principales</CardDescription>
+            <CardTitle>{overviewContent.northStar.title}</CardTitle>
+            <CardDescription>{overviewContent.northStar.description}</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="p-8 pt-8">
@@ -297,7 +309,12 @@ export default function OverviewPage() {
             <div className="space-y-3">
               <Textarea value={northStarText} onChange={(e) => setNorthStarText(e.target.value)} rows={3} />
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleSaveNorthStar} disabled={isPending}>
+                <Button 
+                  size="sm" 
+                  onClick={handleSaveNorthStar} 
+                  disabled={isPending}
+                  style={{ backgroundColor: primaryColor, color: "#fff" }}
+                >
                   {isPending ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
                   Guardar
                 </Button>
