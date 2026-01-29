@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { unstable_noStore as noStore } from "next/cache"
 import { createActivity } from "./activities"
+import { type WorkspaceId, DEFAULT_WORKSPACE } from "@/lib/config/workspaces"
 
 export type MeetingInsert = {
   country_code: string
@@ -21,6 +22,7 @@ export type MeetingInsert = {
   next_step_type?: "waiting_response" | "new_meeting" | "send_proposal" | "internal_review" | "general_follow_up"
   next_step_date?: string
   next_step_responsible?: "myworkin" | "university"
+  workspace_id?: WorkspaceId
 }
 
 export type MeetingUpdate = Partial<MeetingInsert> & {
@@ -32,7 +34,7 @@ export type MeetingUpdate = Partial<MeetingInsert> & {
   follow_up_status?: "active" | "cancelled" | "alert_sent" | "resolved"
 }
 
-export async function getMeetings(countryCode?: string) {
+export async function getMeetings(countryCode?: string, workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   // Disable caching - always fetch fresh data
   noStore()
   
@@ -41,6 +43,7 @@ export async function getMeetings(countryCode?: string) {
     const supabase = createAdminClient()
     // Simplified query - removed team_members join that may not exist
     let query = supabase.from("meetings").select("*, accounts(name, city)")
+      .eq("workspace_id", workspaceId) // Filter by workspace
 
     if (countryCode) {
       query = query.eq("country_code", countryCode)

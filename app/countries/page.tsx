@@ -85,7 +85,7 @@ export default function CountriesPage() {
       let oppsData: any[] = []
       let meetingsData: any[] = []
 
-      // Countries - most important, fetch first
+      // Countries - most important, fetch first (shared across workspaces)
       try {
         countriesData = await getCountries() || []
       } catch (e) {
@@ -93,11 +93,11 @@ export default function CountriesPage() {
         countriesData = []
       }
 
-      // Other data - fetch in parallel, but handle errors individually
+      // Other data - fetch in parallel, filtered by workspace
       const [accountsResult, oppsResult, meetingsResult] = await Promise.allSettled([
-        getAccounts(),
-        getOpportunities(),
-        getMeetings(),
+        getAccounts(undefined, workspace),
+        getOpportunities(undefined, workspace),
+        getMeetings(undefined, workspace),
       ])
 
       if (accountsResult.status === 'fulfilled') {
@@ -143,8 +143,9 @@ export default function CountriesPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [workspace])
 
+  // Reload data when workspace changes
   useEffect(() => {
     loadData()
   }, [loadData])
