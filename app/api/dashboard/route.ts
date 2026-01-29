@@ -11,13 +11,18 @@ export async function GET(request: Request) {
     const isGlobal = countryCode === "ALL"
 
     // Get active countries filtered by workspace
+    // For myworkin: include countries with workspace_id = 'myworkin' OR NULL (legacy data)
+    // For mkn: only include countries with workspace_id = 'mkn'
     let countriesQuery = supabase
       .from("countries")
       .select("code, name, active")
       .eq("active", true)
     
-    if (workspaceId) {
-      countriesQuery = countriesQuery.eq("workspace_id", workspaceId)
+    if (workspaceId === "mkn") {
+      countriesQuery = countriesQuery.eq("workspace_id", "mkn")
+    } else {
+      // MyWorkIn: include both explicit 'myworkin' and legacy data (NULL workspace_id)
+      countriesQuery = countriesQuery.or("workspace_id.eq.myworkin,workspace_id.is.null")
     }
     
     const { data: countries } = await countriesQuery
@@ -37,15 +42,22 @@ export async function GET(request: Request) {
     }
 
     // Build queries with workspace filter
+    // For myworkin: include data with workspace_id = 'myworkin' OR NULL (legacy data)
+    // For mkn: only include data with workspace_id = 'mkn'
     let accountsQuery = supabase.from("accounts").select("*")
     let oppsQuery = supabase.from("opportunities").select("id, stage, mrr, country_code")
     let meetingsQuery = supabase.from("meetings").select("*")
 
     // Apply workspace filter
-    if (workspaceId) {
-      accountsQuery = accountsQuery.eq("workspace_id", workspaceId)
-      oppsQuery = oppsQuery.eq("workspace_id", workspaceId)
-      meetingsQuery = meetingsQuery.eq("workspace_id", workspaceId)
+    if (workspaceId === "mkn") {
+      accountsQuery = accountsQuery.eq("workspace_id", "mkn")
+      oppsQuery = oppsQuery.eq("workspace_id", "mkn")
+      meetingsQuery = meetingsQuery.eq("workspace_id", "mkn")
+    } else {
+      // MyWorkIn: include both explicit 'myworkin' and legacy data (NULL workspace_id)
+      accountsQuery = accountsQuery.or("workspace_id.eq.myworkin,workspace_id.is.null")
+      oppsQuery = oppsQuery.or("workspace_id.eq.myworkin,workspace_id.is.null")
+      meetingsQuery = meetingsQuery.or("workspace_id.eq.myworkin,workspace_id.is.null")
     }
 
     if (!isGlobal) {

@@ -85,9 +85,9 @@ export default function CountriesPage() {
       let oppsData: any[] = []
       let meetingsData: any[] = []
 
-      // Countries - most important, fetch first (shared across workspaces)
+      // Countries - filtered by workspace
       try {
-        countriesData = await getCountries() || []
+        countriesData = await getCountries(workspace) || []
       } catch (e) {
         console.error("Error loading countries:", e)
         countriesData = []
@@ -179,7 +179,7 @@ export default function CountriesPage() {
           )
           toast.success(`${name} reactivado correctamente`)
         } else {
-          await addCountry(codeUpper, name)
+          await addCountry(codeUpper, name, workspace)
           setCountries((prev) => [...prev, { code: codeUpper, name, active: true }])
           toast.success(`${name} agregado correctamente`)
         }

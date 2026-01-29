@@ -94,15 +94,19 @@ export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDe
   const supabase = createAdminClient()
   
   // 1. Obtener cuentas en etapas sql y opp
+  // For myworkin: include data with workspace_id = 'myworkin' OR NULL (legacy data)
+  // For mkn: only include data with workspace_id = 'mkn'
   let accountsQuery = supabase
     .from("accounts")
     .select("*")
     .in("stage", ["sql", "opp"])
     .order("updated_at", { ascending: false })
   
-  // Filtrar por workspace si se proporciona
-  if (workspaceId) {
-    accountsQuery = accountsQuery.eq("workspace_id", workspaceId)
+  // Filtrar por workspace
+  if (workspaceId === "mkn") {
+    accountsQuery = accountsQuery.eq("workspace_id", "mkn")
+  } else if (workspaceId === "myworkin") {
+    accountsQuery = accountsQuery.or("workspace_id.eq.myworkin,workspace_id.is.null")
   }
 
   const { data: accounts, error: accError } = await accountsQuery
@@ -119,8 +123,11 @@ export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDe
     .in("stage", ["won", "lost"])
     .order("updated_at", { ascending: false })
   
-  if (workspaceId) {
-    oppsQuery = oppsQuery.eq("workspace_id", workspaceId)
+  // Filtrar por workspace
+  if (workspaceId === "mkn") {
+    oppsQuery = oppsQuery.eq("workspace_id", "mkn")
+  } else if (workspaceId === "myworkin") {
+    oppsQuery = oppsQuery.or("workspace_id.eq.myworkin,workspace_id.is.null")
   }
 
   const { data: opportunities, error: oppsError } = await oppsQuery
@@ -264,8 +271,11 @@ export async function getPipelineTeamMembers(workspaceId?: string): Promise<Pipe
     .eq("is_active", true)
     .order("name")
 
-  if (workspaceId) {
-    query = query.eq("workspace_id", workspaceId)
+  // Filtrar por workspace
+  if (workspaceId === "mkn") {
+    query = query.eq("workspace_id", "mkn")
+  } else if (workspaceId === "myworkin") {
+    query = query.or("workspace_id.eq.myworkin,workspace_id.is.null")
   }
 
   const { data, error } = await query
@@ -511,8 +521,11 @@ export async function getPipelineCountries(workspaceId?: string): Promise<{ code
     .eq("active", true)
     .order("name")
 
-  if (workspaceId) {
-    query = query.eq("workspace_id", workspaceId)
+  // Filtrar por workspace
+  if (workspaceId === "mkn") {
+    query = query.eq("workspace_id", "mkn")
+  } else if (workspaceId === "myworkin") {
+    query = query.or("workspace_id.eq.myworkin,workspace_id.is.null")
   }
 
   const { data, error } = await query

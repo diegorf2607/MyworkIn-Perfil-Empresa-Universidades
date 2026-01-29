@@ -3,15 +3,26 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { unstable_noStore as noStore } from "next/cache"
+import { type WorkspaceId, DEFAULT_WORKSPACE } from "@/lib/config/workspaces"
 
-export async function getCountries() {
+export async function getCountries(workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   // Disable caching - always fetch fresh data
   noStore()
   
   try {
     // Use admin client to bypass RLS - countries are public data within the app
     const supabase = createAdminClient()
-    const { data, error } = await supabase.from("countries").select("*").order("name")
+    let query = supabase.from("countries").select("*")
+    
+    // For myworkin: include data with workspace_id = 'myworkin' OR NULL (legacy data)
+    // For mkn: only include data with workspace_id = 'mkn'
+    if (workspaceId === "mkn") {
+      query = query.eq("workspace_id", "mkn")
+    } else {
+      query = query.or("workspace_id.eq.myworkin,workspace_id.is.null")
+    }
+
+    const { data, error } = await query.order("name")
 
     if (error) {
       console.error("Error fetching countries:", error)
@@ -25,7 +36,7 @@ export async function getCountries() {
   }
 }
 
-export async function getActiveCountries() {
+export async function getActiveCountries(workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   // Disable caching - always fetch fresh data
   noStore()
   
@@ -33,11 +44,20 @@ export async function getActiveCountries() {
   const supabase = createAdminClient()
   
   // Get countries where active is true or not set (default to active)
-  const { data, error } = await supabase
+  // For myworkin: include data with workspace_id = 'myworkin' OR NULL (legacy data)
+  // For mkn: only include data with workspace_id = 'mkn'
+  let query = supabase
     .from("countries")
     .select("*")
     .or("active.eq.true,active.is.null")
-    .order("name")
+  
+  if (workspaceId === "mkn") {
+    query = query.eq("workspace_id", "mkn")
+  } else {
+    query = query.or("workspace_id.eq.myworkin,workspace_id.is.null")
+  }
+
+  const { data, error } = await query.order("name")
 
   if (error) {
     console.error("Error in getActiveCountries:", error)
@@ -47,22 +67,33 @@ export async function getActiveCountries() {
   return data || []
 }
 
-export async function getCountryByCode(code: string) {
+export async function getCountryByCode(code: string, workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   // Use admin client to bypass RLS - countries are public data within the app
   const supabase = createAdminClient()
-  const { data, error } = await supabase.from("countries").select("*").eq("code", code.toUpperCase()).single()
+  
+  let query = supabase.from("countries").select("*").eq("code", code.toUpperCase())
+  
+  // For myworkin: include data with workspace_id = 'myworkin' OR NULL (legacy data)
+  // For mkn: only include data with workspace_id = 'mkn'
+  if (workspaceId === "mkn") {
+    query = query.eq("workspace_id", "mkn")
+  } else {
+    query = query.or("workspace_id.eq.myworkin,workspace_id.is.null")
+  }
+
+  const { data, error } = await query.single()
 
   if (error && error.code !== "PGRST116") throw error
   return data
 }
 
-export async function addCountry(code: string, name: string) {
+export async function addCountry(code: string, name: string, workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   const supabase = createAdminClient()
   const codeUpper = code.toUpperCase()
 
   const { data, error } = await supabase
     .from("countries")
-    .upsert({ code: codeUpper, name, active: true }, { onConflict: "code" })
+    .upsert({ code: codeUpper, name, active: true, workspace_id: workspaceId }, { onConflict: "code" })
     .select()
     .single()
 
