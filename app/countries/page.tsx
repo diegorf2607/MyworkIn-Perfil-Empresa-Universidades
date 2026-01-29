@@ -31,6 +31,7 @@ import {
   Calendar,
   Globe,
   LogOut,
+  GraduationCap,
 } from "lucide-react"
 import { toast } from "sonner"
 import { getCountries, addCountry, updateCountry, deleteCountry } from "@/lib/actions/countries"
@@ -38,6 +39,8 @@ import { getAccounts } from "@/lib/actions/accounts"
 import { getOpportunities } from "@/lib/actions/opportunities"
 import { getMeetings } from "@/lib/actions/meetings"
 import { createClient } from "@/lib/supabase/client"
+import { useWorkspace } from "@/lib/context/workspace-context"
+import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher"
 
 interface Country {
   code: string
@@ -54,6 +57,7 @@ interface CountryStats {
 
 export default function CountriesPage() {
   const router = useRouter()
+  const { workspace, config, t } = useWorkspace()
   const [isPending, startTransition] = useTransition()
   const [countries, setCountries] = useState<Country[]>([])
   const [stats, setStats] = useState<Record<string, CountryStats>>({})
@@ -66,6 +70,12 @@ export default function CountriesPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [newCountry, setNewCountry] = useState({ code: "", name: "" })
   const [isLoading, setIsLoading] = useState(true)
+
+  // Dynamic workspace styles
+  const headerBg = workspace === "mkn" 
+    ? "bg-gradient-to-r from-black via-gray-900 to-gray-800" 
+    : "bg-gradient-to-r from-[#005691] via-[#005691] to-[#0078D4]"
+  const WorkspaceIcon = workspace === "mkn" ? Building2 : GraduationCap
 
   const loadData = useCallback(async () => {
     try {
@@ -225,18 +235,28 @@ export default function CountriesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-      <header className="border-b border-slate-200/80 bg-gradient-to-r from-[#005691] via-[#005691] to-[#0078D4] shadow-sm">
+      <header className={`border-b border-slate-200/80 ${headerBg} shadow-sm`}>
         <div className="mx-auto max-w-7xl px-6 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <MyWorkInLogo variant="icon" size="lg" className="text-white" />
+              {workspace === "myworkin" ? (
+                <MyWorkInLogo variant="icon" size="lg" className="text-white" />
+              ) : (
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
+                  <WorkspaceIcon className="h-8 w-8 text-white" />
+                </div>
+              )}
               <div className="text-white">
-                <h1 className="text-3xl font-bold tracking-tight">MyWorkIn CRM</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{config.displayName}</h1>
                 <p className="text-white/90 mt-1">Selecciona un país para comenzar</p>
               </div>
             </div>
 
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <div className="flex items-center gap-4">
+              {/* Workspace Switcher */}
+              <WorkspaceSwitcher variant="compact" className="text-white" />
+
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="secondary" className="gap-2 bg-white/95 hover:bg-white text-[#005691] font-semibold shadow-md hover:shadow-lg transition-all border-0">
                   <Plus className="h-4 w-4" />
@@ -280,6 +300,7 @@ export default function CountriesPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
         </div>
       </header>
@@ -310,11 +331,11 @@ export default function CountriesPage() {
               <div className="grid grid-cols-4 gap-6">
                 <div className="flex items-center gap-5 p-5 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-100 group/item">
                   <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-sm border border-slate-100 group-hover/item:border-slate-200 transition-colors">
-                    <Building2 className="h-7 w-7 text-[#005691]" />
+                    <Building2 className="h-7 w-7" style={{ color: config.theme.primary }} />
                   </div>
                   <div>
                     <p className="text-3xl font-bold text-slate-900 leading-none mb-1">{globalStats.totalAccounts}</p>
-                    <p className="text-sm text-slate-500 font-medium">Universidades</p>
+                    <p className="text-sm text-slate-500 font-medium">{config.terminology.entities}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-5 p-5 rounded-2xl bg-blue-50/50 hover:bg-blue-50 transition-colors border border-blue-100/50 hover:border-blue-100 group/item">
@@ -407,12 +428,12 @@ export default function CountriesPage() {
                 <CardContent className="p-6 pt-2">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50/80 border border-slate-100">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#005691]/10 to-[#005691]/20">
-                        <Building2 className="h-5 w-5 text-[#005691]" />
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: `linear-gradient(to bottom right, ${config.theme.primary}15, ${config.theme.primary}25)` }}>
+                        <Building2 className="h-5 w-5" style={{ color: config.theme.primary }} />
                       </div>
                       <div>
                         <p className="text-xl font-bold text-slate-900">{countryStats.totalAccounts}</p>
-                        <p className="text-sm text-slate-600 font-medium">Universidades</p>
+                        <p className="text-sm text-slate-600 font-medium">{config.terminology.entities}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4 p-4 rounded-xl bg-blue-50/80 border border-blue-100">
