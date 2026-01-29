@@ -11,9 +11,9 @@ export type AccountInsert = {
   country_code: string
   name: string
   city?: string
-  type?: "privada" | "pública"
+  type?: string // Dynamic based on workspace (MyWorkIn: privada/pública, MKN: industria)
   website?: string
-  size?: "pequeña" | "mediana" | "grande"
+  size?: string // Dynamic based on workspace (MyWorkIn: pequeña/mediana/grande, MKN: smb/mid/enterprise)
   owner_id?: string
   icp_fit?: number
   stage?: "lead" | "sql" | "opp" | "won" | "lost"

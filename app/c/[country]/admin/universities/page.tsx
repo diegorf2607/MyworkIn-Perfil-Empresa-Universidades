@@ -71,11 +71,15 @@ export default function UniversitiesPage() {
   const [filterStage, setFilterStage] = useState<string>("all")
   const [sortBy, setSortBy] = useState<string>("name")
 
+  // Get default values from workspace config
+  const defaultType = config.terminology.typeOptions[0]?.value || ""
+  const defaultSize = config.terminology.sizeOptions[1]?.value || config.terminology.sizeOptions[0]?.value || ""
+  
   const [newUniversity, setNewUniversity] = useState({
     name: "",
     city: "",
-    type: "privada" as "privada" | "pública",
-    size: "mediana" as "pequeña" | "mediana" | "grande",
+    type: defaultType,
+    size: defaultSize,
   })
 
   const [importResults, setImportResults] = useState<{
@@ -184,17 +188,17 @@ export default function UniversitiesPage() {
           country_code: country,
           name: newUniversity.name,
           city: newUniversity.city || undefined,
-          type: newUniversity.type,
-          size: newUniversity.size,
+          type: newUniversity.type || undefined,
+          size: newUniversity.size || undefined,
           stage: "lead",
           fit_comercial: "medio",
         })
-        toast.success("Universidad creada")
+        toast.success(`${config.terminology.entity} creada`)
         setCreateDialogOpen(false)
-        setNewUniversity({ name: "", city: "", type: "privada", size: "mediana" })
+        setNewUniversity({ name: "", city: "", type: defaultType, size: defaultSize })
         loadData()
       } catch (error) {
-        toast.error("Error al crear universidad")
+        toast.error(`Error al crear ${config.terminology.entity.toLowerCase()}`)
         console.error(error)
       }
     })
@@ -207,8 +211,19 @@ export default function UniversitiesPage() {
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "") // Remove accents
 
-    if (normalized === "privada" || normalized === "private") return "privada"
-    if (normalized === "publica" || normalized === "public" || normalized === "pública") return "pública"
+    // Check if input matches any valid type option for current workspace
+    const matchedOption = config.terminology.typeOptions.find(opt => 
+      opt.value.toLowerCase() === normalized || 
+      opt.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized
+    )
+    if (matchedOption) return matchedOption.value
+
+    // MyWorkIn legacy support
+    if (workspace === "myworkin") {
+      if (normalized === "privada" || normalized === "private") return "privada"
+      if (normalized === "publica" || normalized === "public" || normalized === "pública") return "pública"
+    }
+    
     return null
   }
 
@@ -219,9 +234,27 @@ export default function UniversitiesPage() {
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "") // Remove accents
 
-    if (normalized === "pequena" || normalized === "pequeña" || normalized === "small") return "pequeña"
-    if (normalized === "mediana" || normalized === "medium") return "mediana"
-    if (normalized === "grande" || normalized === "large") return "grande"
+    // Check if input matches any valid size option for current workspace
+    const matchedOption = config.terminology.sizeOptions.find(opt => 
+      opt.value.toLowerCase() === normalized || 
+      opt.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized
+    )
+    if (matchedOption) return matchedOption.value
+
+    // MyWorkIn legacy support
+    if (workspace === "myworkin") {
+      if (normalized === "pequena" || normalized === "pequeña" || normalized === "small") return "pequeña"
+      if (normalized === "mediana" || normalized === "medium") return "mediana"
+      if (normalized === "grande" || normalized === "large") return "grande"
+    }
+    
+    // MKN support
+    if (workspace === "mkn") {
+      if (normalized === "smb" || normalized === "small") return "smb"
+      if (normalized === "mid" || normalized === "mid-market" || normalized === "midmarket" || normalized === "medium") return "mid"
+      if (normalized === "enterprise" || normalized === "large") return "enterprise"
+    }
+    
     return null
   }
 
@@ -247,28 +280,28 @@ export default function UniversitiesPage() {
         const header = lines[0].toLowerCase()
         const headers = header.split(/[,;\t]/).map((h) => h.trim().replace(/"/g, ""))
 
-        // Find required columns
+        // Find required columns - support both Spanish and English headers
         const uniIdx = headers.findIndex(
-          (h) => h === "universidad" || h === "university" || h === "nombre" || h === "name",
+          (h) => h === "universidad" || h === "university" || h === "nombre" || h === "name" || h === "empresa" || h === "company",
         )
         const cityIdx = headers.findIndex((h) => h === "ciudad" || h === "city")
-        const typeIdx = headers.findIndex((h) => h === "tipo" || h === "type")
+        const typeIdx = headers.findIndex((h) => h === "tipo" || h === "type" || h === "industria" || h === "industry")
         const sizeIdx = headers.findIndex((h) => h === "tamaño" || h === "tamano" || h === "size")
 
         if (uniIdx === -1) {
-          toast.error('Columna "Universidad" no encontrada')
+          toast.error(`Columna "${config.terminology.entity}" no encontrada`)
           setCsvPreview(null)
           return
         }
 
         if (typeIdx === -1) {
-          toast.error('Columna "Tipo" no encontrada')
+          toast.error(`Columna "${config.terminology.typeLabel}" no encontrada`)
           setCsvPreview(null)
           return
         }
 
         if (sizeIdx === -1) {
-          toast.error('Columna "Tamaño" no encontrada')
+          toast.error(`Columna "${config.terminology.sizeLabel}" no encontrada`)
           setCsvPreview(null)
           return
         }
@@ -290,10 +323,10 @@ export default function UniversitiesPage() {
 
           const rowErrors: string[] = []
           if (!type) {
-            rowErrors.push(`Tipo "${typeRaw}" inválido (usar: Privada o Pública)`)
+            rowErrors.push(`${config.terminology.typeLabel} "${typeRaw}" inválido (usar: ${config.terminology.typeOptions.map(o => o.label).join(", ")})`)
           }
           if (!size) {
-            rowErrors.push(`Tamaño "${sizeRaw}" inválido (usar: Pequeña, Mediana o Grande)`)
+            rowErrors.push(`${config.terminology.sizeLabel} "${sizeRaw}" inválido (usar: ${config.terminology.sizeOptions.map(o => o.label).join(", ")})`)
           }
 
           if (rowErrors.length > 0) {
@@ -332,8 +365,8 @@ export default function UniversitiesPage() {
             country_code: country.toUpperCase(),
             name: uni.name,
             city: uni.city || undefined,
-            type: uni.type,
-            size: uni.size,
+            type: uni.type || undefined,
+            size: uni.size || undefined,
             stage: "lead",
             fit_comercial: "medio",
           })
@@ -387,7 +420,7 @@ export default function UniversitiesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Base de Universidades</h1>
+          <h1 className="text-2xl font-bold">{config.terminology.databaseTitle}</h1>
           <p className="text-muted-foreground">Tabla maestra de todas las cuentas del país</p>
         </div>
         <div className="flex items-center gap-2">
@@ -417,7 +450,7 @@ export default function UniversitiesPage() {
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Buscar universidad o ciudad..."
+              placeholder={`Buscar ${config.terminology.entity.toLowerCase()} o ciudad...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -511,7 +544,7 @@ export default function UniversitiesPage() {
               {countryAccounts.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    No hay universidades
+                    No hay {config.terminology.entities.toLowerCase()}
                   </TableCell>
                 </TableRow>
               )}
@@ -522,12 +555,12 @@ export default function UniversitiesPage() {
 
       <EntitySheet account={selectedAccount as any} open={sheetOpen} onOpenChange={setSheetOpen} onRefresh={loadData} />
 
-      {/* Create University Dialog */}
+      {/* Create Entity Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Agregar Universidad</DialogTitle>
-            <DialogDescription>Crea una nueva universidad manualmente</DialogDescription>
+            <DialogTitle>Agregar {config.terminology.entity}</DialogTitle>
+            <DialogDescription>Crea una nueva {config.terminology.entity.toLowerCase()} manualmente</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
@@ -535,7 +568,7 @@ export default function UniversitiesPage() {
               <Input
                 value={newUniversity.name}
                 onChange={(e) => setNewUniversity({ ...newUniversity, name: e.target.value })}
-                placeholder="Universidad Nacional..."
+                placeholder={workspace === "mkn" ? "Nombre de la empresa..." : "Universidad Nacional..."}
               />
             </div>
             <div className="space-y-2">
@@ -596,8 +629,8 @@ export default function UniversitiesPage() {
       <Dialog open={uploadDialogOpen} onOpenChange={resetUploadDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Subir Universidades desde CSV</DialogTitle>
-            <DialogDescription>Importa universidades en lote. Las existentes se actualizarán.</DialogDescription>
+            <DialogTitle>Subir {config.terminology.entities} desde CSV</DialogTitle>
+            <DialogDescription>Importa {config.terminology.entities.toLowerCase()} en lote. Las existentes se actualizarán.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -605,18 +638,30 @@ export default function UniversitiesPage() {
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm font-medium mb-2">Formato requerido:</p>
               <code className="text-xs block bg-background p-2 rounded">
-                Universidad,Ciudad,Tipo,Tamaño
-                <br />
-                Universidad Nacional,Lima,Pública,Grande
-                <br />
-                PUCP,Lima,Privada,Mediana
+                {workspace === "mkn" ? (
+                  <>
+                    Empresa,Ciudad,Industria,Tamaño
+                    <br />
+                    Acme Corp,Lima,Tecnología,Mid-Market
+                    <br />
+                    Tech Solutions,CDMX,Servicios,SMB
+                  </>
+                ) : (
+                  <>
+                    Universidad,Ciudad,Tipo,Tamaño
+                    <br />
+                    Universidad Nacional,Lima,Pública,Grande
+                    <br />
+                    PUCP,Lima,Privada,Mediana
+                  </>
+                )}
               </code>
               <div className="mt-2 text-xs text-muted-foreground">
                 <p>
-                  <strong>Tipo:</strong> Privada | Pública
+                  <strong>{config.terminology.typeLabel}:</strong> {config.terminology.typeOptions.map(o => o.label).join(" | ")}
                 </p>
                 <p>
-                  <strong>Tamaño:</strong> Pequeña | Mediana | Grande
+                  <strong>{config.terminology.sizeLabel}:</strong> {config.terminology.sizeOptions.map(o => o.label).join(" | ")}
                 </p>
               </div>
             </div>
@@ -659,7 +704,7 @@ export default function UniversitiesPage() {
                 {/* Valid rows preview */}
                 {csvPreview.valid.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium mb-2">Universidades a importar:</p>
+                    <p className="text-sm font-medium mb-2">{config.terminology.entities} a importar:</p>
                     <ScrollArea className="h-32 border rounded-lg">
                       <div className="p-2 space-y-1">
                         {csvPreview.valid.slice(0, 10).map((uni, i) => (
@@ -750,7 +795,7 @@ export default function UniversitiesPage() {
                     Importando...
                   </>
                 ) : (
-                  `Importar ${csvPreview.valid.length} universidades`
+                  `Importar ${csvPreview.valid.length} ${config.terminology.entities.toLowerCase()}`
                 )}
               </Button>
             )}
