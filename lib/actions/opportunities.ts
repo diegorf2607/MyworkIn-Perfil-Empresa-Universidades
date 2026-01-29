@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { unstable_noStore as noStore } from "next/cache"
+import { type WorkspaceId, DEFAULT_WORKSPACE } from "@/lib/config/workspaces"
 
 export type OpportunityStage = 
   | "primera_reunion_programada"
@@ -33,17 +34,19 @@ export type OpportunityInsert = {
   source?: "inbound" | "outbound" | "referido"
   icp_tier?: "A" | "B" | "C"
   expected_close_date?: string
+  workspace_id?: WorkspaceId
 }
 
 export type OpportunityUpdate = Partial<OpportunityInsert> & { id: string }
 
-export async function getOpportunities(countryCode?: string) {
+export async function getOpportunities(countryCode?: string, workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   // Disable caching - always fetch fresh data
   noStore()
   
   // Use admin client to bypass RLS for read operations
   const supabase = createAdminClient()
   let query = supabase.from("opportunities").select("*, accounts(name, city)")
+    .eq("workspace_id", workspaceId) // Filter by workspace
 
   if (countryCode) {
     query = query.eq("country_code", countryCode)

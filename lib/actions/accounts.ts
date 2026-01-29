@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { unstable_noStore as noStore } from "next/cache"
 import { createActivity } from "./activities"
+import { type WorkspaceId, DEFAULT_WORKSPACE } from "@/lib/config/workspaces"
 
 export type AccountInsert = {
   country_code: string
@@ -28,11 +29,12 @@ export type AccountInsert = {
   last_contact_at?: string
   next_follow_up_at?: string
   next_follow_up_label?: string
+  workspace_id?: WorkspaceId
 }
 
 export type AccountUpdate = Partial<AccountInsert> & { id: string }
 
-export async function getAccounts(countryCode?: string) {
+export async function getAccounts(countryCode?: string, workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   // Disable caching - always fetch fresh data
   noStore()
   
@@ -41,6 +43,7 @@ export async function getAccounts(countryCode?: string) {
   
   // Simple query without joins to avoid potential relationship issues
   let query = supabase.from("accounts").select("*")
+    .eq("workspace_id", workspaceId) // Filter by workspace
 
   if (countryCode) {
     // Normalize to uppercase for consistent matching
@@ -56,7 +59,7 @@ export async function getAccounts(countryCode?: string) {
   return data || []
 }
 
-export async function getAccountsByStage(countryCode: string, stage: string) {
+export async function getAccountsByStage(countryCode: string, stage: string, workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   noStore()
   const supabase = createAdminClient()
   
@@ -64,6 +67,7 @@ export async function getAccountsByStage(countryCode: string, stage: string) {
   const { data, error } = await supabase
     .from("accounts")
     .select("*")
+    .eq("workspace_id", workspaceId) // Filter by workspace
     .eq("country_code", countryCode.toUpperCase())
     .eq("stage", stage)
     .order("created_at", { ascending: false })
@@ -114,6 +118,7 @@ export async function createAccount(account: AccountInsert) {
   const insertData = { 
     ...account, 
     country_code: account.country_code.toUpperCase(),
+    workspace_id: account.workspace_id || DEFAULT_WORKSPACE, // Ensure workspace_id
     last_touch: new Date().toISOString() 
   }
   console.log("[createAccount] Inserting:", JSON.stringify(insertData))

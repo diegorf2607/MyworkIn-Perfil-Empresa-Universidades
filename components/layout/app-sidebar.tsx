@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import MyWorkInLogo from "@/components/MyWorkInLogo"
+import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher"
+import { useWorkspace } from "@/lib/context/workspace-context"
 import {
   Sidebar,
   SidebarContent,
@@ -31,6 +33,7 @@ import {
   Activity,
   Mail,
   Kanban,
+  GraduationCap,
 } from "lucide-react"
 
 interface AppSidebarProps {
@@ -39,11 +42,15 @@ interface AppSidebarProps {
 
 export function AppSidebar({ countryCode }: AppSidebarProps) {
   const pathname = usePathname()
+  const { config, workspace } = useWorkspace()
   const isGlobal = countryCode === "ALL"
   const basePath = isGlobal ? "/all" : `/c/${countryCode}`
 
+  // Colores dinámicos según workspace
+  const sidebarBg = workspace === "mkn" ? "bg-black" : "bg-[#005691]"
+  const WorkspaceIcon = workspace === "mkn" ? Building2 : GraduationCap
+
   if (isGlobal) {
-    // ... existing code for global sidebar ...
     const generalItems = [
       { title: "Overview", href: `${basePath}/overview`, icon: LayoutDashboard },
       { title: "Equipo", href: `${basePath}/team`, icon: Users },
@@ -62,18 +69,29 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
     ]
 
     return (
-      <Sidebar>
+      <Sidebar className={sidebarBg}>
         <SidebarHeader className="border-b border-white/15 px-4 py-3">
-          <Link href="/all/overview" className="flex items-center gap-3">
-            <MyWorkInLogo variant="icon" size="sm" className="text-white" />
-            <div>
-              <h2 className="font-semibold text-white">MyWorkIn CRM</h2>
-              <p className="text-xs text-white/70 flex items-center gap-1">
-                <Globe className="h-3 w-3" />
-                Vista Global
-              </p>
-            </div>
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link href="/all/overview" className="flex items-center gap-3">
+              {workspace === "myworkin" ? (
+                <MyWorkInLogo variant="icon" size="sm" className="text-white" />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+                  <WorkspaceIcon className="h-5 w-5 text-white" />
+                </div>
+              )}
+              <div>
+                <h2 className="font-semibold text-white">{config.displayName}</h2>
+                <p className="text-xs text-white/70 flex items-center gap-1">
+                  <Globe className="h-3 w-3" />
+                  Vista Global
+                </p>
+              </div>
+            </Link>
+          </div>
+          <div className="mt-3">
+            <WorkspaceSwitcher variant="sidebar" />
+          </div>
         </SidebarHeader>
 
         <SidebarContent>
@@ -145,10 +163,10 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
     )
   }
 
-  // Sections: MYWORKIN, CRM, GESTIÓN COMERCIAL, ADMINISTRACIÓN
+  // Sections: Main, CRM, GESTIÓN COMERCIAL, ADMINISTRACIÓN
   // Removed only: "Recursos de Venta" and "Glosario Comercial" (now in Global)
 
-  const myworkinItems = [
+  const mainItems = [
     { title: "Overview", href: `${basePath}/overview`, icon: LayoutDashboard },
     { title: "Scorecards", href: `${basePath}/scorecards`, icon: BarChart3 },
   ]
@@ -163,33 +181,40 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
   const salesItems = [
     { title: "Reuniones", href: `${basePath}/sales/meetings`, icon: Calendar },
     { title: "Secuencias Outbound", href: `${basePath}/sales/sequences`, icon: Mail },
-    // "Recursos de Venta" removido - ahora está en Global
   ]
 
   const adminItems = [
-    { title: "Base de Universidades", href: `${basePath}/admin/universities`, icon: Building2 },
+    { title: config.terminology.databaseTitle, href: `${basePath}/admin/universities`, icon: Building2 },
     { title: "KDM", href: `${basePath}/kdm`, icon: UserCircle },
-    // "Equipo Comercial" y "Glosario Comercial" removidos - ahora están en Global
   ]
 
   return (
-    <Sidebar>
+    <Sidebar className={sidebarBg}>
       <SidebarHeader className="border-b border-white/15 px-4 py-3">
         <Link href={`/c/${countryCode}/overview`} className="flex items-center gap-3">
-          <MyWorkInLogo variant="icon" size="sm" className="text-white" />
+          {workspace === "myworkin" ? (
+            <MyWorkInLogo variant="icon" size="sm" className="text-white" />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+              <WorkspaceIcon className="h-5 w-5 text-white" />
+            </div>
+          )}
           <div>
-            <h2 className="font-semibold text-white">MyWorkIn</h2>
+            <h2 className="font-semibold text-white">{config.shortName}</h2>
           </div>
         </Link>
+        <div className="mt-3">
+          <WorkspaceSwitcher variant="sidebar" />
+        </div>
       </SidebarHeader>
 
       <SidebarContent>
-        {/* MYWORKIN Section */}
+        {/* Main Section */}
         <SidebarGroup>
-          <SidebarGroupLabel>MYWORKIN</SidebarGroupLabel>
+          <SidebarGroupLabel>{config.shortName.toUpperCase()}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {myworkinItems.map((item) => (
+              {mainItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton asChild isActive={pathname === item.href}>
                     <Link href={item.href}>
