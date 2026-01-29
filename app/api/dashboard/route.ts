@@ -5,15 +5,22 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const countryCode = searchParams.get("country") || "ALL"
+    const workspaceId = searchParams.get("workspace") || "myworkin"
     
     const supabase = createAdminClient()
     const isGlobal = countryCode === "ALL"
 
-    // Get active countries
-    const { data: countries } = await supabase
+    // Get active countries filtered by workspace
+    let countriesQuery = supabase
       .from("countries")
       .select("code, name, active")
       .eq("active", true)
+    
+    if (workspaceId) {
+      countriesQuery = countriesQuery.eq("workspace_id", workspaceId)
+    }
+    
+    const { data: countries } = await countriesQuery
 
     const activeCodes = countries?.map((c) => c.code) || []
 
@@ -29,10 +36,17 @@ export async function GET(request: Request) {
       })
     }
 
-    // Build queries
+    // Build queries with workspace filter
     let accountsQuery = supabase.from("accounts").select("*")
     let oppsQuery = supabase.from("opportunities").select("id, stage, mrr, country_code")
     let meetingsQuery = supabase.from("meetings").select("*")
+
+    // Apply workspace filter
+    if (workspaceId) {
+      accountsQuery = accountsQuery.eq("workspace_id", workspaceId)
+      oppsQuery = oppsQuery.eq("workspace_id", workspaceId)
+      meetingsQuery = meetingsQuery.eq("workspace_id", workspaceId)
+    }
 
     if (!isGlobal) {
       accountsQuery = accountsQuery.eq("country_code", countryCode.toUpperCase())

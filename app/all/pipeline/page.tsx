@@ -30,7 +30,7 @@ function isActionOverdue(date: string): boolean {
 }
 
 export default function PipelinePage() {
-  const { config } = useWorkspace()
+  const { workspace, config } = useWorkspace()
   const [view, setView] = useState<"kanban" | "pipeline">("kanban")
   const [deals, setDeals] = useState<PipelineDeal[]>([])
   const [teamMembers, setTeamMembers] = useState<PipelineTeamMember[]>([])
@@ -60,9 +60,9 @@ export default function PipelinePage() {
   const loadData = useCallback(async () => {
     try {
       const [dealsData, teamData, countriesData] = await Promise.all([
-        getPipelineDeals(),
-        getPipelineTeamMembers(),
-        getPipelineCountries()
+        getPipelineDeals(workspace),
+        getPipelineTeamMembers(workspace),
+        getPipelineCountries(workspace)
       ])
       setDeals(dealsData)
       setTeamMembers(teamData)
@@ -74,7 +74,7 @@ export default function PipelinePage() {
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }, [])
+  }, [workspace])
 
   useEffect(() => {
     loadData()

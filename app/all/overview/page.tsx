@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Building2, Users, TrendingUp, Trophy, XCircle, DollarSign, Calendar, Target, Globe, Loader2 } from "lucide-react"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Metrics {
   totalAccounts: number
@@ -26,15 +27,21 @@ interface Country {
 }
 
 export default function GlobalOverviewPage() {
+  const { workspace, config } = useWorkspace()
   const [metrics, setMetrics] = useState<Metrics | null>(null)
   const [countries, setCountries] = useState<Country[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Dynamic colors based on workspace
+  const primaryColor = config.theme.primary
+  const accentColor = config.theme.accent
+  const isMKN = workspace === "mkn"
+
   useEffect(() => {
     async function loadData() {
       try {
-        const response = await fetch("/api/dashboard?country=ALL")
+        const response = await fetch(`/api/dashboard?country=ALL&workspace=${workspace}`)
         const data = await response.json()
         
         if (!data.success) {
@@ -54,12 +61,12 @@ export default function GlobalOverviewPage() {
       }
     }
     loadData()
-  }, [])
+  }, [workspace])
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#005691]" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: primaryColor }} />
       </div>
     )
   }
@@ -75,7 +82,13 @@ export default function GlobalOverviewPage() {
   const activeCountries = countries.filter((c) => c.active)
 
   const mainKpis = [
-    { label: "Total Universidades", value: metrics.totalAccounts, icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
+    { 
+      label: `Total ${config.terminology.entities}`, 
+      value: metrics.totalAccounts, 
+      icon: Building2, 
+      color: isMKN ? "text-slate-900" : "text-blue-600", 
+      bg: isMKN ? "bg-slate-100" : "bg-blue-50" 
+    },
     { label: "Leads Activos", value: metrics.leads, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
     { label: "Oportunidades", value: metrics.oppsActive, icon: TrendingUp, color: "text-orange-600", bg: "bg-orange-50" },
     { label: "MRR Won", value: `$${metrics.mrrWon.toLocaleString()}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
@@ -155,22 +168,31 @@ export default function GlobalOverviewPage() {
               const countryMetrics = metrics.byCountry?.[country.code]
               return (
                 <Card key={country.code} className="overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-                  <div className="h-2 bg-[#005691] w-full" />
+                  <div className="h-2 w-full" style={{ backgroundColor: primaryColor }} />
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-[#005691]">
+                        <div 
+                          className="flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold"
+                          style={{ 
+                            backgroundColor: isMKN ? "#f1f5f9" : "#eff6ff",
+                            color: primaryColor 
+                          }}
+                        >
                           {country.code}
                         </div>
                         <span className="font-bold text-lg text-slate-900">{country.name}</span>
                       </div>
-                      <Globe className="h-5 w-5 text-slate-300 group-hover:text-[#005691] transition-colors" />
+                      <Globe 
+                        className="h-5 w-5 text-slate-300 transition-colors" 
+                        style={{ "--hover-color": primaryColor } as React.CSSProperties}
+                      />
                     </div>
                     
                     <div className="grid grid-cols-4 gap-3 border-t border-slate-50 pt-4">
                       <div className="text-center">
                         <p className="text-xl font-bold text-slate-900">{countryMetrics?.accounts || 0}</p>
-                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">Unis</p>
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">{config.terminology.entityShort}</p>
                       </div>
                       <div className="text-center border-l border-slate-100">
                         <p className="text-xl font-bold text-slate-900">{countryMetrics?.sqls || 0}</p>
@@ -183,7 +205,7 @@ export default function GlobalOverviewPage() {
                         <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">Won</p>
                       </div>
                       <div className="text-center border-l border-slate-100">
-                        <p className="text-xl font-bold text-blue-600">
+                        <p className="text-xl font-bold" style={{ color: isMKN ? "#1e293b" : "#2563eb" }}>
                           ${(countryMetrics?.mrr || 0).toLocaleString()}
                         </p>
                         <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">Pipeline</p>

@@ -89,16 +89,23 @@ function getStatusFromStage(stage: OpportunityStage): "activo" | "won" | "lost" 
 
 // Obtener todos los deals para el Pipeline
 // Combina accounts (sql, opp) + opportunities (won, lost con MRR)
-export async function getPipelineDeals(): Promise<PipelineDeal[]> {
+export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDeal[]> {
   noStore()
   const supabase = createAdminClient()
   
   // 1. Obtener cuentas en etapas sql y opp
-  const { data: accounts, error: accError } = await supabase
+  let accountsQuery = supabase
     .from("accounts")
     .select("*")
     .in("stage", ["sql", "opp"])
     .order("updated_at", { ascending: false })
+  
+  // Filtrar por workspace si se proporciona
+  if (workspaceId) {
+    accountsQuery = accountsQuery.eq("workspace_id", workspaceId)
+  }
+
+  const { data: accounts, error: accError } = await accountsQuery
 
   if (accError) {
     console.error("Error fetching accounts:", accError)
@@ -106,11 +113,17 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
   }
 
   // 2. Obtener opportunities won y lost (tienen MRR)
-  const { data: opportunities, error: oppsError } = await supabase
+  let oppsQuery = supabase
     .from("opportunities")
     .select("*, accounts(id, name, city, country_code, owner_id, source, fit_comercial)")
     .in("stage", ["won", "lost"])
     .order("updated_at", { ascending: false })
+  
+  if (workspaceId) {
+    oppsQuery = oppsQuery.eq("workspace_id", workspaceId)
+  }
+
+  const { data: opportunities, error: oppsError } = await oppsQuery
 
   if (oppsError) {
     console.error("Error fetching opportunities:", oppsError)
@@ -242,14 +255,20 @@ export async function getPipelineDeals(): Promise<PipelineDeal[]> {
 }
 
 // Obtener miembros del equipo para filtros
-export async function getPipelineTeamMembers(): Promise<PipelineTeamMember[]> {
+export async function getPipelineTeamMembers(workspaceId?: string): Promise<PipelineTeamMember[]> {
   const supabase = createAdminClient()
   
-  const { data, error } = await supabase
+  let query = supabase
     .from("team_members")
     .select("id, name, role")
     .eq("is_active", true)
     .order("name")
+
+  if (workspaceId) {
+    query = query.eq("workspace_id", workspaceId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error("Error fetching team members:", error)
@@ -483,14 +502,20 @@ export async function markActionComplete(dealId: string): Promise<void> {
 }
 
 // Obtener países activos
-export async function getPipelineCountries(): Promise<{ code: string; name: string }[]> {
+export async function getPipelineCountries(workspaceId?: string): Promise<{ code: string; name: string }[]> {
   const supabase = createAdminClient()
   
-  const { data, error } = await supabase
+  let query = supabase
     .from("countries")
     .select("code, name")
     .eq("active", true)
     .order("name")
+
+  if (workspaceId) {
+    query = query.eq("workspace_id", workspaceId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error("Error fetching countries:", error)
