@@ -114,15 +114,21 @@ export function PipelineSummary({ deals, allDeals }: PipelineSummaryProps) {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-white">
+        <Card 
+          className="border-0 shadow-sm"
+          style={{ background: `linear-gradient(to bottom right, ${config.theme.primary}10, white)` }}
+        >
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                <Target className="h-6 w-6 text-blue-600" />
+              <div 
+                className="h-12 w-12 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: `${config.theme.primary}20` }}
+              >
+                <Target className="h-6 w-6" style={{ color: config.theme.primary }} />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pipeline Ponderado</p>
-                <p className="text-2xl font-bold text-blue-700">
+                <p className="text-2xl font-bold" style={{ color: config.theme.primary }}>
                   ${Math.round(weightedPipeline).toLocaleString()}
                 </p>
                 <p className="text-xs text-muted-foreground">MRR ajustado por prob.</p>

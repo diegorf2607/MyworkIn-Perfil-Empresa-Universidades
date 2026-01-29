@@ -304,11 +304,19 @@ export default function PipelinePage() {
           {/* Toggle Kanban / Pipeline */}
           <Tabs value={view} onValueChange={(v) => setView(v as "kanban" | "pipeline")}>
             <TabsList className="grid grid-cols-2 w-[220px]">
-              <TabsTrigger value="kanban" className="gap-2">
+              <TabsTrigger 
+                value="kanban" 
+                className="gap-2 data-[state=active]:text-white"
+                style={view === "kanban" ? { backgroundColor: config.theme.primary } : {}}
+              >
                 <Kanban className="h-4 w-4" />
                 Kanban
               </TabsTrigger>
-              <TabsTrigger value="pipeline" className="gap-2">
+              <TabsTrigger 
+                value="pipeline" 
+                className="gap-2 data-[state=active]:text-white"
+                style={view === "pipeline" ? { backgroundColor: config.theme.primary } : {}}
+              >
                 <BarChart3 className="h-4 w-4" />
                 Pipeline
               </TabsTrigger>

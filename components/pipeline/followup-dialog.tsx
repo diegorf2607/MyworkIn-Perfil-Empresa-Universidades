@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { CalendarClock } from "lucide-react"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 export interface FollowUpData {
   type: string
@@ -54,6 +55,7 @@ export function FollowUpDialog({
   onConfirm,
   onCancel,
 }: FollowUpDialogProps) {
+  const { config } = useWorkspace()
   const [followUpType, setFollowUpType] = useState("")
   const [followUpDate, setFollowUpDate] = useState("")
   const [description, setDescription] = useState("")
@@ -99,7 +101,7 @@ export function FollowUpDialog({
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CalendarClock className="h-5 w-5 text-blue-600" />
+            <CalendarClock className="h-5 w-5" style={{ color: config.theme.primary }} />
             Configurar Seguimiento
           </DialogTitle>
           <DialogDescription>
@@ -156,7 +158,8 @@ export function FollowUpDialog({
           <Button 
             onClick={handleConfirm}
             disabled={!followUpType || !followUpDate}
-            className="bg-[#005691] hover:bg-[#004a7c]"
+            style={{ backgroundColor: config.theme.primary }}
+            className="hover:opacity-90"
           >
             Confirmar y Mover
           </Button>
