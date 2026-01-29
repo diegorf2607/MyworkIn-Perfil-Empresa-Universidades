@@ -25,6 +25,7 @@ import { getTasks, createTask, updateTask } from "@/lib/actions/tasks"
 import { getAccounts } from "@/lib/actions/accounts"
 import { getOpportunities } from "@/lib/actions/opportunities"
 import { getMeetings } from "@/lib/actions/meetings"
+import { useWorkspace } from "@/lib/context/workspace-context"
 
 interface Scorecard {
   id: string
@@ -49,6 +50,7 @@ interface Task {
 
 export default function ScorecardsPage() {
   const { country } = useParams<{ country: string }>()
+  const { workspace, config } = useWorkspace()
   const [isPending, startTransition] = useTransition()
   const [isLoading, setIsLoading] = useState(true)
 
@@ -73,9 +75,9 @@ export default function ScorecardsPage() {
       const [scorecardsData, tasksData, accountsData, oppsData, meetingsData] = await Promise.all([
         getScorecards(country),
         getTasks(country),
-        getAccounts(country),
-        getOpportunities(country),
-        getMeetings(country),
+        getAccounts(country, workspace),
+        getOpportunities(country, workspace),
+        getMeetings(country, workspace),
       ])
 
       setScorecards((scorecardsData as Scorecard[]) || [])
@@ -113,7 +115,7 @@ export default function ScorecardsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [country])
+  }, [country, workspace])
 
   useEffect(() => {
     loadData()

@@ -32,6 +32,7 @@ export interface WorkspaceTerminology {
   databaseTitle: string // "Base de Universidades" | "Base de Cuentas"
   
   // Leads
+  leadsTitle: string // "Leads (ICP)" | "Leads"
   leadsSubtitle: string
   
   // Búsqueda
@@ -41,13 +42,17 @@ export interface WorkspaceTerminology {
   closedTitle: string
   wonLabel: string
   
-  // Tipo (pública/privada vs SMB/Enterprise)
+  // Tipo (pública/privada vs Industria)
   typeLabel: string
   typeOptions: { value: string; label: string }[]
   
   // Tamaño
   sizeLabel: string
   sizeOptions: { value: string; label: string }[]
+  
+  // Sidebar labels
+  funnelLeads: string // "Leads (ICP)" | "Leads"
+  funnelWon: string // "Cerradas Won" | "Clientes"
 }
 
 // Configuración de MyWorkIn (CRM Universidades)
@@ -72,6 +77,7 @@ export const MYWORKIN_CONFIG: WorkspaceConfig = {
     entities: "Universidades",
     entityShort: "UNIS",
     databaseTitle: "Base de Universidades",
+    leadsTitle: "Leads (ICP)",
     leadsSubtitle: "Universidades que encajan con nuestro cliente ideal",
     searchPlaceholder: "Buscar universidades, contactos...",
     closedTitle: "Universidades Cerradas",
@@ -87,6 +93,8 @@ export const MYWORKIN_CONFIG: WorkspaceConfig = {
       { value: "mediana", label: "Mediana" },
       { value: "grande", label: "Grande" },
     ],
+    funnelLeads: "Leads (ICP)",
+    funnelWon: "Cerradas Won",
   },
 }
 
@@ -112,6 +120,7 @@ export const MKN_CONFIG: WorkspaceConfig = {
     entities: "Cuentas",
     entityShort: "Cuentas",
     databaseTitle: "Base de Cuentas",
+    leadsTitle: "Leads",
     leadsSubtitle: "Cuentas que encajan con nuestro cliente ideal",
     searchPlaceholder: "Buscar cuentas, contactos...",
     closedTitle: "Cuentas Cerradas",
@@ -132,6 +141,8 @@ export const MKN_CONFIG: WorkspaceConfig = {
       { value: "mid", label: "Mid-Market" },
       { value: "enterprise", label: "Enterprise" },
     ],
+    funnelLeads: "Leads",
+    funnelWon: "Clientes",
   },
 }
 

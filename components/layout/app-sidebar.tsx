@@ -172,10 +172,10 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
   ]
 
   const crmItems = [
-    { title: "Leads (ICP)", href: `${basePath}/crm/leads`, icon: Users },
+    { title: config.terminology.leadsTitle, href: `${basePath}/crm/leads`, icon: Users },
     { title: "SQLs", href: `${basePath}/crm/sqls`, icon: Target },
     { title: "Oportunidades", href: `${basePath}/crm/opps`, icon: TrendingUp },
-    { title: "Cerradas", href: `${basePath}/crm/closed`, icon: Trophy },
+    { title: config.terminology.closedTitle, href: `${basePath}/crm/closed`, icon: Trophy },
   ]
 
   const salesItems = [
