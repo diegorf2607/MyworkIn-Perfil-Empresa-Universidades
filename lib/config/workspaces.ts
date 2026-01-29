@@ -104,8 +104,8 @@ export const MKN_CONFIG: WorkspaceConfig = {
     sidebar: "#000000",
     sidebarForeground: "#ffffff",
     sidebarAccent: "#333333",
-    logo: "/images/mkn-logo.png", // Placeholder - reemplazar luego
-    logoWhite: "/images/mkn-logo-white.png", // Placeholder - reemplazar luego
+    logo: "/images/myworkin-icon-white.png", // Usando logo blanco existente
+    logoWhite: "/images/myworkin-icon-white.png", // Usando logo blanco existente
   },
   terminology: {
     entity: "Cuenta",
