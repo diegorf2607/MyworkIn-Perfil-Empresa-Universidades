@@ -171,7 +171,7 @@ export default function CountriesPage() {
     startTransition(async () => {
       try {
         if (existingCountry) {
-          await updateCountry(codeUpper, { active: true, name })
+          await updateCountry(codeUpper, { active: true, name }, workspace)
           setCountries((prev) =>
             prev.map((country) =>
               country.code === codeUpper ? { ...country, name, active: true } : country,
@@ -197,7 +197,7 @@ export default function CountriesPage() {
   const handleToggleActive = (code: string, currentActive: boolean) => {
     startTransition(async () => {
       try {
-        await updateCountry(code, { active: !currentActive })
+        await updateCountry(code, { active: !currentActive }, workspace)
         toast.success(currentActive ? "País desactivado" : "País activado")
         loadData()
       } catch (error) {
@@ -216,7 +216,7 @@ export default function CountriesPage() {
 
     startTransition(async () => {
       try {
-        await deleteCountry(code)
+        await deleteCountry(code, workspace)
         toast.success(`${name} eliminado`)
         loadData()
       } catch (error) {

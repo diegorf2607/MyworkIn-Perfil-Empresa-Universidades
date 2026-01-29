@@ -88,9 +88,14 @@ export async function addCountry(code: string, name: string, workspaceId: Worksp
   const supabase = createAdminClient()
   const codeUpper = code.toUpperCase()
 
+  // Use composite key conflict resolution (code + workspace_id)
+  // This allows the same country code to exist in different workspaces
   const { data, error } = await supabase
     .from("countries")
-    .upsert({ code: codeUpper, name, active: true, workspace_id: workspaceId }, { onConflict: "code" })
+    .upsert(
+      { code: codeUpper, name, active: true, workspace_id: workspaceId }, 
+      { onConflict: "code,workspace_id" }
+    )
     .select()
     .single()
 
@@ -103,12 +108,13 @@ export async function addCountry(code: string, name: string, workspaceId: Worksp
   return data
 }
 
-export async function updateCountry(code: string, updates: { name?: string; active?: boolean }) {
+export async function updateCountry(code: string, updates: { name?: string; active?: boolean }, workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("countries")
     .update(updates)
     .eq("code", code.toUpperCase())
+    .eq("workspace_id", workspaceId)
     .select()
     .single()
 
@@ -121,9 +127,13 @@ export async function updateCountry(code: string, updates: { name?: string; acti
   return data
 }
 
-export async function deleteCountry(code: string) {
+export async function deleteCountry(code: string, workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   const supabase = createAdminClient()
-  const { error } = await supabase.from("countries").delete().eq("code", code.toUpperCase())
+  const { error } = await supabase
+    .from("countries")
+    .delete()
+    .eq("code", code.toUpperCase())
+    .eq("workspace_id", workspaceId)
 
   if (error) throw error
   revalidatePath("/countries")
