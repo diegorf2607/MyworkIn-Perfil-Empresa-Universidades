@@ -1,5 +1,6 @@
 "use client"
 
+// CSV Import: Empresa,Tamaño,Industria,Website (MKN) | Universidad,Ciudad,Tipo,Tamaño (MyWorkIn)
 import type React from "react"
 
 import { useState, useMemo, useEffect, useCallback, useTransition, useRef } from "react"
