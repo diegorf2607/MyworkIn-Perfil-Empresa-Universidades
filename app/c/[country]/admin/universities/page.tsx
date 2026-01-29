@@ -88,7 +88,7 @@ export default function UniversitiesPage() {
     errors: { row: number; name: string; message: string }[]
   } | null>(null)
   const [csvPreview, setCsvPreview] = useState<{
-    valid: { name: string; city: string; type: string; size: string }[]
+    valid: { name: string; city: string; type: string; size: string; website: string }[]
     errors: { row: number; name: string; message: string }[]
   } | null>(null)
   const [csvFile, setCsvFile] = useState<File | null>(null)
@@ -278,6 +278,7 @@ export default function UniversitiesPage() {
         const cityIdx = headers.findIndex((h) => h === "ciudad" || h === "city")
         const typeIdx = headers.findIndex((h) => h === "tipo" || h === "type" || h === "industria" || h === "industry")
         const sizeIdx = headers.findIndex((h) => h === "tamaño" || h === "tamano" || h === "size")
+        const websiteIdx = headers.findIndex((h) => h === "website" || h === "sitio" || h === "web" || h === "url")
 
         if (uniIdx === -1) {
           toast.error(`Columna "${config.terminology.entity}" no encontrada`)
@@ -297,7 +298,7 @@ export default function UniversitiesPage() {
           return
         }
 
-        const valid: { name: string; city: string; type: string; size: string }[] = []
+        const valid: { name: string; city: string; type: string; size: string; website: string }[] = []
         const errors: { row: number; name: string; message: string }[] = []
 
         for (let i = 1; i < lines.length; i++) {
@@ -306,6 +307,7 @@ export default function UniversitiesPage() {
           const city = cityIdx !== -1 ? values[cityIdx]?.trim() : ""
           const typeRaw = values[typeIdx]?.trim() || ""
           const sizeRaw = values[sizeIdx]?.trim() || ""
+          const website = websiteIdx !== -1 ? values[websiteIdx]?.trim() : ""
 
           if (!name) continue // Skip empty rows
 
@@ -323,7 +325,7 @@ export default function UniversitiesPage() {
           if (rowErrors.length > 0) {
             errors.push({ row: i + 1, name, message: rowErrors.join("; ") })
           } else {
-            valid.push({ name, city, type: type!, size: size! })
+            valid.push({ name, city, type: type!, size: size!, website })
           }
         }
 
@@ -358,6 +360,7 @@ export default function UniversitiesPage() {
             city: uni.city || undefined,
             type: uni.type || undefined,
             size: uni.size || undefined,
+            website: uni.website || undefined,
             stage: "lead",
             fit_comercial: "medio",
           })
@@ -631,11 +634,11 @@ export default function UniversitiesPage() {
               <code className="text-xs block bg-background p-2 rounded">
                 {workspace === "mkn" ? (
                   <>
-                    Empresa,Ciudad,Industria,Tamaño
+                    Empresa,Tamaño,Industria,Website
                     <br />
-                    Acme Corp,Lima,Tecnología,Grande
+                    Acme Corp,Grande,Tecnología,acme.com
                     <br />
-                    Tech Solutions,CDMX,Servicios,Mediana
+                    Tech Solutions,Mediana,Servicios,
                   </>
                 ) : (
                   <>
@@ -702,7 +705,10 @@ export default function UniversitiesPage() {
                           <div key={i} className="text-sm flex gap-2">
                             <span className="font-medium">{uni.name}</span>
                             <span className="text-muted-foreground">
-                              {uni.city && `• ${uni.city}`} • {uni.type} • {uni.size}
+                              {workspace === "mkn" 
+                                ? `• ${uni.type} • ${uni.size}${uni.website ? ` • ${uni.website}` : ""}`
+                                : `${uni.city ? `• ${uni.city}` : ""} • ${uni.type} • ${uni.size}`
+                              }
                             </span>
                           </div>
                         ))}
