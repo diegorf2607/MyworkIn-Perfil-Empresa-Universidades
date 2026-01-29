@@ -241,19 +241,10 @@ export default function UniversitiesPage() {
     )
     if (matchedOption) return matchedOption.value
 
-    // MyWorkIn legacy support
-    if (workspace === "myworkin") {
-      if (normalized === "pequena" || normalized === "pequeña" || normalized === "small") return "pequeña"
-      if (normalized === "mediana" || normalized === "medium") return "mediana"
-      if (normalized === "grande" || normalized === "large") return "grande"
-    }
-    
-    // MKN support
-    if (workspace === "mkn") {
-      if (normalized === "smb" || normalized === "small") return "smb"
-      if (normalized === "mid" || normalized === "mid-market" || normalized === "midmarket" || normalized === "medium") return "mid"
-      if (normalized === "enterprise" || normalized === "large") return "enterprise"
-    }
+    // Common size values support
+    if (normalized === "pequena" || normalized === "pequeña" || normalized === "small") return "pequeña"
+    if (normalized === "mediana" || normalized === "medium") return "mediana"
+    if (normalized === "grande" || normalized === "large") return "grande"
     
     return null
   }
@@ -642,9 +633,9 @@ export default function UniversitiesPage() {
                   <>
                     Empresa,Ciudad,Industria,Tamaño
                     <br />
-                    Acme Corp,Lima,Tecnología,Mid-Market
+                    Acme Corp,Lima,Tecnología,Grande
                     <br />
-                    Tech Solutions,CDMX,Servicios,SMB
+                    Tech Solutions,CDMX,Servicios,Mediana
                   </>
                 ) : (
                   <>

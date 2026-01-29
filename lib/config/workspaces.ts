@@ -218,9 +218,9 @@ export const MKN_CONFIG: WorkspaceConfig = {
     ],
     sizeLabel: "Tamaño",
     sizeOptions: [
-      { value: "smb", label: "SMB" },
-      { value: "mid", label: "Mid-Market" },
-      { value: "enterprise", label: "Enterprise" },
+      { value: "pequeña", label: "Pequeña" },
+      { value: "mediana", label: "Mediana" },
+      { value: "grande", label: "Grande" },
     ],
     funnelLeads: "Leads",
     funnelWon: "Clientes",
