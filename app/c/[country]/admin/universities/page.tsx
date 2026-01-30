@@ -379,10 +379,11 @@ export default function UniversitiesPage() {
             updated++
           }
         } catch (error: any) {
+          console.error(`[CSV Import] Error for "${uni.name}":`, error)
           importErrors.push({
             row: 0,
             name: uni.name,
-            message: error?.message || "Error desconocido",
+            message: error?.message || error?.toString() || "Error desconocido",
           })
         }
       }

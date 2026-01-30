@@ -227,12 +227,23 @@ export async function upsertAccount(account: AccountInsert): Promise<{ created: 
     if (error) throw error
     return { created: false, data }
   } else {
-    // Create new - ensure workspace_id is set
-    const insertData = {
-      ...account,
+    // Create new - build insert data carefully
+    const insertData: Record<string, any> = {
+      country_code: account.country_code,
+      name: account.name,
+      stage: account.stage || "lead",
+      fit_comercial: account.fit_comercial || "medio",
       workspace_id: workspaceId,
       last_touch: new Date().toISOString(),
     }
+    
+    // Only add optional fields if they have values
+    if (account.city) insertData.city = account.city
+    if (account.type) insertData.type = account.type
+    if (account.size) insertData.size = account.size
+    if (account.website) insertData.website = account.website
+    
+    console.log("[upsertAccount] Inserting new account:", JSON.stringify(insertData))
     
     const { data, error } = await supabase
       .from("accounts")
@@ -240,8 +251,12 @@ export async function upsertAccount(account: AccountInsert): Promise<{ created: 
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error("[upsertAccount] Insert error:", error.message, error.details, error.hint)
+      throw new Error(`Error creating "${account.name}": ${error.message}`)
+    }
 
+    // Create activity (non-blocking)
     try {
       await createActivity({
         account_id: data.id,
@@ -250,6 +265,7 @@ export async function upsertAccount(account: AccountInsert): Promise<{ created: 
         owner_id: account.owner_id,
         summary: `${workspaceId === "mkn" ? "Empresa" : "Universidad"} "${account.name}" importada como ${account.stage?.toUpperCase() || "Lead"}`,
         date_time: new Date().toISOString(),
+        workspace_id: workspaceId,
         details: {
           stage: account.stage,
           city: account.city,
@@ -257,7 +273,8 @@ export async function upsertAccount(account: AccountInsert): Promise<{ created: 
         },
       })
     } catch (e) {
-      console.error("Error creating activity for account:", e)
+      // Don't fail the import if activity creation fails
+      console.error("[upsertAccount] Error creating activity (non-blocking):", e)
     }
 
     return { created: true, data }

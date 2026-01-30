@@ -28,6 +28,7 @@ export type ActivityInsert = {
   subject?: string
   requires_follow_up?: boolean
   details?: Record<string, unknown>
+  workspace_id?: string
 }
 
 export type ActivityUpdate = Partial<ActivityInsert> & { id: string }
