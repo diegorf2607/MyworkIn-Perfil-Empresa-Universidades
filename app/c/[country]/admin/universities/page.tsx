@@ -359,32 +359,30 @@ export default function UniversitiesPage() {
       const importErrors: { row: number; name: string; message: string }[] = [...csvPreview.errors]
 
       for (const uni of csvPreview.valid) {
-        try {
-          // Use upsertAccount which handles create/update logic server-side
-          const result = await upsertAccount({
-            country_code: country.toUpperCase(),
-            name: uni.name,
-            city: uni.city || undefined,
-            type: uni.type || undefined,
-            size: uni.size || undefined,
-            website: uni.website || undefined,
-            stage: "lead",
-            fit_comercial: "medio",
-            workspace_id: workspace,
-          })
-          
-          if (result.created) {
-            created++
-          } else {
-            updated++
-          }
-        } catch (error: any) {
-          console.error(`[CSV Import] Error for "${uni.name}":`, error)
+        // Use upsertAccount which handles create/update logic server-side
+        const result = await upsertAccount({
+          country_code: country.toUpperCase(),
+          name: uni.name,
+          city: uni.city || undefined,
+          type: uni.type || undefined,
+          size: uni.size || undefined,
+          website: uni.website || undefined,
+          stage: "lead",
+          fit_comercial: "medio",
+          workspace_id: workspace,
+        })
+        
+        if (result.error) {
+          console.error(`[CSV Import] Error for "${uni.name}":`, result.error)
           importErrors.push({
             row: 0,
             name: uni.name,
-            message: error?.message || error?.toString() || "Error desconocido",
+            message: result.error,
           })
+        } else if (result.created) {
+          created++
+        } else {
+          updated++
         }
       }
 

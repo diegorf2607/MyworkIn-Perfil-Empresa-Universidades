@@ -187,97 +187,100 @@ export async function updateAccount(update: AccountUpdate) {
 }
 
 // Upsert: create if not exists, update if exists (for CSV import)
-export async function upsertAccount(account: AccountInsert): Promise<{ created: boolean; data: any }> {
-  const supabase = createAdminClient()
-  const workspaceId = account.workspace_id || DEFAULT_WORKSPACE
+export async function upsertAccount(account: AccountInsert): Promise<{ created: boolean; data: any; error?: string }> {
+  try {
+    const supabase = createAdminClient()
+    const workspaceId = account.workspace_id || DEFAULT_WORKSPACE
 
-  // Check if exists (within same workspace)
-  let query = supabase
-    .from("accounts")
-    .select("id")
-    .eq("country_code", account.country_code)
-    .ilike("name", account.name.trim())
-    .limit(1)
-  
-  // Filter by workspace
-  if (workspaceId === "mkn") {
-    query = query.eq("workspace_id", "mkn")
-  }
-
-  const { data: existingRows } = await query
-  const existing = existingRows && existingRows.length > 0 ? existingRows[0] : null
-
-  if (existing) {
-    // Update existing
-    const updateData: Record<string, any> = {
-      updated_at: new Date().toISOString(),
-    }
-    if (account.city !== undefined) updateData.city = account.city
-    if (account.type !== undefined) updateData.type = account.type
-    if (account.size !== undefined) updateData.size = account.size
-    if (account.website !== undefined) updateData.website = account.website
-
-    const { data, error } = await supabase
+    // Check if exists (within same workspace)
+    let query = supabase
       .from("accounts")
-      .update(updateData)
-      .eq("id", existing.id)
-      .select()
-      .single()
-
-    if (error) throw error
-    return { created: false, data }
-  } else {
-    // Create new - build insert data carefully
-    const insertData: Record<string, any> = {
-      country_code: account.country_code,
-      name: account.name,
-      stage: account.stage || "lead",
-      fit_comercial: account.fit_comercial || "medio",
-      workspace_id: workspaceId,
-      last_touch: new Date().toISOString(),
-    }
+      .select("id")
+      .eq("country_code", account.country_code)
+      .ilike("name", account.name.trim())
+      .limit(1)
     
-    // Only add optional fields if they have values
-    if (account.city) insertData.city = account.city
-    if (account.type) insertData.type = account.type
-    if (account.size) insertData.size = account.size
-    if (account.website) insertData.website = account.website
-    
-    console.log("[upsertAccount] Inserting new account:", JSON.stringify(insertData))
-    
-    const { data, error } = await supabase
-      .from("accounts")
-      .insert(insertData)
-      .select()
-      .single()
-
-    if (error) {
-      console.error("[upsertAccount] Insert error:", error.message, error.details, error.hint)
-      throw new Error(`Error creating "${account.name}": ${error.message}`)
+    // Filter by workspace
+    if (workspaceId === "mkn") {
+      query = query.eq("workspace_id", "mkn")
     }
 
-    // Create activity (non-blocking)
-    try {
-      await createActivity({
+    const { data: existingRows, error: queryError } = await query
+    
+    if (queryError) {
+      console.error("[upsertAccount] Query error:", queryError)
+      return { created: false, data: null, error: queryError.message }
+    }
+    
+    const existing = existingRows && existingRows.length > 0 ? existingRows[0] : null
+
+    if (existing) {
+      // Update existing
+      const updateData: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      }
+      if (account.city !== undefined) updateData.city = account.city
+      if (account.type !== undefined) updateData.type = account.type
+      if (account.size !== undefined) updateData.size = account.size
+      if (account.website !== undefined) updateData.website = account.website
+
+      const { data, error } = await supabase
+        .from("accounts")
+        .update(updateData)
+        .eq("id", existing.id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error("[upsertAccount] Update error:", error)
+        return { created: false, data: null, error: error.message }
+      }
+      return { created: false, data }
+    } else {
+      // Create new - build insert data carefully
+      const insertData: Record<string, any> = {
+        country_code: account.country_code,
+        name: account.name.trim(),
+        stage: account.stage || "lead",
+        fit_comercial: account.fit_comercial || "medio",
+        workspace_id: workspaceId,
+        last_touch: new Date().toISOString(),
+      }
+      
+      // Only add optional fields if they have values
+      if (account.city) insertData.city = account.city
+      if (account.type) insertData.type = account.type
+      if (account.size) insertData.size = account.size
+      if (account.website) insertData.website = account.website
+      
+      const { data, error } = await supabase
+        .from("accounts")
+        .insert(insertData)
+        .select()
+        .single()
+
+      if (error) {
+        console.error("[upsertAccount] Insert error:", error.message, error.details, error.hint)
+        return { created: false, data: null, error: `${error.message}${error.hint ? ` (${error.hint})` : ""}` }
+      }
+
+      // Create activity (non-blocking, don't await)
+      createActivity({
         account_id: data.id,
         country_code: account.country_code,
         type: "account_created",
         owner_id: account.owner_id,
-        summary: `${workspaceId === "mkn" ? "Empresa" : "Universidad"} "${account.name}" importada como ${account.stage?.toUpperCase() || "Lead"}`,
+        summary: `${workspaceId === "mkn" ? "Empresa" : "Universidad"} "${account.name}" importada`,
         date_time: new Date().toISOString(),
         workspace_id: workspaceId,
-        details: {
-          stage: account.stage,
-          city: account.city,
-          source: "csv_import",
-        },
-      })
-    } catch (e) {
-      // Don't fail the import if activity creation fails
-      console.error("[upsertAccount] Error creating activity (non-blocking):", e)
-    }
+        details: { stage: account.stage, source: "csv_import" },
+      }).catch(e => console.error("[upsertAccount] Activity error (ignored):", e))
 
-    return { created: true, data }
+      return { created: true, data }
+    }
+  } catch (e: any) {
+    console.error("[upsertAccount] Unexpected error:", e)
+    return { created: false, data: null, error: e?.message || "Error inesperado" }
   }
 }
 
