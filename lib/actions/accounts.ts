@@ -56,12 +56,16 @@ export async function getAccounts(countryCode?: string, workspaceId: WorkspaceId
     query = query.eq("country_code", countryCode.toUpperCase())
   }
 
+  console.log(`[getAccounts] Fetching for workspace=${workspaceId}, country=${countryCode}`)
+
   const { data, error } = await query.order("created_at", { ascending: false })
 
   if (error) {
     console.error("Error in getAccounts:", error)
     throw error
   }
+  
+  console.log(`[getAccounts] Found ${data?.length || 0} accounts`)
   return data || []
 }
 
