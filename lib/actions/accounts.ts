@@ -204,7 +204,8 @@ export async function upsertAccount(account: AccountInsert): Promise<{ created: 
     query = query.eq("workspace_id", "mkn")
   }
 
-  const { data: existing } = await query.single()
+  const { data: existingRows } = await query
+  const existing = existingRows && existingRows.length > 0 ? existingRows[0] : null
 
   if (existing) {
     // Update existing
