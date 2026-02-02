@@ -34,6 +34,74 @@ export type AccountInsert = {
 
 export type AccountUpdate = Partial<AccountInsert> & { id: string }
 
+// Helper function to replicate account from MyWorkIn to MKN
+// Only replicates basic data (name, country, type, size, website) with stage="lead"
+async function replicateToMKN(account: AccountInsert, supabase: ReturnType<typeof createAdminClient>) {
+  // Only replicate from myworkin to mkn
+  if (account.workspace_id === "mkn") return null
+  
+  try {
+    // Check if already exists in MKN
+    const { data: existingMKN } = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("workspace_id", "mkn")
+      .eq("country_code", account.country_code.toUpperCase())
+      .ilike("name", account.name.trim())
+      .limit(1)
+    
+    if (existingMKN && existingMKN.length > 0) {
+      console.log("[replicateToMKN] Account already exists in MKN:", account.name)
+      return null
+    }
+    
+    // Create copy in MKN with stage=lead
+    const mknData: Record<string, any> = {
+      country_code: account.country_code.toUpperCase(),
+      name: account.name.trim(),
+      stage: "lead", // Always lead in MKN
+      fit_comercial: "medio",
+      workspace_id: "mkn",
+      last_touch: new Date().toISOString(),
+    }
+    
+    // Copy basic fields
+    if (account.city) mknData.city = account.city
+    if (account.type) mknData.type = account.type
+    if (account.size) mknData.size = account.size
+    if (account.website) mknData.website = account.website
+    
+    const { data: mknAccount, error } = await supabase
+      .from("accounts")
+      .insert(mknData)
+      .select()
+      .single()
+    
+    if (error) {
+      console.error("[replicateToMKN] Error creating MKN copy:", error)
+      return null
+    }
+    
+    console.log("[replicateToMKN] Created MKN copy:", mknAccount.id, "for:", account.name)
+    
+    // Create activity for MKN (non-blocking)
+    createActivity({
+      account_id: mknAccount.id,
+      country_code: account.country_code.toUpperCase(),
+      type: "account_created",
+      summary: `Empresa "${account.name}" sincronizada desde MyWorkIn`,
+      date_time: new Date().toISOString(),
+      workspace_id: "mkn",
+      details: { source: "myworkin_sync" },
+    }).catch(e => console.error("[replicateToMKN] Activity error:", e))
+    
+    return mknAccount
+  } catch (e) {
+    console.error("[replicateToMKN] Error:", e)
+    return null
+  }
+}
+
 export async function getAccounts(countryCode?: string, workspaceId: WorkspaceId = DEFAULT_WORKSPACE) {
   // Disable caching - always fetch fresh data
   noStore()
@@ -166,9 +234,15 @@ export async function createAccount(account: AccountInsert) {
         city: account.city,
         source: account.source,
       },
+      workspace_id: account.workspace_id || DEFAULT_WORKSPACE,
     })
   } catch (e) {
     console.error("Error creating activity for account:", e)
+  }
+
+  // Replicate to MKN if created in MyWorkIn
+  if (!account.workspace_id || account.workspace_id === "myworkin") {
+    await replicateToMKN(account, supabase)
   }
 
   revalidatePath(`/c/${account.country_code}`)
@@ -279,6 +353,13 @@ export async function upsertAccount(account: AccountInsert): Promise<{ created: 
         workspace_id: workspaceId,
         details: { stage: account.stage, source: "csv_import" },
       }).catch(e => console.error("[upsertAccount] Activity error (ignored):", e))
+
+      // Replicate to MKN if created in MyWorkIn
+      if (workspaceId === "myworkin") {
+        replicateToMKN(account, supabase).catch(e => 
+          console.error("[upsertAccount] MKN replication error (ignored):", e)
+        )
+      }
 
       return { created: true, data }
     }
