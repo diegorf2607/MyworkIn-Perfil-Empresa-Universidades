@@ -58,7 +58,11 @@ export async function getTeamMembers(countryCode?: string) {
 }
 
 export async function getActiveTeamMembersByCountry(countryCode: string) {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS
+  const supabase = createAdminClient()
+  const normalizedCountryCode = countryCode.toUpperCase()
+
+  console.log(`[getActiveTeamMembersByCountry] Fetching for country: ${normalizedCountryCode}`)
 
   // Get active team members
   const { data: members, error: membersError } = await supabase
@@ -67,20 +71,31 @@ export async function getActiveTeamMembersByCountry(countryCode: string) {
     .eq("is_active", true)
     .order("name")
 
-  if (membersError) throw membersError
+  if (membersError) {
+    console.error("[getActiveTeamMembersByCountry] Error fetching members:", membersError)
+    throw membersError
+  }
 
+  // Get assignments for this country (case-insensitive)
   const { data: assignments, error: assignmentsError } = await supabase
     .from("team_member_countries")
     .select("member_user_id")
-    .eq("country_code", countryCode)
+    .ilike("country_code", normalizedCountryCode)
 
   if (assignmentsError) {
+    console.warn("[getActiveTeamMembersByCountry] Assignments error:", assignmentsError)
+    // Return all members if we can't get assignments
     return members || []
   }
 
   const userIds = assignments?.map((a) => a.member_user_id) || []
+  console.log(`[getActiveTeamMembersByCountry] Found ${userIds.length} assigned users for ${normalizedCountryCode}`)
 
-  return members?.filter((m) => m.role === "admin" || userIds.includes(m.user_id)) || []
+  // Return admins OR users assigned to this country
+  const filteredMembers = members?.filter((m) => m.role === "admin" || userIds.includes(m.user_id)) || []
+  console.log(`[getActiveTeamMembersByCountry] Returning ${filteredMembers.length} members`)
+  
+  return filteredMembers
 }
 
 // This function is kept for backward compatibility but should not be used
