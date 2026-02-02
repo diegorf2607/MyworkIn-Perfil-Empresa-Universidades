@@ -181,6 +181,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
           next_step_type: formData.next_step_type || undefined,
           next_step_date: formData.next_step_date || undefined,
           next_step_responsible: formData.next_step_responsible,
+          workspace_id: config.workspace,
         })
 
         toast.success("Reunión agendada")

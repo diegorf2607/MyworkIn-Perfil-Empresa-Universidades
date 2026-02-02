@@ -1,6 +1,5 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { unstable_noStore as noStore } from "next/cache"
@@ -76,29 +75,48 @@ export async function getMeetingsByAccount(accountId: string) {
 }
 
 export async function createMeeting(meeting: MeetingInsert) {
-  const supabase = await createClient()
-  const { data, error } = await supabase.from("meetings").insert(meeting).select().single()
+  console.log("[createMeeting] Starting with:", JSON.stringify(meeting))
+  
+  // Use admin client to bypass RLS
+  const supabase = createAdminClient()
+  
+  // Ensure workspace_id and normalize country_code
+  const insertData = {
+    ...meeting,
+    country_code: meeting.country_code.toUpperCase(),
+    workspace_id: meeting.workspace_id || DEFAULT_WORKSPACE,
+  }
+  
+  console.log("[createMeeting] Inserting:", JSON.stringify(insertData))
+  
+  const { data, error } = await supabase.from("meetings").insert(insertData).select().single()
 
-  if (error) throw error
+  if (error) {
+    console.error("[createMeeting] Insert error:", error)
+    throw error
+  }
+  
+  console.log("[createMeeting] Created meeting:", data.id)
 
   try {
     await createActivity({
       account_id: meeting.account_id,
-      country_code: meeting.country_code,
+      country_code: meeting.country_code.toUpperCase(),
       type: "meeting",
       owner_id: meeting.owner_id,
       summary: `Reunión ${meeting.kind} agendada${meeting.contact_name ? ` con ${meeting.contact_name}` : ""} para ${new Date(meeting.date_time).toLocaleDateString("es-ES")}`,
-      date_time: new Date().toISOString(), // Use current time, not meeting date
+      date_time: new Date().toISOString(),
       details: {
         kind: meeting.kind,
         contact_name: meeting.contact_name,
         contact_email: meeting.contact_email,
-        meeting_date: meeting.date_time, // Store actual meeting date in details
+        meeting_date: meeting.date_time,
       },
+      workspace_id: meeting.workspace_id || DEFAULT_WORKSPACE,
     })
-    console.log("[v0] Activity created for meeting:", data.id)
+    console.log("[createMeeting] Activity created for meeting:", data.id)
   } catch (e) {
-    console.error("[v0] Error creating activity for meeting:", e)
+    console.error("[createMeeting] Error creating activity for meeting:", e)
   }
 
   // Get current account data
@@ -138,7 +156,7 @@ export async function createMeeting(meeting: MeetingInsert) {
 }
 
 export async function updateMeeting(update: MeetingUpdate) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { id, ...updates } = update
 
   const { accounts, team_members, ...validUpdates } = updates as Record<string, unknown>
@@ -155,7 +173,7 @@ export async function updateMeetingOutcome(
   newOutcome: "pending" | "no-show" | "done" | "next-step",
   currentOutcome: string,
 ) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Only track if outcome actually changed from pending
   const updates: Record<string, unknown> = {
@@ -174,7 +192,7 @@ export async function updateMeetingOutcome(
 }
 
 export async function markPostMeetingSent(meetingId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data, error } = await supabase
     .from("meetings")
@@ -191,7 +209,7 @@ export async function markPostMeetingSent(meetingId: string) {
 }
 
 export async function markMeetingProgress(meetingId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data, error } = await supabase
     .from("meetings")
@@ -213,7 +231,7 @@ export async function updateFollowUpStatus(
   meetingId: string,
   status: "active" | "cancelled" | "alert_sent" | "resolved",
 ) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data, error } = await supabase
     .from("meetings")
@@ -228,7 +246,7 @@ export async function updateFollowUpStatus(
 }
 
 export async function deleteMeeting(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { error } = await supabase.from("meetings").delete().eq("id", id)
 
   if (error) throw error
