@@ -34,7 +34,6 @@ import {
   Activity,
   Mail,
   Kanban,
-  GraduationCap,
 } from "lucide-react"
 
 interface AppSidebarProps {
@@ -85,16 +84,16 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col">
+                <div className="flex flex-col py-2">
                   <Image
                     src="/images/mkn-logo.png"
                     alt="MKN Technologies"
-                    width={280}
-                    height={70}
-                    className="h-14 w-auto object-contain"
-                    style={{ filter: 'brightness(1.1)' }}
+                    width={320}
+                    height={80}
+                    className="h-20 w-auto object-contain"
+                    style={{ filter: 'brightness(1.2)' }}
                   />
-                  <p className="text-xs text-white/70 flex items-center gap-1 mt-1">
+                  <p className="text-xs text-white/70 flex items-center gap-1 mt-2">
                     <Globe className="h-3 w-3" />
                     Vista Global
                   </p>
@@ -216,10 +215,10 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
             <Image
               src="/images/mkn-logo.png"
               alt="MKN Technologies"
-              width={280}
-              height={70}
-              className="h-14 w-auto object-contain"
-              style={{ filter: 'brightness(1.1)' }}
+              width={320}
+              height={80}
+              className="h-20 w-auto object-contain py-2"
+              style={{ filter: 'brightness(1.2)' }}
             />
           )}
         </Link>

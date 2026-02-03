@@ -62,10 +62,21 @@ export const DEAL_COLUMNS: DealColumn[] = [
   { key: "primera_reunion_realizada", label: "1ª Reunión Realizada", color: "bg-blue-500", bgColor: "bg-blue-50" },
   { key: "demo_programada", label: "Demo / Deep Dive", color: "bg-violet-500", bgColor: "bg-violet-50" },
   { key: "propuesta_enviada", label: "Propuesta Enviada", color: "bg-amber-500", bgColor: "bg-amber-50" },
-  { key: "negociacion", label: "Negociación / Legal", color: "bg-orange-500", bgColor: "bg-orange-50" },
-  { key: "won", label: "Won", color: "bg-emerald-500", bgColor: "bg-emerald-50" },
-  { key: "lost", label: "Lost", color: "bg-red-500", bgColor: "bg-red-50" },
 ]
+
+export const WON_COLUMN: DealColumn = {
+  key: "won",
+  label: "Won 🎉",
+  color: "bg-emerald-500",
+  bgColor: "bg-emerald-50",
+}
+
+export const LOST_COLUMN: DealColumn = {
+  key: "lost",
+  label: "Lost",
+  color: "bg-red-500",
+  bgColor: "bg-red-50",
+}
 
 export const NURTURE_COLUMN: DealColumn = {
   key: "nurture",

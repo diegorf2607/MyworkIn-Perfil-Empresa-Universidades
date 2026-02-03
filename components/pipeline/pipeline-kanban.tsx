@@ -10,8 +10,10 @@ import {
   type DealStage,
   DEAL_COLUMNS,
   NURTURE_COLUMN,
+  WON_COLUMN,
   calculateColumnStats,
 } from "@/lib/mock-data/deals"
+import { Clock, CheckCircle } from "lucide-react"
 import { AlertCircle, DollarSign } from "lucide-react"
 
 interface PipelineKanbanProps {
@@ -30,7 +32,32 @@ export function PipelineKanban({
   const [draggedDealId, setDraggedDealId] = useState<string | null>(null)
   const [dragOverColumn, setDragOverColumn] = useState<DealStage | null>(null)
 
-  const columns = showNurture ? [...DEAL_COLUMNS, NURTURE_COLUMN] : DEAL_COLUMNS
+  // Agregar columnas adicionales
+  const columns = showNurture 
+    ? [...DEAL_COLUMNS, WON_COLUMN, NURTURE_COLUMN] 
+    : [...DEAL_COLUMNS, WON_COLUMN]
+
+  // Calcular días de seguimiento
+  const getFollowUpDays = (deal: Deal): { days: number; label: string; isOverdue: boolean } | null => {
+    if (!deal.nextAction?.date) return null
+    const actionDate = new Date(deal.nextAction.date)
+    const now = new Date()
+    const diffTime = actionDate.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    if (diffDays < 0) {
+      return { days: Math.abs(diffDays), label: `Hace ${Math.abs(diffDays)} día${Math.abs(diffDays) !== 1 ? 's' : ''}`, isOverdue: true }
+    } else if (diffDays === 0) {
+      return { days: 0, label: 'Hoy', isOverdue: false }
+    } else {
+      return { days: diffDays, label: `En ${diffDays} día${diffDays !== 1 ? 's' : ''}`, isOverdue: false }
+    }
+  }
+
+  // Obtener deals con seguimiento pendiente
+  const dealsWithFollowUp = deals.filter(d => 
+    d.nextAction?.date && !["won", "lost", "nurture"].includes(d.stage)
+  )
 
   const handleDragStart = (e: React.DragEvent, dealId: string) => {
     e.dataTransfer.setData("dealId", dealId)
@@ -177,6 +204,85 @@ export function PipelineKanban({
               </div>
             )
           })}
+
+          {/* Columna de Seguimiento - muestra deals con next_action */}
+          <div className="flex flex-col w-[300px] flex-shrink-0 rounded-xl border bg-gradient-to-b from-purple-50 to-white">
+            {/* Column Header */}
+            <div className="flex items-center justify-between p-3 rounded-t-xl border-b bg-purple-100">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-purple-600" />
+                <span className="font-medium text-sm text-purple-800">Seguimientos</span>
+                <Badge variant="secondary" className="text-xs h-5 px-1.5 bg-purple-200 text-purple-800">
+                  {dealsWithFollowUp.length}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-1">
+                {dealsWithFollowUp.filter(d => {
+                  const followUp = getFollowUpDays(d)
+                  return followUp?.isOverdue
+                }).length > 0 && (
+                  <Badge variant="destructive" className="text-xs h-5 px-1.5 gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {dealsWithFollowUp.filter(d => getFollowUpDays(d)?.isOverdue).length}
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Column Content */}
+            <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[calc(100vh-320px)]">
+              {dealsWithFollowUp
+                .sort((a, b) => {
+                  const dateA = new Date(a.nextAction?.date || 0).getTime()
+                  const dateB = new Date(b.nextAction?.date || 0).getTime()
+                  return dateA - dateB
+                })
+                .map((deal) => {
+                  const followUp = getFollowUpDays(deal)
+                  return (
+                    <div
+                      key={`followup-${deal.id}`}
+                      className={cn(
+                        "p-3 rounded-lg border bg-white cursor-pointer hover:shadow-md transition-all",
+                        followUp?.isOverdue && "border-red-300 bg-red-50"
+                      )}
+                      onClick={() => onDealClick(deal)}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <span className="font-medium text-sm line-clamp-1">{deal.accountName}</span>
+                        <Badge 
+                          variant={followUp?.isOverdue ? "destructive" : followUp?.days === 0 ? "default" : "secondary"} 
+                          className={cn(
+                            "text-xs shrink-0",
+                            !followUp?.isOverdue && followUp?.days === 0 && "bg-blue-500"
+                          )}
+                        >
+                          {followUp?.label}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                        {deal.nextAction?.description}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-purple-600 font-medium capitalize">
+                          {deal.nextAction?.type}
+                        </span>
+                        <span className="text-xs font-medium text-emerald-600">
+                          {formatMrr(deal.mrr)}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+
+              {dealsWithFollowUp.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-24 text-sm text-muted-foreground bg-white/50 rounded-lg border border-dashed gap-2">
+                  <CheckCircle className="h-5 w-5 text-emerald-500" />
+                  <span>Sin seguimientos pendientes</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>

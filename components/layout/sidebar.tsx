@@ -85,9 +85,10 @@ export function Sidebar({ countryCode }: SidebarProps) {
                   <Image
                     src="/images/mkn-logo.png"
                     alt="MKN Technologies"
-                    width={280}
-                    height={70}
-                    className="h-14 w-auto object-contain"
+                    width={320}
+                    height={80}
+                    className="h-16 w-auto object-contain"
+                    style={{ filter: 'brightness(1.2)' }}
                   />
                 )}
               </>

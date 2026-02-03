@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import MyWorkInLogo from "@/components/MyWorkInLogo"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -31,7 +32,6 @@ import {
   Calendar,
   Globe,
   LogOut,
-  GraduationCap,
 } from "lucide-react"
 import { toast } from "sonner"
 import { getCountries, addCountry, updateCountry, deleteCountry } from "@/lib/actions/countries"
@@ -75,8 +75,6 @@ export default function CountriesPage() {
   const headerBg = workspace === "mkn" 
     ? "bg-gradient-to-r from-black via-gray-900 to-gray-800" 
     : "bg-gradient-to-r from-[#005691] via-[#005691] to-[#0078D4]"
-  const WorkspaceIcon = workspace === "mkn" ? Building2 : GraduationCap
-
   const loadData = useCallback(async () => {
     try {
       // Fetch each resource separately to handle individual errors
@@ -241,16 +239,25 @@ export default function CountriesPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {workspace === "myworkin" ? (
-                <MyWorkInLogo variant="icon" size="lg" className="text-white" />
+                <>
+                  <MyWorkInLogo variant="icon" size="lg" className="text-white" />
+                  <div className="text-white">
+                    <h1 className="text-3xl font-bold tracking-tight">{config.displayName}</h1>
+                    <p className="text-white/90 mt-1">Selecciona un país para comenzar</p>
+                  </div>
+                </>
               ) : (
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
-                  <WorkspaceIcon className="h-8 w-8 text-white" />
+                <div className="text-white">
+                  <Image
+                    src="/images/mkn-logo.png"
+                    alt="MKN Technologies"
+                    width={300}
+                    height={80}
+                    className="h-16 w-auto object-contain mb-2"
+                  />
+                  <p className="text-white/90">Selecciona un país para comenzar</p>
                 </div>
               )}
-              <div className="text-white">
-                <h1 className="text-3xl font-bold tracking-tight">{config.displayName}</h1>
-                <p className="text-white/90 mt-1">Selecciona un país para comenzar</p>
-              </div>
             </div>
 
             <div className="flex items-center gap-4">
