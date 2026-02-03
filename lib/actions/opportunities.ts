@@ -27,6 +27,7 @@ export type OpportunityInsert = {
   stage?: OpportunityStage
   probability?: number
   mrr?: number
+  one_time_payment?: number // For MKN mixed revenue model
   next_step?: string
   next_step_date?: string
   lost_reason?: string

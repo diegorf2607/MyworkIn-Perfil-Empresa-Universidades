@@ -77,14 +77,24 @@ export function Sidebar({ countryCode }: SidebarProps) {
           className={cn("flex h-16 items-center border-b border-border", collapsed ? "px-3 justify-center" : "px-4")}
         >
           <Link href="/countries" className="flex items-center gap-3">
-            <Image
-              src="/images/myworkin-logo.png"
-              alt="MyWorkIn"
-              width={36}
-              height={36}
-              className="h-9 w-9 object-contain"
-            />
-            {!collapsed && <span className="text-lg font-semibold text-foreground">MyWorkIn</span>}
+            {config.workspace === "mkn" ? (
+              <Image
+                src="/images/mkn-logo.png"
+                alt="MKN"
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain"
+              />
+            ) : (
+              <Image
+                src="/images/myworkin-logo.png"
+                alt="MyWorkIn"
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain"
+              />
+            )}
+            {!collapsed && <span className="text-lg font-semibold text-foreground">{config.displayName}</span>}
           </Link>
         </div>
 

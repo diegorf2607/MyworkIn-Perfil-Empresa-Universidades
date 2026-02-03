@@ -48,6 +48,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
     product: "MyWorkIn (integral)",
     stage: "discovery" as "discovery" | "demo" | "propuesta" | "negociacion",
     mrr: 5000,
+    one_time_payment: 0,
     probability: 20,
     next_step: "Agendar discovery call",
   })
@@ -84,6 +85,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
           product: formData.product,
           stage: formData.stage,
           mrr: formData.mrr,
+          one_time_payment: formData.one_time_payment || undefined,
           probability: formData.probability,
           next_step: formData.next_step || undefined,
         })
@@ -101,6 +103,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
           product: "MyWorkIn (integral)",
           stage: "discovery",
           mrr: 5000,
+          one_time_payment: 0,
           probability: 20,
           next_step: "Agendar discovery call",
         })
@@ -206,15 +209,24 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
               />
             </div>
             <div className="space-y-2">
-              <Label>Probabilidad (%)</Label>
+              <Label>Pago Único ($)</Label>
               <Input
                 type="number"
-                min={0}
-                max={100}
-                value={formData.probability}
-                onChange={(e) => setFormData({ ...formData, probability: Number.parseInt(e.target.value) || 0 })}
+                value={formData.one_time_payment}
+                onChange={(e) => setFormData({ ...formData, one_time_payment: Number.parseInt(e.target.value) || 0 })}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Probabilidad (%)</Label>
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              value={formData.probability}
+              onChange={(e) => setFormData({ ...formData, probability: Number.parseInt(e.target.value) || 0 })}
+            />
           </div>
 
           <div className="space-y-2">

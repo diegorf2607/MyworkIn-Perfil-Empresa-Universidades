@@ -68,6 +68,7 @@ interface Account {
   icp_fit?: number
   fit_comercial?: string
   mrr?: number
+  one_time_payment?: number
   probability?: number
   website?: string
   notes?: string
@@ -252,6 +253,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
           size: editedAccount.size as "pequeña" | "mediana" | "grande" | undefined,
           stage: editedAccount.stage as "lead" | "sql" | "opp" | "won" | "lost" | undefined,
           mrr: editedAccount.mrr,
+          one_time_payment: editedAccount.one_time_payment,
           probability: editedAccount.probability,
           website: editedAccount.website,
           notes: editedAccount.notes,
@@ -699,15 +701,25 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Probabilidad %</Label>
+                    <Label>Pago Único</Label>
                     <Input
                       type="number"
-                      value={editedAccount.probability || ""}
+                      value={editedAccount.one_time_payment || ""}
                       onChange={(e) =>
-                        setEditedAccount({ ...editedAccount, probability: Number.parseInt(e.target.value) || 0 })
+                        setEditedAccount({ ...editedAccount, one_time_payment: Number.parseFloat(e.target.value) || 0 })
                       }
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Probabilidad %</Label>
+                  <Input
+                    type="number"
+                    value={editedAccount.probability || ""}
+                    onChange={(e) =>
+                      setEditedAccount({ ...editedAccount, probability: Number.parseInt(e.target.value) || 0 })
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Website</Label>

@@ -22,6 +22,7 @@ export type AccountInsert = {
   next_action_date?: string
   probability?: number
   mrr?: number
+  one_time_payment?: number // For MKN mixed revenue model
   status?: "activo" | "pausado" | "archivado"
   notes?: string
   fit_comercial?: "alto" | "medio" | "bajo"
