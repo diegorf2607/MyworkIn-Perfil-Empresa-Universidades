@@ -36,6 +36,10 @@ interface Opportunity {
   mrr: number
   probability: number
   next_step: string | null
+  accounts?: {
+    name: string
+    city: string | null
+  }
 }
 
 interface Account {
@@ -118,13 +122,19 @@ export default function OppsPage() {
     return filtered
   }, [opportunities, searchQuery, filterOwner, accounts])
 
-  const getAccountName = (accountId: string) => {
-    const account = accounts.find((a) => a.id === accountId)
+  const getAccountName = (opp: Opportunity) => {
+    // First try to get from embedded data (from join)
+    if (opp.accounts?.name) return opp.accounts.name
+    // Fallback to searching in accounts array
+    const account = accounts.find((a) => a.id === opp.account_id)
     return account?.name || "Sin asignar"
   }
 
-  const getAccountCity = (accountId: string) => {
-    const account = accounts.find((a) => a.id === accountId)
+  const getAccountCity = (opp: Opportunity) => {
+    // First try to get from embedded data (from join)
+    if (opp.accounts?.city) return opp.accounts.city
+    // Fallback to searching in accounts array
+    const account = accounts.find((a) => a.id === opp.account_id)
     return account?.city || ""
   }
 
@@ -305,8 +315,8 @@ export default function OppsPage() {
                   <TableRow key={opp.id} className="cursor-pointer hover:bg-muted/50">
                     <TableCell onClick={() => handleRowClick(opp)}>
                       <div>
-                        <p className="font-medium">{getAccountName(opp.account_id)}</p>
-                        <p className="text-sm text-muted-foreground">{getAccountCity(opp.account_id)}</p>
+                        <p className="font-medium">{getAccountName(opp)}</p>
+                        <p className="text-sm text-muted-foreground">{getAccountCity(opp)}</p>
                       </div>
                     </TableCell>
                     <TableCell onClick={() => handleRowClick(opp)}>
@@ -413,7 +423,7 @@ export default function OppsPage() {
               {closeType === "won" ? "🏆 Marcar como Ganada" : "Marcar como Perdida"}
             </DialogTitle>
             <DialogDescription>
-              {closingOpp && `${getAccountName(closingOpp.account_id)} - $${closingOpp.mrr.toLocaleString()} MRR`}
+              {closingOpp && `${getAccountName(closingOpp)} - $${closingOpp.mrr.toLocaleString()} MRR`}
             </DialogDescription>
           </DialogHeader>
 
