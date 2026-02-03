@@ -89,9 +89,9 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
                   <Image
                     src="/images/mkn-logo.png"
                     alt="MKN Technologies"
-                    width={200}
-                    height={50}
-                    className="h-10 w-auto object-contain"
+                    width={280}
+                    height={70}
+                    className="h-14 w-auto object-contain"
                     style={{ filter: 'brightness(1.1)' }}
                   />
                   <p className="text-xs text-white/70 flex items-center gap-1 mt-1">
@@ -216,9 +216,9 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
             <Image
               src="/images/mkn-logo.png"
               alt="MKN Technologies"
-              width={200}
-              height={50}
-              className="h-10 w-auto object-contain"
+              width={280}
+              height={70}
+              className="h-14 w-auto object-contain"
               style={{ filter: 'brightness(1.1)' }}
             />
           )}
