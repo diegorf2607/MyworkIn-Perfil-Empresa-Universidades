@@ -189,8 +189,8 @@ export const MKN_CONFIG: WorkspaceConfig = {
     sidebar: "#000000",
     sidebarForeground: "#ffffff",
     sidebarAccent: "#333333",
-    logo: "/images/myworkin-icon-white.png", // Usando logo blanco existente
-    logoWhite: "/images/myworkin-icon-white.png", // Usando logo blanco existente
+    logo: "/images/mkn-logo.png",
+    logoWhite: "/images/mkn-logo.png",
   },
   terminology: {
     entity: "Empresa",

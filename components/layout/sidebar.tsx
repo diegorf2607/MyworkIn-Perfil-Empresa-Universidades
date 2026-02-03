@@ -65,30 +65,37 @@ export function Sidebar({ countryCode }: SidebarProps) {
     },
   ]
 
+  // Color de fondo dinámico según workspace
+  const sidebarBg = config.workspace === "mkn" ? "bg-black" : "bg-sidebar"
+
   return (
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "relative flex flex-col border-r border-border bg-sidebar transition-all duration-300",
+          "relative flex flex-col border-r border-border transition-all duration-300",
+          sidebarBg,
           collapsed ? "w-16" : "w-64",
         )}
       >
         <div
-          className={cn("flex h-16 items-center border-b border-border", collapsed ? "px-3 justify-center" : "px-4")}
+          className={cn(
+            "flex h-20 items-center border-b",
+            config.workspace === "mkn" ? "border-white/15" : "border-border",
+            collapsed ? "px-3 justify-center" : "px-4"
+          )}
         >
           <Link href="/countries" className="flex items-center gap-3">
             {config.workspace === "mkn" ? (
               <>
                 {collapsed ? (
-                  <span className="text-lg font-bold text-foreground">M</span>
+                  <span className="text-lg font-bold text-white">M</span>
                 ) : (
                   <Image
                     src="/images/mkn-logo.png"
                     alt="MKN Technologies"
                     width={320}
                     height={80}
-                    className="h-16 w-auto object-contain"
-                    style={{ filter: 'brightness(1.2)' }}
+                    className="h-14 w-auto object-contain"
                   />
                 )}
               </>
@@ -107,14 +114,17 @@ export function Sidebar({ countryCode }: SidebarProps) {
           </Link>
         </div>
 
-        <div className="border-b border-border p-3">
+        <div className={cn("border-b p-3", config.workspace === "mkn" ? "border-white/15" : "border-border")}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Link href="/all/overview">
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start gap-3 text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    "w-full justify-start gap-3",
+                    config.workspace === "mkn" 
+                      ? "text-white/80 hover:bg-white/10 hover:text-white" 
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                     collapsed && "justify-center px-2",
                   )}
                 >
@@ -132,7 +142,10 @@ export function Sidebar({ countryCode }: SidebarProps) {
             {navSections.map((section) => (
               <div key={section.title}>
                 {!collapsed && (
-                  <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <h3 className={cn(
+                    "mb-2 px-3 text-xs font-semibold uppercase tracking-wider",
+                    config.workspace === "mkn" ? "text-white/60" : "text-muted-foreground"
+                  )}>
                     {section.title}
                   </h3>
                 )}
@@ -148,9 +161,13 @@ export function Sidebar({ countryCode }: SidebarProps) {
                               className={cn(
                                 "w-full justify-start gap-3",
                                 collapsed && "justify-center px-2",
-                                isActive
-                                  ? "bg-primary/10 text-primary hover:bg-primary/20"
-                                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                                config.workspace === "mkn"
+                                  ? isActive
+                                    ? "bg-white/20 text-white hover:bg-white/30"
+                                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                                  : isActive
+                                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                               )}
                             >
                               <item.icon className="h-4 w-4 shrink-0" />
@@ -168,12 +185,15 @@ export function Sidebar({ countryCode }: SidebarProps) {
           </nav>
         </ScrollArea>
 
-        <div className="border-t border-border p-3">
+        <div className={cn("border-t p-3", config.workspace === "mkn" ? "border-white/15" : "border-border")}>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setCollapsed(!collapsed)}
-            className="w-full justify-center text-muted-foreground"
+            className={cn(
+              "w-full justify-center",
+              config.workspace === "mkn" ? "text-white/80 hover:bg-white/10" : "text-muted-foreground"
+            )}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
