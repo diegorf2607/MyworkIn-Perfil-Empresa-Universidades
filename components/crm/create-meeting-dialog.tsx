@@ -88,7 +88,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
 
   useEffect(() => {
     if (open) {
-      Promise.all([getAccounts(), getCountries()]).then(([accountsData, countriesData]) => {
+      Promise.all([getAccounts(undefined, config.workspace), getCountries()]).then(([accountsData, countriesData]) => {
         const activeCountries = (countriesData || []).filter((c) => c.active)
         setCountries(activeCountries)
 
@@ -102,8 +102,9 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
             })),
           )
         } else {
+          const countryUpper = countryCode.toUpperCase()
           const filtered = (accountsData || [])
-            .filter((a) => a.country_code === countryCode)
+            .filter((a) => a.country_code?.toUpperCase() === countryUpper)
             .map((a) => ({ id: a.id, name: a.name, city: a.city, country_code: a.country_code }))
           setAccounts(filtered)
         }
@@ -114,7 +115,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
       tomorrow.setHours(10, 0, 0, 0)
       setFormData((prev) => ({ ...prev, date_time: tomorrow.toISOString().slice(0, 16) }))
     }
-  }, [open, countryCode, isGlobalView])
+  }, [open, countryCode, isGlobalView, config.workspace])
 
   useEffect(() => {
     if (open && effectiveCountry) {
@@ -136,7 +137,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
 
   const filteredAccounts = isGlobalView
     ? formData.selected_country
-      ? accounts.filter((a) => a.country_code === formData.selected_country)
+      ? accounts.filter((a) => a.country_code?.toUpperCase() === formData.selected_country.toUpperCase())
       : accounts
     : accounts
 

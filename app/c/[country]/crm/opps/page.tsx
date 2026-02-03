@@ -73,15 +73,16 @@ export default function OppsPage() {
 
   const loadData = useCallback(async () => {
     try {
+      const countryUpper = country.toUpperCase()
       const [oppsData, accountsData, teamData] = await Promise.all([
         getOpportunities(undefined, workspace),
         getAccounts(undefined, workspace),
         getTeamMembers(),
       ])
       const countryOpps = (oppsData || []).filter(
-        (o) => o.country_code === country && !["won", "lost"].includes(o.stage),
+        (o) => o.country_code?.toUpperCase() === countryUpper && !["won", "lost"].includes(o.stage),
       )
-      const countryAccounts = (accountsData || []).filter((a) => a.country_code === country)
+      const countryAccounts = (accountsData || []).filter((a) => a.country_code?.toUpperCase() === countryUpper)
       setOpportunities(countryOpps as Opportunity[])
       setAccounts(countryAccounts)
       setTeamMembers(teamData || [])

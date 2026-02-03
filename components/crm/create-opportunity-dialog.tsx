@@ -55,9 +55,10 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
 
   useEffect(() => {
     if (open) {
-      getAccounts().then((data) => {
+      getAccounts(undefined, config.workspace).then((data) => {
+        const countryUpper = countryCode.toUpperCase()
         const filtered = (data || [])
-          .filter((a) => a.country_code === countryCode)
+          .filter((a) => a.country_code?.toUpperCase() === countryUpper)
           .map((a) => ({
             id: a.id,
             name: a.name,
@@ -67,7 +68,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
         setAccounts(filtered)
       })
     }
-  }, [open, countryCode])
+  }, [open, countryCode, config.workspace])
 
   const selectedAccount = accounts.find((a) => a.id === formData.account_id)
 
