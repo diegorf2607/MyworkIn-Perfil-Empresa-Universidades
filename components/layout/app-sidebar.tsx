@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import MyWorkInLogo from "@/components/MyWorkInLogo"
 import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher"
@@ -48,7 +49,6 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
 
   // Colores dinámicos según workspace
   const sidebarBg = workspace === "mkn" ? "bg-black" : "bg-[#005691]"
-  const WorkspaceIcon = workspace === "mkn" ? Building2 : GraduationCap
 
   if (isGlobal) {
     const generalItems = [
@@ -74,19 +74,31 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
           <div className="flex items-center justify-between">
             <Link href="/all/overview" className="flex items-center gap-3">
               {workspace === "myworkin" ? (
-                <MyWorkInLogo variant="icon" size="sm" className="text-white" />
+                <>
+                  <MyWorkInLogo variant="icon" size="sm" className="text-white" />
+                  <div>
+                    <h2 className="font-semibold text-white">{config.displayName}</h2>
+                    <p className="text-xs text-white/70 flex items-center gap-1">
+                      <Globe className="h-3 w-3" />
+                      Vista Global
+                    </p>
+                  </div>
+                </>
               ) : (
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-                  <WorkspaceIcon className="h-5 w-5 text-white" />
+                <div className="flex flex-col">
+                  <Image
+                    src="/images/mkn-logo.png"
+                    alt="MKN Technologies"
+                    width={140}
+                    height={32}
+                    className="h-6 object-contain"
+                  />
+                  <p className="text-xs text-white/70 flex items-center gap-1 mt-1">
+                    <Globe className="h-3 w-3" />
+                    Vista Global
+                  </p>
                 </div>
               )}
-              <div>
-                <h2 className="font-semibold text-white">{config.displayName}</h2>
-                <p className="text-xs text-white/70 flex items-center gap-1">
-                  <Globe className="h-3 w-3" />
-                  Vista Global
-                </p>
-              </div>
             </Link>
           </div>
           <div className="mt-3">
@@ -193,15 +205,21 @@ export function AppSidebar({ countryCode }: AppSidebarProps) {
       <SidebarHeader className="border-b border-white/15 px-4 py-3">
         <Link href={`/c/${countryCode}/overview`} className="flex items-center gap-3">
           {workspace === "myworkin" ? (
-            <MyWorkInLogo variant="icon" size="sm" className="text-white" />
+            <>
+              <MyWorkInLogo variant="icon" size="sm" className="text-white" />
+              <div>
+                <h2 className="font-semibold text-white">{config.shortName}</h2>
+              </div>
+            </>
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-              <WorkspaceIcon className="h-5 w-5 text-white" />
-            </div>
+            <Image
+              src="/images/mkn-logo.png"
+              alt="MKN Technologies"
+              width={140}
+              height={32}
+              className="h-6 object-contain"
+            />
           )}
-          <div>
-            <h2 className="font-semibold text-white">{config.shortName}</h2>
-          </div>
         </Link>
         <div className="mt-3">
           <WorkspaceSwitcher variant="sidebar" />

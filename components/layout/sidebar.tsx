@@ -78,23 +78,31 @@ export function Sidebar({ countryCode }: SidebarProps) {
         >
           <Link href="/countries" className="flex items-center gap-3">
             {config.workspace === "mkn" ? (
-              <Image
-                src="/images/mkn-logo.png"
-                alt="MKN"
-                width={36}
-                height={36}
-                className="h-9 w-9 object-contain"
-              />
+              <>
+                {collapsed ? (
+                  <span className="text-lg font-bold text-foreground">M</span>
+                ) : (
+                  <Image
+                    src="/images/mkn-logo.png"
+                    alt="MKN Technologies"
+                    width={180}
+                    height={40}
+                    className="h-8 object-contain"
+                  />
+                )}
+              </>
             ) : (
-              <Image
-                src="/images/myworkin-logo.png"
-                alt="MyWorkIn"
-                width={36}
-                height={36}
-                className="h-9 w-9 object-contain"
-              />
+              <>
+                <Image
+                  src="/images/myworkin-logo.png"
+                  alt="MyWorkIn"
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 object-contain"
+                />
+                {!collapsed && <span className="text-lg font-semibold text-foreground">{config.displayName}</span>}
+              </>
             )}
-            {!collapsed && <span className="text-lg font-semibold text-foreground">{config.displayName}</span>}
           </Link>
         </div>
 
