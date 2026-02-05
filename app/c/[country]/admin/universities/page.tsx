@@ -208,19 +208,15 @@ export default function UniversitiesPage() {
 
   const normalizeType = (value: string): string | null => {
     const trimmed = value.trim()
+    if (!trimmed) return null
     
-    // For MKN: accept any industry value from CSV (no validation)
-    if (workspace === "mkn") {
-      return trimmed || null
-    }
-    
-    // For MyWorkIn: validate against predefined options
+    // Normalize for comparison (lowercase, remove accents)
     const normalized = trimmed
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "") // Remove accents
 
-    // Check if input matches any valid type option
+    // Check if input matches any valid type option for current workspace
     const matchedOption = config.terminology.typeOptions.find(opt => 
       opt.value.toLowerCase() === normalized || 
       opt.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized
@@ -228,8 +224,10 @@ export default function UniversitiesPage() {
     if (matchedOption) return matchedOption.value
 
     // MyWorkIn legacy support
-    if (normalized === "privada" || normalized === "private") return "privada"
-    if (normalized === "publica" || normalized === "public" || normalized === "pública") return "pública"
+    if (workspace === "myworkin") {
+      if (normalized === "privada" || normalized === "private") return "privada"
+      if (normalized === "publica" || normalized === "public" || normalized === "pública") return "pública"
+    }
     
     return null
   }

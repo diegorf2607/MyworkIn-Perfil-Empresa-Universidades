@@ -211,6 +211,7 @@ export const MKN_CONFIG: WorkspaceConfig = {
       { value: "tecnologia", label: "Tecnología" },
       { value: "finanzas", label: "Finanzas" },
       { value: "salud", label: "Salud" },
+      { value: "educacion", label: "Educación" },
       { value: "retail", label: "Retail" },
       { value: "manufactura", label: "Manufactura" },
       { value: "servicios", label: "Servicios" },
