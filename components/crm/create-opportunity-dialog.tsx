@@ -55,7 +55,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
 
   useEffect(() => {
     if (open) {
-      getAccounts(undefined, config.workspace).then((data) => {
+      getAccounts(undefined, config.id).then((data) => {
         const countryUpper = countryCode.toUpperCase()
         const filtered = (data || [])
           .filter((a) => a.country_code?.toUpperCase() === countryUpper)
@@ -68,7 +68,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
         setAccounts(filtered)
       })
     }
-  }, [open, countryCode, config.workspace])
+  }, [open, countryCode, config.id])
 
   const selectedAccount = accounts.find((a) => a.id === formData.account_id)
 
@@ -89,7 +89,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
           one_time_payment: formData.one_time_payment || undefined,
           probability: formData.probability,
           next_step: formData.next_step || undefined,
-          workspace_id: config.workspace,
+          workspace_id: config.id,
         })
 
         // Update account stage to 'opp' if it was lead or sql

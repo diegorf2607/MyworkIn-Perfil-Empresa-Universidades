@@ -165,7 +165,7 @@ export function NewEntityDialog({
               mrr: Number(formData.mrr) || 0,
               next_step: formData.nextStep || "Agendar discovery call",
               next_step_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-              workspace_id: config.workspace,
+              workspace_id: config.id,
             })
             toast.success("Oportunidad creada")
             break

@@ -88,7 +88,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
 
   useEffect(() => {
     if (open) {
-      Promise.all([getAccounts(undefined, config.workspace), getCountries()]).then(([accountsData, countriesData]) => {
+      Promise.all([getAccounts(undefined, config.id), getCountries()]).then(([accountsData, countriesData]) => {
         const activeCountries = (countriesData || []).filter((c) => c.active)
         setCountries(activeCountries)
 
@@ -115,7 +115,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
       tomorrow.setHours(10, 0, 0, 0)
       setFormData((prev) => ({ ...prev, date_time: tomorrow.toISOString().slice(0, 16) }))
     }
-  }, [open, countryCode, isGlobalView, config.workspace])
+  }, [open, countryCode, isGlobalView, config.id])
 
   useEffect(() => {
     if (open && effectiveCountry) {
@@ -182,7 +182,7 @@ export function CreateMeetingDialog({ open, onOpenChange, countryCode, onSuccess
           next_step_type: formData.next_step_type || undefined,
           next_step_date: formData.next_step_date || undefined,
           next_step_responsible: formData.next_step_responsible,
-          workspace_id: config.workspace,
+          workspace_id: config.id,
         })
 
         toast.success("Reunión agendada")
