@@ -176,6 +176,7 @@ export default function ClosedPage() {
         probability: registerType === "won" ? 100 : 0,
         lost_reason: registerType === "lost" ? lostReason : null,
         closed_at: new Date().toISOString(),
+        workspace_id: workspace,
       })
 
       await updateAccount({

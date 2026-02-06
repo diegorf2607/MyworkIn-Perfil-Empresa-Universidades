@@ -146,6 +146,7 @@ export default function SQLsPage() {
         next_step: closeType === "won" ? "Onboarding" : "Cerrado",
         lost_reason: closeType === "lost" ? lostReason : null,
         closed_at: new Date().toISOString(),
+        workspace_id: workspace,
       })
 
       // Update account stage

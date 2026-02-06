@@ -89,6 +89,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, countryCode, onSuc
           one_time_payment: formData.one_time_payment || undefined,
           probability: formData.probability,
           next_step: formData.next_step || undefined,
+          workspace_id: config.workspace,
         })
 
         // Update account stage to 'opp' if it was lead or sql
