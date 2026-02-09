@@ -63,6 +63,11 @@ interface Meeting {
   meeting_url: string | null
   meeting_doc_url: string | null
   meeting_summary: string | null
+  // Joined data from accounts table
+  accounts?: {
+    name: string
+    city: string | null
+  } | null
 }
 
 interface Account {
@@ -141,8 +146,13 @@ export default function MeetingsPage() {
     return filtered.sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())
   }, [meetings, searchQuery, filterKind, filterOutcome, accounts])
 
-  const getAccountName = (accountId: string) => {
-    const account = accounts.find((a) => a.id === accountId)
+  const getAccountName = (meeting: Meeting) => {
+    // First try to get from joined data (more reliable)
+    if (meeting.accounts?.name) {
+      return meeting.accounts.name
+    }
+    // Fallback to searching in accounts array
+    const account = accounts.find((a) => a.id === meeting.account_id)
     return account?.name || "Sin asignar"
   }
 
@@ -394,7 +404,7 @@ export default function MeetingsPage() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{getAccountName(meeting.account_id)}</TableCell>
+                  <TableCell>{getAccountName(meeting)}</TableCell>
                   <TableCell>
                     {meeting.contact_name ? (
                       <div>
@@ -454,7 +464,7 @@ export default function MeetingsPage() {
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                {selectedMeeting?.kind} - {getAccountName(selectedMeeting?.account_id || "")}
+                {selectedMeeting?.kind} - {selectedMeeting ? getAccountName(selectedMeeting) : ""}
               </SheetTitle>
             </SheetHeader>
 

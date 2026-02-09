@@ -42,7 +42,13 @@ export async function getMeetings(countryCode?: string, workspaceId: WorkspaceId
     const supabase = createAdminClient()
     // Simplified query - removed team_members join that may not exist
     let query = supabase.from("meetings").select("*, accounts(name, city)")
-      .eq("workspace_id", workspaceId) // Filter by workspace
+
+    // For MKN: only include meetings explicitly marked with workspace_id = 'mkn'
+    // For MyWorkIn: include ALL meetings (legacy data may have NULL workspace_id)
+    if (workspaceId === "mkn") {
+      query = query.eq("workspace_id", "mkn")
+    }
+    // No workspace filter for myworkin - includes all existing/legacy data
 
     if (countryCode) {
       query = query.eq("country_code", countryCode)
