@@ -160,6 +160,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
     lastContactAt: "",
     nextFollowUpAt: "",
     nextFollowUpLabel: "",
+    sentFromEmail: "",
   })
 
   const [fitComercialDialogOpen, setFitComercialDialogOpen] = useState(false)
@@ -210,6 +211,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
         lastContactAt: account.last_contact_at?.slice(0, 16) || "",
         nextFollowUpAt: account.next_follow_up_at?.slice(0, 16) || "",
         nextFollowUpLabel: account.next_follow_up_label || "",
+        sentFromEmail: account.sent_from_email || "",
       })
       loadRelatedData()
       loadHistoricoData()
@@ -518,6 +520,7 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
           last_contact_at: followUpForm.lastContactAt || undefined,
           next_follow_up_at: followUpForm.nextFollowUpAt || undefined,
           next_follow_up_label: followUpForm.nextFollowUpLabel || undefined,
+          sent_from_email: followUpForm.sentFromEmail || undefined,
         })
         toast.success("Seguimiento actualizado")
         setFollowUpDialogOpen(false)
@@ -1445,6 +1448,15 @@ export function EntitySheet({ account, open, onOpenChange, onRefresh }: EntitySh
                 value={followUpForm.nextFollowUpLabel}
                 onChange={(e) => setFollowUpForm({ ...followUpForm, nextFollowUpLabel: e.target.value })}
                 placeholder="Ej: Enviar propuesta, Confirmar demo..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Desde qué correo</Label>
+              <Input
+                type="email"
+                value={followUpForm.sentFromEmail}
+                onChange={(e) => setFollowUpForm({ ...followUpForm, sentFromEmail: e.target.value })}
+                placeholder="Ej: ventas@myworkin.com"
               />
             </div>
           </div>

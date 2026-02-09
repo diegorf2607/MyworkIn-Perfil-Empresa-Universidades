@@ -30,6 +30,7 @@ export type AccountInsert = {
   last_contact_at?: string
   next_follow_up_at?: string
   next_follow_up_label?: string
+  sent_from_email?: string
   workspace_id?: WorkspaceId
 }
 
