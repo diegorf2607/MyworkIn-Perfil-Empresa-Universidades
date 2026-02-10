@@ -105,10 +105,8 @@ export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDe
   // Filtrar por workspace
   if (workspaceId === "mkn") {
     accountsQuery = accountsQuery.eq("workspace_id", "mkn")
-  } else {
-    // Para myworkin: excluir datos de MKN
-    accountsQuery = accountsQuery.neq("workspace_id", "mkn")
   }
+  // Para myworkin: no aplicar filtro, luego filtrar en JS
 
   const { data: accounts, error: accError } = await accountsQuery
 
@@ -127,10 +125,8 @@ export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDe
   // Filtrar por workspace
   if (workspaceId === "mkn") {
     oppsQuery = oppsQuery.eq("workspace_id", "mkn")
-  } else {
-    // Para myworkin: excluir datos de MKN
-    oppsQuery = oppsQuery.neq("workspace_id", "mkn")
   }
+  // Para myworkin: no aplicar filtro, luego filtrar en JS
 
   const { data: opportunities, error: oppsError } = await oppsQuery
 
@@ -181,8 +177,18 @@ export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDe
     }
   }
 
+  // Filtrar accounts en JS para excluir MKN cuando estamos en myworkin
+  const filteredAccounts = workspaceId === "mkn" 
+    ? (accounts || []) 
+    : (accounts || []).filter((acc: any) => acc.workspace_id !== "mkn")
+
+  // Filtrar opportunities en JS para excluir MKN cuando estamos en myworkin
+  const filteredOpportunities = workspaceId === "mkn"
+    ? (opportunities || [])
+    : (opportunities || []).filter((opp: any) => opp.workspace_id !== "mkn")
+
   // Transformar ACCOUNTS a PipelineDeal (sql, opp)
-  const accountDeals: PipelineDeal[] = (accounts || []).map((account: any) => {
+  const accountDeals: PipelineDeal[] = filteredAccounts.map((account: any) => {
     const owner = account.owner_id ? teamMap.get(account.owner_id) : null
     const stage = mapAccountStageToPipeline(account.stage)
     const lastActivity = lastActivityMap.get(account.id) || null
@@ -228,7 +234,7 @@ export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDe
   })
 
   // Transformar OPPORTUNITIES a PipelineDeal (won, lost)
-  const oppDeals: PipelineDeal[] = (opportunities || []).map((opp: any) => {
+  const oppDeals: PipelineDeal[] = filteredOpportunities.map((opp: any) => {
     const account = opp.accounts
     const owner = account?.owner_id ? teamMap.get(account.owner_id) : null
     const lastActivity = account ? lastActivityMap.get(account.id) : null
@@ -276,10 +282,8 @@ export async function getPipelineTeamMembers(workspaceId?: string): Promise<Pipe
   // Filtrar por workspace
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
-  } else {
-    // Para myworkin: excluir datos de MKN
-    query = query.neq("workspace_id", "mkn")
   }
+  // Para myworkin: no aplicar filtro en SQL
 
   const { data, error } = await query
 
@@ -527,10 +531,8 @@ export async function getPipelineCountries(workspaceId?: string): Promise<{ code
   // Filtrar por workspace
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
-  } else {
-    // Para myworkin: excluir datos de MKN
-    query = query.neq("workspace_id", "mkn")
   }
+  // Para myworkin: no aplicar filtro en SQL
 
   const { data, error } = await query
 

@@ -47,10 +47,8 @@ export async function getMeetings(countryCode?: string, workspaceId: WorkspaceId
     // For MyWorkIn: include legacy data (NULL) + myworkin, EXCLUDE mkn data
     if (workspaceId === "mkn") {
       query = query.eq("workspace_id", "mkn")
-    } else {
-      // Para myworkin: excluir datos de MKN
-      query = query.neq("workspace_id", "mkn")
     }
+    // Para myworkin: no aplicar filtro en SQL, datos de MKN se filtrarán por contexto
 
     if (countryCode) {
       query = query.eq("country_code", countryCode)

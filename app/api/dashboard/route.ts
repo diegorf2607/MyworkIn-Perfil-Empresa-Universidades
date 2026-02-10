@@ -20,10 +20,8 @@ export async function GET(request: Request) {
     
     if (workspaceId === "mkn") {
       countriesQuery = countriesQuery.eq("workspace_id", "mkn")
-    } else {
-      // Para myworkin: excluir datos de MKN
-      countriesQuery = countriesQuery.neq("workspace_id", "mkn")
     }
+    // Para myworkin: no aplicar filtro en SQL
     
     const { data: countries } = await countriesQuery
 
@@ -53,12 +51,8 @@ export async function GET(request: Request) {
       accountsQuery = accountsQuery.eq("workspace_id", "mkn")
       oppsQuery = oppsQuery.eq("workspace_id", "mkn")
       meetingsQuery = meetingsQuery.eq("workspace_id", "mkn")
-    } else {
-      // Para myworkin: excluir datos de MKN
-      accountsQuery = accountsQuery.neq("workspace_id", "mkn")
-      oppsQuery = oppsQuery.neq("workspace_id", "mkn")
-      meetingsQuery = meetingsQuery.neq("workspace_id", "mkn")
     }
+    // Para myworkin: no aplicar filtro en SQL
 
     if (!isGlobal) {
       accountsQuery = accountsQuery.eq("country_code", countryCode.toUpperCase())
