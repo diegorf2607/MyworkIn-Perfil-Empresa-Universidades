@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -16,7 +17,6 @@ import {
   Calendar,
   User,
   Mail,
-  Phone,
   MapPin,
   Clock,
   CheckCircle2,
@@ -25,9 +25,11 @@ import {
   Target,
   TrendingUp,
   AlertCircle,
+  Loader2,
+  UserX,
+  FileText,
 } from "lucide-react"
 import { 
-  type Deal,
   COUNTRY_FLAGS,
   COUNTRY_NAMES,
   isActionOverdue,
@@ -35,29 +37,25 @@ import {
   getRelativeDate,
 } from "@/lib/mock-data/deals"
 import { useWorkspace } from "@/lib/context/workspace-context"
+import { getKDMContactsByAccount, type KDMContact } from "@/lib/actions/kdm"
+import { getActivitiesByAccount } from "@/lib/actions/activities"
+import type { PipelineDeal } from "@/lib/actions/pipeline"
 
 interface DealDrawerProps {
-  deal: Deal | null
+  deal: PipelineDeal | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onMarkActionDone: (dealId: string) => void
 }
 
-// Mock timeline data
-const mockTimeline = [
-  { type: "email", description: "Propuesta comercial enviada", date: "2026-01-20T10:30:00Z", user: "Ana García" },
-  { type: "reunion", description: "Demo del producto completada", date: "2026-01-18T15:00:00Z", user: "Ana García" },
-  { type: "llamada", description: "Llamada de seguimiento", date: "2026-01-15T11:00:00Z", user: "Carlos Martínez" },
-  { type: "email", description: "Material informativo enviado", date: "2026-01-12T09:00:00Z", user: "Carlos Martínez" },
-  { type: "reunion", description: "Discovery call inicial", date: "2026-01-10T14:00:00Z", user: "Carlos Martínez" },
-]
-
-// Mock KDM data
-const mockKdm = {
-  name: "Dr. Roberto Fernández",
-  title: "Director de Empleabilidad",
-  email: "rfernandez@empresa.com",
-  linkedin: "https://linkedin.com/in/rfernandez",
+interface Activity {
+  id: string
+  type: string
+  summary: string | null
+  description: string | null
+  date_time: string
+  created_at: string
+  owner_id: string | null
 }
 
 export function DealDrawer({
@@ -67,6 +65,57 @@ export function DealDrawer({
   onMarkActionDone,
 }: DealDrawerProps) {
   const { config } = useWorkspace()
+  const [kdmContacts, setKdmContacts] = useState<KDMContact[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [isLoadingKdm, setIsLoadingKdm] = useState(false)
+  const [isLoadingActivities, setIsLoadingActivities] = useState(false)
+  
+  // Extraer el ID real de la cuenta (quitar prefijo acc_ si existe)
+  const getAccountId = (dealId: string | undefined): string | null => {
+    if (!dealId) return null
+    if (dealId.startsWith("acc_")) {
+      return dealId.replace("acc_", "")
+    }
+    // Si es opp_, intentar obtener del accountId del deal
+    return null
+  }
+
+  // Cargar KDM y actividades cuando se abre el drawer
+  useEffect(() => {
+    if (open && deal) {
+      const accountId = getAccountId(deal.id) || deal.accountId
+      
+      if (accountId) {
+        // Cargar KDM
+        setIsLoadingKdm(true)
+        getKDMContactsByAccount(accountId)
+          .then(data => {
+            setKdmContacts(data || [])
+          })
+          .catch(err => {
+            console.error("Error loading KDM:", err)
+            setKdmContacts([])
+          })
+          .finally(() => setIsLoadingKdm(false))
+
+        // Cargar actividades
+        setIsLoadingActivities(true)
+        getActivitiesByAccount(accountId)
+          .then(data => {
+            setActivities((data || []).slice(0, 10) as Activity[])
+          })
+          .catch(err => {
+            console.error("Error loading activities:", err)
+            setActivities([])
+          })
+          .finally(() => setIsLoadingActivities(false))
+      }
+    } else {
+      // Limpiar cuando se cierra
+      setKdmContacts([])
+      setActivities([])
+    }
+  }, [open, deal])
   
   if (!deal) return null
 
@@ -109,20 +158,39 @@ export function DealDrawer({
     return labels[source] || source
   }
 
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "email":
+        return <Mail className="h-3 w-3" />
+      case "meeting":
+      case "reunion":
+        return <Calendar className="h-3 w-3" />
+      case "call":
+      case "llamada":
+        return <User className="h-3 w-3" />
+      default:
+        return <FileText className="h-3 w-3" />
+    }
+  }
+
+  // Obtener el KDM primario o el primero disponible
+  const primaryKdm = kdmContacts.find(k => k.is_primary) || kdmContacts[0]
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[450px] sm:max-w-[450px] overflow-y-auto">
-        <SheetHeader className="pb-4">
+      <SheetContent className="w-full sm:w-[480px] sm:max-w-[480px] p-0 flex flex-col h-full max-h-screen">
+        {/* Header fijo */}
+        <SheetHeader className="p-6 pb-4 border-b shrink-0">
           {/* Account Header */}
           <div className="flex items-start gap-3">
-            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
               <Building2 className="h-6 w-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
               <SheetTitle className="text-lg font-semibold truncate pr-8">
                 {deal.accountName}
               </SheetTitle>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <Badge variant="outline" className="text-xs">
                   {COUNTRY_FLAGS[deal.country]} {COUNTRY_NAMES[deal.country]}
                 </Badge>
@@ -134,212 +202,272 @@ export function DealDrawer({
           </div>
 
           {/* Owners */}
-          <div className="flex items-center gap-2 mt-3">
-            <Avatar className="h-7 w-7">
-              <AvatarFallback className="text-xs bg-primary/10">
-                {getInitials(deal.ownerName)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="text-sm">
-              <span className="font-medium">{deal.ownerName}</span>
-              <span className="text-muted-foreground ml-1">({deal.ownerRole})</span>
-            </div>
-          </div>
-        </SheetHeader>
-
-        <Separator className="my-4" />
-
-        {/* Next Action Block */}
-        <div className="space-y-3">
-          <h3 className="font-medium text-sm flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            Siguiente Acción
-          </h3>
-          
-          {deal.nextAction ? (
-            <div className={`p-3 rounded-lg border ${
-              isOverdue ? "bg-red-50 border-red-200" :
-              isToday ? "bg-amber-50 border-amber-200" :
-              "bg-slate-50 border-slate-200"
-            }`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium capitalize">{deal.nextAction.type}</span>
-                <Badge className={
-                  isOverdue ? "bg-red-500" :
-                  isToday ? "bg-amber-500" :
-                  "bg-slate-500"
-                }>
-                  {isOverdue ? "Vencida" : isToday ? "Hoy" : formatDate(deal.nextAction.date)}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground mb-3">
-                {deal.nextAction.description}
-              </p>
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  className="gap-1.5"
-                  onClick={() => onMarkActionDone(deal.id)}
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Marcar como hecha
-                </Button>
-                <Button size="sm" variant="outline" className="gap-1.5">
-                  <Plus className="h-4 w-4" />
-                  Nueva acción
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="p-3 rounded-lg border border-dashed bg-slate-50/50 text-center">
-              <p className="text-sm text-muted-foreground mb-2">Sin acción pendiente</p>
-              <Button size="sm" variant="outline" className="gap-1.5">
-                <Plus className="h-4 w-4" />
-                Crear acción
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <Separator className="my-4" />
-
-        {/* Deal Summary */}
-        <div className="space-y-3">
-          <h3 className="font-medium text-sm flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Resumen
-          </h3>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-100">
-              <div className="flex items-center gap-1.5 text-emerald-600 mb-1">
-                <DollarSign className="h-4 w-4" />
-                <span className="text-xs font-medium">MRR</span>
-              </div>
-              <span className="text-lg font-bold text-emerald-700">
-                ${deal.mrr.toLocaleString()}
-              </span>
-              <span className="text-xs text-emerald-600 ml-1">{deal.currency}</span>
-            </div>
-            
-            <div 
-              className="p-3 rounded-lg border"
-              style={{ 
-                backgroundColor: `${config.theme.primary}10`,
-                borderColor: `${config.theme.primary}20`
-              }}
-            >
-              <div className="flex items-center gap-1.5 mb-1" style={{ color: config.theme.primary }}>
-                <Target className="h-4 w-4" />
-                <span className="text-xs font-medium">Probabilidad</span>
-              </div>
-              <span className="text-lg font-bold" style={{ color: config.theme.primary }}>
-                {deal.probability}%
-              </span>
-            </div>
-            
-            {deal.expectedCloseDate && (
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                <div className="flex items-center gap-1.5 text-slate-600 mb-1">
-                  <Calendar className="h-4 w-4" />
-                  <span className="text-xs font-medium">Cierre esperado</span>
-                </div>
-                <span className="text-sm font-semibold">
-                  {formatDate(deal.expectedCloseDate)}
-                </span>
-              </div>
-            )}
-            
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-              <div className="flex items-center gap-1.5 text-slate-600 mb-1">
-                <MapPin className="h-4 w-4" />
-                <span className="text-xs font-medium">Fuente</span>
-              </div>
-              <span className="text-sm font-semibold capitalize">
-                {getSourceLabel(deal.source)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <Separator className="my-4" />
-
-        {/* KDM Contact */}
-        <div className="space-y-3">
-          <h3 className="font-medium text-sm flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Contacto Clave (KDM)
-          </h3>
-          
-          <div className="p-3 rounded-lg border bg-slate-50/50">
-            <div className="flex items-start gap-3">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-primary/10">
-                  {getInitials(mockKdm.name)}
+          {deal.ownerName && (
+            <div className="flex items-center gap-2 mt-3">
+              <Avatar className="h-7 w-7">
+                <AvatarFallback className="text-xs bg-primary/10">
+                  {getInitials(deal.ownerName)}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <p className="font-medium">{mockKdm.name}</p>
-                <p className="text-xs text-muted-foreground">{mockKdm.title}</p>
-                <div className="flex items-center gap-3 mt-2">
-                  <a href={`mailto:${mockKdm.email}`} className="flex items-center gap-1 text-xs text-primary hover:underline">
-                    <Mail className="h-3 w-3" />
-                    Email
-                  </a>
-                  <a href={mockKdm.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
-                    <ExternalLink className="h-3 w-3" />
-                    LinkedIn
-                  </a>
-                </div>
+              <div className="text-sm">
+                <span className="font-medium">{deal.ownerName}</span>
+                {deal.ownerRole && (
+                  <span className="text-muted-foreground ml-1">({deal.ownerRole})</span>
+                )}
               </div>
             </div>
-          </div>
-        </div>
+          )}
+        </SheetHeader>
 
-        <Separator className="my-4" />
-
-        {/* Timeline */}
-        <div className="space-y-3">
-          <h3 className="font-medium text-sm flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Últimas Actividades
-          </h3>
-          
-          <div className="space-y-3">
-            {mockTimeline.slice(0, 5).map((activity, idx) => (
-              <div key={idx} className="flex gap-3 text-sm">
-                <div className="flex flex-col items-center">
-                  <div className="h-2 w-2 rounded-full bg-primary mt-1.5" />
-                  {idx < mockTimeline.length - 1 && (
-                    <div className="w-px h-full bg-border flex-1 mt-1" />
-                  )}
-                </div>
-                <div className="pb-3">
-                  <p className="font-medium">{activity.description}</p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                    <span>{activity.user}</span>
-                    <span>•</span>
-                    <span>{getRelativeDate(activity.date)}</span>
+        {/* Contenido scrolleable */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="p-6 space-y-6">
+            {/* Next Action Block */}
+            <div className="space-y-3">
+              <h3 className="font-medium text-sm flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Siguiente Acción
+              </h3>
+              
+              {deal.nextAction ? (
+                <div className={`p-3 rounded-lg border ${
+                  isOverdue ? "bg-red-50 border-red-200" :
+                  isToday ? "bg-amber-50 border-amber-200" :
+                  "bg-slate-50 border-slate-200"
+                }`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium capitalize">{deal.nextAction.type}</span>
+                    <Badge className={
+                      isOverdue ? "bg-red-500" :
+                      isToday ? "bg-amber-500" :
+                      "bg-slate-500"
+                    }>
+                      {isOverdue ? "Vencida" : isToday ? "Hoy" : formatDate(deal.nextAction.date)}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {deal.nextAction.description}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      className="gap-1.5"
+                      onClick={() => onMarkActionDone(deal.id)}
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Marcar como hecha
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5">
+                      <Plus className="h-4 w-4" />
+                      Nueva acción
+                    </Button>
                   </div>
                 </div>
+              ) : (
+                <div className="p-3 rounded-lg border border-dashed bg-slate-50/50 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">Sin acción pendiente</p>
+                  <Button size="sm" variant="outline" className="gap-1.5">
+                    <Plus className="h-4 w-4" />
+                    Crear acción
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Deal Summary */}
+            <div className="space-y-3">
+              <h3 className="font-medium text-sm flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Resumen
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-100">
+                  <div className="flex items-center gap-1.5 text-emerald-600 mb-1">
+                    <DollarSign className="h-4 w-4" />
+                    <span className="text-xs font-medium">MRR</span>
+                  </div>
+                  <span className="text-lg font-bold text-emerald-700">
+                    ${deal.mrr.toLocaleString()}
+                  </span>
+                  <span className="text-xs text-emerald-600 ml-1">{deal.currency}</span>
+                </div>
+                
+                <div 
+                  className="p-3 rounded-lg border"
+                  style={{ 
+                    backgroundColor: `${config.theme.primary}10`,
+                    borderColor: `${config.theme.primary}20`
+                  }}
+                >
+                  <div className="flex items-center gap-1.5 mb-1" style={{ color: config.theme.primary }}>
+                    <Target className="h-4 w-4" />
+                    <span className="text-xs font-medium">Probabilidad</span>
+                  </div>
+                  <span className="text-lg font-bold" style={{ color: config.theme.primary }}>
+                    {deal.probability}%
+                  </span>
+                </div>
+                
+                {deal.expectedCloseDate && (
+                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-1.5 text-slate-600 mb-1">
+                      <Calendar className="h-4 w-4" />
+                      <span className="text-xs font-medium">Cierre esperado</span>
+                    </div>
+                    <span className="text-sm font-semibold">
+                      {formatDate(deal.expectedCloseDate)}
+                    </span>
+                  </div>
+                )}
+                
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
+                  <div className="flex items-center gap-1.5 text-slate-600 mb-1">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-xs font-medium">Fuente</span>
+                  </div>
+                  <span className="text-sm font-semibold capitalize">
+                    {getSourceLabel(deal.source)}
+                  </span>
+                </div>
               </div>
-            ))}
+            </div>
+
+            <Separator />
+
+            {/* KDM Contact - DATOS REALES */}
+            <div className="space-y-3">
+              <h3 className="font-medium text-sm flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Contacto Clave (KDM)
+              </h3>
+              
+              {isLoadingKdm ? (
+                <div className="p-4 rounded-lg border bg-slate-50/50 flex items-center justify-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Cargando...</span>
+                </div>
+              ) : primaryKdm ? (
+                <div className="p-3 rounded-lg border bg-slate-50/50">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-primary/10">
+                        {getInitials(`${primaryKdm.first_name} ${primaryKdm.last_name}`)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">
+                        {primaryKdm.first_name} {primaryKdm.last_name}
+                      </p>
+                      {primaryKdm.role_title && (
+                        <p className="text-xs text-muted-foreground truncate">{primaryKdm.role_title}</p>
+                      )}
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
+                        {primaryKdm.email && (
+                          <a 
+                            href={`mailto:${primaryKdm.email}`} 
+                            className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          >
+                            <Mail className="h-3 w-3" />
+                            Email
+                          </a>
+                        )}
+                        {primaryKdm.linkedin && (
+                          <a 
+                            href={primaryKdm.linkedin} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            LinkedIn
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {kdmContacts.length > 1 && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      +{kdmContacts.length - 1} contacto{kdmContacts.length > 2 ? "s" : ""} más
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 rounded-lg border border-dashed bg-slate-50/50 text-center">
+                  <UserX className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="text-sm text-muted-foreground mb-2">Sin KDM asignado</p>
+                  <Button size="sm" variant="outline" className="gap-1.5">
+                    <Plus className="h-4 w-4" />
+                    Asignar KDM
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Timeline - DATOS REALES */}
+            <div className="space-y-3">
+              <h3 className="font-medium text-sm flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Últimas Actividades
+              </h3>
+              
+              {isLoadingActivities ? (
+                <div className="p-4 rounded-lg border bg-slate-50/50 flex items-center justify-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Cargando...</span>
+                </div>
+              ) : activities.length > 0 ? (
+                <div className="space-y-3">
+                  {activities.map((activity, idx) => (
+                    <div key={activity.id} className="flex gap-3 text-sm">
+                      <div className="flex flex-col items-center">
+                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                          {getActivityIcon(activity.type)}
+                        </div>
+                        {idx < activities.length - 1 && (
+                          <div className="w-px h-full bg-border flex-1 mt-1" />
+                        )}
+                      </div>
+                      <div className="pb-3 flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {activity.summary || activity.description || activity.type}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                          <span className="capitalize">{activity.type}</span>
+                          <span>•</span>
+                          <span>{getRelativeDate(activity.date_time || activity.created_at)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 rounded-lg border border-dashed bg-slate-50/50 text-center">
+                  <Clock className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="text-sm text-muted-foreground">Aún no hay actividades registradas</p>
+                </div>
+              )}
+            </div>
+
+            {/* Lost Reason (if applicable) */}
+            {deal.status === "lost" && deal.lostReason && (
+              <>
+                <Separator />
+                <div className="p-3 rounded-lg bg-red-50 border border-red-100">
+                  <div className="flex items-center gap-2 text-red-600 mb-1">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">Motivo de pérdida</span>
+                  </div>
+                  <p className="text-sm text-red-700">{deal.lostReason}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
-
-        {/* Lost Reason (if applicable) */}
-        {deal.status === "lost" && deal.lostReason && (
-          <>
-            <Separator className="my-4" />
-            <div className="p-3 rounded-lg bg-red-50 border border-red-100">
-              <div className="flex items-center gap-2 text-red-600 mb-1">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">Motivo de pérdida</span>
-              </div>
-              <p className="text-sm text-red-700">{deal.lostReason}</p>
-            </div>
-          </>
-        )}
       </SheetContent>
     </Sheet>
   )
