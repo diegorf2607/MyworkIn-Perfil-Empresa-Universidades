@@ -119,8 +119,8 @@ export async function getAccounts(countryCode?: string, workspaceId: WorkspaceId
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
   } else {
-    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
-    query = query.or("workspace_id.is.null,workspace_id.eq.myworkin")
+    // Para myworkin: excluir datos de MKN
+    query = query.neq("workspace_id", "mkn")
   }
 
   if (countryCode) {
@@ -157,8 +157,8 @@ export async function getAccountsByStage(countryCode: string, stage: string, wor
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
   } else {
-    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
-    query = query.or("workspace_id.is.null,workspace_id.eq.myworkin")
+    // Para myworkin: excluir datos de MKN
+    query = query.neq("workspace_id", "mkn")
   }
 
   const { data, error } = await query.order("created_at", { ascending: false })

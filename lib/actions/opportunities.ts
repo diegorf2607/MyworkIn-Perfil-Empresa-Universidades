@@ -53,8 +53,8 @@ export async function getOpportunities(countryCode?: string, workspaceId: Worksp
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
   } else {
-    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
-    query = query.or("workspace_id.is.null,workspace_id.eq.myworkin")
+    // Para myworkin: excluir datos de MKN
+    query = query.neq("workspace_id", "mkn")
   }
 
   if (countryCode) {

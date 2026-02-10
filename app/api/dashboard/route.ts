@@ -21,8 +21,8 @@ export async function GET(request: Request) {
     if (workspaceId === "mkn") {
       countriesQuery = countriesQuery.eq("workspace_id", "mkn")
     } else {
-      // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
-      countriesQuery = countriesQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
+      // Para myworkin: excluir datos de MKN
+      countriesQuery = countriesQuery.neq("workspace_id", "mkn")
     }
     
     const { data: countries } = await countriesQuery
@@ -54,10 +54,10 @@ export async function GET(request: Request) {
       oppsQuery = oppsQuery.eq("workspace_id", "mkn")
       meetingsQuery = meetingsQuery.eq("workspace_id", "mkn")
     } else {
-      // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
-      accountsQuery = accountsQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
-      oppsQuery = oppsQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
-      meetingsQuery = meetingsQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
+      // Para myworkin: excluir datos de MKN
+      accountsQuery = accountsQuery.neq("workspace_id", "mkn")
+      oppsQuery = oppsQuery.neq("workspace_id", "mkn")
+      meetingsQuery = meetingsQuery.neq("workspace_id", "mkn")
     }
 
     if (!isGlobal) {

@@ -106,8 +106,8 @@ export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDe
   if (workspaceId === "mkn") {
     accountsQuery = accountsQuery.eq("workspace_id", "mkn")
   } else {
-    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
-    accountsQuery = accountsQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
+    // Para myworkin: excluir datos de MKN
+    accountsQuery = accountsQuery.neq("workspace_id", "mkn")
   }
 
   const { data: accounts, error: accError } = await accountsQuery
@@ -128,8 +128,8 @@ export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDe
   if (workspaceId === "mkn") {
     oppsQuery = oppsQuery.eq("workspace_id", "mkn")
   } else {
-    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
-    oppsQuery = oppsQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
+    // Para myworkin: excluir datos de MKN
+    oppsQuery = oppsQuery.neq("workspace_id", "mkn")
   }
 
   const { data: opportunities, error: oppsError } = await oppsQuery
@@ -277,8 +277,8 @@ export async function getPipelineTeamMembers(workspaceId?: string): Promise<Pipe
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
   } else {
-    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
-    query = query.or("workspace_id.is.null,workspace_id.eq.myworkin")
+    // Para myworkin: excluir datos de MKN
+    query = query.neq("workspace_id", "mkn")
   }
 
   const { data, error } = await query
@@ -528,8 +528,8 @@ export async function getPipelineCountries(workspaceId?: string): Promise<{ code
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
   } else {
-    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
-    query = query.or("workspace_id.is.null,workspace_id.eq.myworkin")
+    // Para myworkin: excluir datos de MKN
+    query = query.neq("workspace_id", "mkn")
   }
 
   const { data, error } = await query
