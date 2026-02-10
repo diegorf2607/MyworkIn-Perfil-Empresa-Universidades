@@ -95,18 +95,20 @@ export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDe
   
   // 1. Obtener cuentas en etapas sql y opp
   // For mkn: only include data explicitly marked with workspace_id = 'mkn'
-  // For myworkin: include ALL data (legacy data doesn't have workspace_id column)
+  // For myworkin: include legacy data (NULL) + myworkin data, EXCLUDE mkn data
   let accountsQuery = supabase
     .from("accounts")
     .select("*")
     .in("stage", ["sql", "opp"])
     .order("updated_at", { ascending: false })
   
-  // Filtrar por workspace - solo para MKN
+  // Filtrar por workspace
   if (workspaceId === "mkn") {
     accountsQuery = accountsQuery.eq("workspace_id", "mkn")
+  } else {
+    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
+    accountsQuery = accountsQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
   }
-  // No filter for myworkin - includes all existing/legacy data
 
   const { data: accounts, error: accError } = await accountsQuery
 
@@ -122,11 +124,13 @@ export async function getPipelineDeals(workspaceId?: string): Promise<PipelineDe
     .in("stage", ["won", "lost"])
     .order("updated_at", { ascending: false })
   
-  // Filtrar por workspace - solo para MKN
+  // Filtrar por workspace
   if (workspaceId === "mkn") {
     oppsQuery = oppsQuery.eq("workspace_id", "mkn")
+  } else {
+    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
+    oppsQuery = oppsQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
   }
-  // No filter for myworkin - includes all existing/legacy data
 
   const { data: opportunities, error: oppsError } = await oppsQuery
 
@@ -269,11 +273,13 @@ export async function getPipelineTeamMembers(workspaceId?: string): Promise<Pipe
     .eq("is_active", true)
     .order("name")
 
-  // Filtrar por workspace - solo para MKN
+  // Filtrar por workspace
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
+  } else {
+    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
+    query = query.or("workspace_id.is.null,workspace_id.eq.myworkin")
   }
-  // No filter for myworkin - includes all existing/legacy data
 
   const { data, error } = await query
 
@@ -518,11 +524,13 @@ export async function getPipelineCountries(workspaceId?: string): Promise<{ code
     .eq("active", true)
     .order("name")
 
-  // Filtrar por workspace - solo para MKN
+  // Filtrar por workspace
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
+  } else {
+    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
+    query = query.or("workspace_id.is.null,workspace_id.eq.myworkin")
   }
-  // No filter for myworkin - includes all existing/legacy data
 
   const { data, error } = await query
 

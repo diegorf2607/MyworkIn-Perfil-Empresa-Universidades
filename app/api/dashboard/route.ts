@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
     // Get active countries filtered by workspace
     // For mkn: only include countries with workspace_id = 'mkn'
-    // For myworkin: include ALL data (legacy data doesn't have workspace_id)
+    // For myworkin: include legacy data (NULL) + myworkin, EXCLUDE mkn data
     let countriesQuery = supabase
       .from("countries")
       .select("code, name, active")
@@ -20,8 +20,10 @@ export async function GET(request: Request) {
     
     if (workspaceId === "mkn") {
       countriesQuery = countriesQuery.eq("workspace_id", "mkn")
+    } else {
+      // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
+      countriesQuery = countriesQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
     }
-    // No filter for myworkin - includes all existing/legacy data
     
     const { data: countries } = await countriesQuery
 
@@ -41,18 +43,22 @@ export async function GET(request: Request) {
 
     // Build queries with workspace filter
     // For mkn: only include data with workspace_id = 'mkn'
-    // For myworkin: include ALL data (legacy data doesn't have workspace_id)
+    // For myworkin: include legacy data (NULL) + myworkin, EXCLUDE mkn data
     let accountsQuery = supabase.from("accounts").select("*")
     let oppsQuery = supabase.from("opportunities").select("id, stage, mrr, country_code")
     let meetingsQuery = supabase.from("meetings").select("*")
 
-    // Apply workspace filter - only for MKN
+    // Apply workspace filter
     if (workspaceId === "mkn") {
       accountsQuery = accountsQuery.eq("workspace_id", "mkn")
       oppsQuery = oppsQuery.eq("workspace_id", "mkn")
       meetingsQuery = meetingsQuery.eq("workspace_id", "mkn")
+    } else {
+      // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
+      accountsQuery = accountsQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
+      oppsQuery = oppsQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
+      meetingsQuery = meetingsQuery.or("workspace_id.is.null,workspace_id.eq.myworkin")
     }
-    // No filter for myworkin - includes all existing/legacy data
 
     if (!isGlobal) {
       accountsQuery = accountsQuery.eq("country_code", countryCode.toUpperCase())

@@ -46,14 +46,16 @@ export async function getOpportunities(countryCode?: string, workspaceId: Worksp
   
   // Use admin client to bypass RLS for read operations
   // For mkn: only include data explicitly marked with workspace_id = 'mkn'
-  // For myworkin: include ALL data (legacy data doesn't have workspace_id column)
+  // For myworkin: include legacy data (NULL) + myworkin, EXCLUDE mkn data
   const supabase = createAdminClient()
   let query = supabase.from("opportunities").select("*, accounts(name, city)")
   
   if (workspaceId === "mkn") {
     query = query.eq("workspace_id", "mkn")
+  } else {
+    // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
+    query = query.or("workspace_id.is.null,workspace_id.eq.myworkin")
   }
-  // No filter for myworkin - includes all existing/legacy data
 
   if (countryCode) {
     query = query.eq("country_code", countryCode)

@@ -44,11 +44,13 @@ export async function getMeetings(countryCode?: string, workspaceId: WorkspaceId
     let query = supabase.from("meetings").select("*, accounts(name, city)")
 
     // For MKN: only include meetings explicitly marked with workspace_id = 'mkn'
-    // For MyWorkIn: include ALL meetings (legacy data may have NULL workspace_id)
+    // For MyWorkIn: include legacy data (NULL) + myworkin, EXCLUDE mkn data
     if (workspaceId === "mkn") {
       query = query.eq("workspace_id", "mkn")
+    } else {
+      // Para myworkin: excluir datos de MKN, incluir legacy (NULL) y myworkin
+      query = query.or("workspace_id.is.null,workspace_id.eq.myworkin")
     }
-    // No workspace filter for myworkin - includes all existing/legacy data
 
     if (countryCode) {
       query = query.eq("country_code", countryCode)
